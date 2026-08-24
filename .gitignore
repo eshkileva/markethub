@@ -4,6 +4,7 @@ build
 coverage
 .turbo
 .vite
+.tanstack
 .DS_Store
 .env
 .env.local
@@ -12,6 +13,7 @@ coverage
 .playwright
 playwright-report
 test-results
+apps/web/src/app/routeTree.gen.ts
 *.tsbuildinfo
 .idea
 .vscode/*
