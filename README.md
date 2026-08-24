@@ -36,7 +36,9 @@ pnpm stack:up
 Приложение: http://localhost:8080  
 API через тот же origin: http://localhost:8080/v1 и `/ready`. MinIO по-прежнему http://localhost:9000.
 
-Остановка: `pnpm stack:down`. Для разработки с Vite по-прежнему `pnpm infra:up` и `pnpm dev`.
+Остановка: `pnpm stack:down`. Для разработки с Vite — `pnpm infra:up` и `pnpm dev`.
+
+Выкладка API на сервер и статики отдельно: [`docs/deploy.md`](docs/deploy.md).
 
 ## Учётки из seed
 
