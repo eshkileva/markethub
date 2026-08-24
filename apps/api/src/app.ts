@@ -72,7 +72,7 @@ export async function buildApp(deps: {
         callback(null, true);
         return;
       }
-      if (origin === deps.config.WEB_ORIGIN) {
+      if (deps.config.webOrigins.includes(origin)) {
         callback(null, true);
         return;
       }
