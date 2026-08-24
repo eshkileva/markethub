@@ -26,6 +26,18 @@ pnpm dev
 
 Нужны Docker (Postgres, Redis, MinIO) и Node 22+. RabbitMQ в `.env` по умолчанию выключен (`RABBITMQ_ENABLED=false`).
 
+## Стек в Docker (без `pnpm dev`)
+
+```bash
+cp .env.example .env
+pnpm stack:up
+```
+
+Приложение: http://localhost:8080  
+API через тот же origin: http://localhost:8080/v1 и `/ready`. MinIO по-прежнему http://localhost:9000.
+
+Остановка: `pnpm stack:down`. Для разработки с Vite по-прежнему `pnpm infra:up` и `pnpm dev`.
+
 ## Учётки из seed
 
 | Роль          | Email                       | Пароль       |

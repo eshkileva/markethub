@@ -55,10 +55,15 @@ services:
     image: minio/mc:latest
     depends_on:
       - minio
+    restart: 'no'
     entrypoint: >
       /bin/sh -c "
-      sleep 3;
-      mc alias set local http://minio:9000 markethub markethubsecret &&
+      i=0;
+      until mc alias set local http://minio:9000 markethub markethubsecret; do
+        i=$$((i+1));
+        if [ $$i -gt 15 ]; then exit 1; fi;
+        sleep 2;
+      done;
       mc mb --ignore-existing local/markethub &&
       mc anonymous set download local/markethub
       "
@@ -90,6 +95,69 @@ services:
     extra_hosts:
       - 'host.docker.internal:host-gateway'
     profiles: ['proxy']
+
+  api:
+    profiles: ['app']
+    build:
+      context: .
+      dockerfile: infra/docker/Dockerfile.api
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      API_HOST: 0.0.0.0
+      API_PORT: 3000
+      PUBLIC_API_URL: http://localhost:8080
+      WEB_ORIGIN: http://localhost:8080
+      DATABASE_URL: postgres://markethub:markethub@postgres:5432/markethub
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET:-change-me-to-a-long-random-string}
+      COOKIE_SECRET: ${COOKIE_SECRET:-change-me-cookie-secret}
+      REFRESH_COOKIE_NAME: mh_refresh
+      S3_ENDPOINT: http://minio:9000
+      S3_REGION: us-east-1
+      S3_BUCKET: markethub
+      S3_ACCESS_KEY: markethub
+      S3_SECRET_KEY: markethubsecret
+      S3_FORCE_PATH_STYLE: 'true'
+      S3_PUBLIC_URL: http://localhost:9000/markethub
+      RABBITMQ_ENABLED: 'false'
+      SEED_ON_START: ${SEED_ON_START:-true}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_started
+      minio-init:
+        condition: service_completed_successfully
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://127.0.0.1:3000/ready').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 40s
+
+  web:
+    profiles: ['app']
+    build:
+      context: .
+      dockerfile: infra/docker/Dockerfile.web
+      args:
+        VITE_API_URL: ''
+    restart: unless-stopped
+    ports:
+      - '8080:80'
+    depends_on:
+      api:
+        condition: service_healthy
 
 volumes:
   postgres_data:
