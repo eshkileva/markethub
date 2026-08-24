@@ -8,6 +8,7 @@ import {
   listingStatusLabels,
   type DealStatus,
 } from '@/entities/listing/model/status';
+import { ListingImage } from '@/entities/listing/ui/ListingImage';
 import { useAuthStore } from '@/shared/model/stores';
 import { Badge } from '@/shared/ui/badge';
 import { Button } from '@/shared/ui/button';
@@ -143,9 +144,9 @@ export function PurchasesPage() {
               <CardContent className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center">
                 <div className="bg-linear-to-br h-28 w-full shrink-0 overflow-hidden rounded-xl from-violet-100 to-slate-100 sm:h-24 sm:w-36">
                   {item.listing.imageUrl ? (
-                    <img
+                    <ListingImage
                       src={item.listing.imageUrl}
-                      alt=""
+                      alt={item.listing.title}
                       className="h-full w-full object-cover"
                     />
                   ) : (
