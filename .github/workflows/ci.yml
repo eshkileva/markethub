@@ -102,4 +102,5 @@ jobs:
           retention-days: 7
       - name: API logs on failure
         if: failure()
-        run: cat api.log
+        run: |
+          if [ -f api.log ]; then cat api.log; else echo 'API was not started'; fi

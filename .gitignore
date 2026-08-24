@@ -14,7 +14,6 @@ coverage
 playwright-report
 test-results
 apps/web/src/app/routeTree.gen.ts
-apps/api/drizzle/meta
 *.tsbuildinfo
 .idea
 .vscode/*
