@@ -31,12 +31,36 @@ const envSchema = z.object({
 
 export type AppConfig = z.infer<typeof envSchema> & {
   isDev: boolean;
+  webOrigins: string[];
 };
+
+export function parseWebOrigins(webOrigin: string): string[] {
+  const configured = webOrigin
+    .split(',')
+    .map((value) => value.trim().replace(/\/$/, ''))
+    .filter(Boolean);
+  const origins = new Set(configured);
+  for (const origin of configured) {
+    try {
+      const url = new URL(origin);
+      if (url.hostname.startsWith('www.')) {
+        url.hostname = url.hostname.slice(4);
+      } else {
+        url.hostname = `www.${url.hostname}`;
+      }
+      origins.add(url.origin);
+    } catch {
+      // ignore invalid origin entries
+    }
+  }
+  return [...origins];
+}
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
   const parsed = envSchema.parse(env);
   return {
     ...parsed,
     isDev: parsed.NODE_ENV !== 'production',
+    webOrigins: parseWebOrigins(parsed.WEB_ORIGIN),
   };
 }

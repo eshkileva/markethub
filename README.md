@@ -101,7 +101,7 @@ curl -sS https://api.kupilko.store/ready
 1. [vercel.com](https://vercel.com) → Add Project → этот GitHub-репозиторий.
 2. Root Directory: **корень репо**, не `apps/web`. Framework: Other. Node 22.
 3. Environment Variable: `VITE_API_URL` = `https://api.kupilko.store` (Production).
-4. Deploy. Потом Project → Settings → Domains → `kupilko.store`. `www` редиректить на apex.
+4. Deploy. Потом Project → Settings → Domains → `kupilko.store`. CORS пускает и apex, и `www`; редирект `www` → apex всё равно лучше.
 5. Apex в DNS — A/ALIAS, которые покажет Vercel.
 
 Не оставляй основной URL как `*.vercel.app`. Проверка: открыть `https://kupilko.store`, залогиниться `demo@markethub.local` / `password12`.
