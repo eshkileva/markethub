@@ -22,7 +22,9 @@
     "infra:up": "docker compose up -d postgres redis minio rabbitmq",
     "infra:down": "docker compose down",
     "stack:up": "docker compose --profile app up -d --build postgres redis minio minio-init api web",
-    "stack:down": "docker compose --profile app down"
+    "stack:down": "docker compose --profile app down",
+    "prod:up": "docker compose -f docker-compose.prod.yml up -d --build",
+    "prod:down": "docker compose -f docker-compose.prod.yml down"
   },
   "devDependencies": {
     "prettier": "^3.6.2",

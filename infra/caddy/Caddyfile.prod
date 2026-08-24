@@ -1,0 +1,13 @@
+{
+	email {$ACME_EMAIL}
+}
+
+{$API_SITE} {
+	encode gzip
+	reverse_proxy api:3000
+}
+
+{$MEDIA_SITE} {
+	encode gzip
+	reverse_proxy minio:9000
+}
