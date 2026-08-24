@@ -7,6 +7,7 @@ import { Card } from '@/shared/ui/card';
 import { Button } from '@/shared/ui/button';
 import { cn } from '@/shared/lib/cn';
 import { useFavoriteToggle } from '@/features/favorites/model/use-favorite-toggle';
+import { ListingImage } from '@/entities/listing/ui/ListingImage';
 
 export type ProductCardData = {
   id: string;
@@ -42,7 +43,11 @@ export function ProductCard({
         <Card className="flex overflow-hidden hover:shadow-md">
           <div className="relative h-28 w-40 shrink-0 bg-gradient-to-br from-violet-100 to-slate-100">
             {item.imageUrl ? (
-              <img src={item.imageUrl} alt={item.title} className="h-full w-full object-cover" />
+              <ListingImage
+                src={item.imageUrl}
+                alt={item.title}
+                className="h-full w-full object-cover"
+              />
             ) : (
               <div className="text-muted flex h-full items-center justify-center text-xs">
                 Нет фото
@@ -82,7 +87,11 @@ export function ProductCard({
         <Card className="overflow-hidden hover:shadow-md">
           <div className="relative aspect-[4/3] bg-gradient-to-br from-violet-100 to-slate-100">
             {item.imageUrl ? (
-              <img src={item.imageUrl} alt={item.title} className="h-full w-full object-cover" />
+              <ListingImage
+                src={item.imageUrl}
+                alt={item.title}
+                className="h-full w-full object-cover"
+              />
             ) : (
               <div className="text-muted flex h-full items-center justify-center text-sm">
                 Нет фото

@@ -5,6 +5,7 @@ import { Send } from 'lucide-react';
 import { apiRequest } from '@/shared/api/client';
 import { useAuthStore } from '@/shared/model/stores';
 import { useChatSocket } from '@/features/messaging/model/use-chat-socket';
+import { ListingImage } from '@/entities/listing/ui/ListingImage';
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Input } from '@/shared/ui/input';
@@ -144,9 +145,9 @@ export function MessagesPage() {
               >
                 <div className="h-11 w-11 shrink-0 overflow-hidden rounded-xl bg-slate-100">
                   {item.listing.imageUrl ? (
-                    <img
+                    <ListingImage
                       src={item.listing.imageUrl}
-                      alt=""
+                      alt={item.listing.title}
                       className="h-full w-full object-cover"
                     />
                   ) : null}

@@ -11,6 +11,7 @@ import {
   listingStatusLabels,
   type DealStatus,
 } from '@/entities/listing/model/status';
+import { ListingImage } from '@/entities/listing/ui/ListingImage';
 import { useAuthStore } from '@/shared/model/stores';
 import { Badge } from '@/shared/ui/badge';
 import { Button } from '@/shared/ui/button';
@@ -142,7 +143,11 @@ export function SalesPage() {
               <CardContent className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center">
                 <div className="h-28 w-full shrink-0 overflow-hidden rounded-xl bg-gradient-to-br from-violet-100 to-slate-100 sm:h-24 sm:w-36">
                   {item.imageUrl ? (
-                    <img src={item.imageUrl} alt="" className="h-full w-full object-cover" />
+                    <ListingImage
+                      src={item.imageUrl}
+                      alt={item.title}
+                      className="h-full w-full object-cover"
+                    />
                   ) : (
                     <div className="text-muted flex h-full items-center justify-center text-xs">
                       Нет фото

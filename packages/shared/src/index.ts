@@ -5,3 +5,4 @@ export * from './enums.js';
 export * from './schemas/index.js';
 export * from './trust-score.js';
 export * from './limits.js';
+export * from './demo-listing-image.js';

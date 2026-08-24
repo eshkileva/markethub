@@ -1,8 +1,10 @@
 import { config as loadDotenv } from 'dotenv';
 import path from 'node:path';
 import { eq } from 'drizzle-orm';
+import { demoListingImageSvg, isHotlinkPlaceholder } from '@markethub/shared';
 import { loadConfig } from '../../config/env.js';
 import { hashPassword } from '../../modules/auth/domain/crypto.js';
+import { createObjectStorage, type ObjectStorage } from '../storage/s3.js';
 import { createDatabase } from './client.js';
 import {
   authIdentities,
@@ -185,7 +187,18 @@ async function ensureDemoSeller(db: ReturnType<typeof createDatabase>['db']) {
   return user;
 }
 
-async function seedDemoListings(db: ReturnType<typeof createDatabase>['db']) {
+async function storeDemoImage(storage: ObjectStorage, slug: string, title: string) {
+  return storage.putObject(
+    `seed/${slug}.svg`,
+    Buffer.from(demoListingImageSvg(title, slug), 'utf8'),
+    'image/svg+xml',
+  );
+}
+
+async function seedDemoListings(
+  db: ReturnType<typeof createDatabase>['db'],
+  storage: ObjectStorage,
+) {
   const seller = await ensureDemoSeller(db);
   const cats = await db.select().from(categories);
   const bySlug = new Map(cats.map((item) => [item.slug, item]));
@@ -314,56 +327,86 @@ async function seedDemoListings(db: ReturnType<typeof createDatabase>['db']) {
   ];
 
   const existing = await db
-    .select({ title: listings.title })
+    .select({ id: listings.id, title: listings.title })
     .from(listings)
     .where(eq(listings.sellerId, seller.id));
-  const have = new Set(existing.map((row) => row.title));
+  const byTitle = new Map(existing.map((row) => [row.title, row.id]));
   let created = 0;
+  let updatedImages = 0;
 
   for (const item of demos) {
-    if (have.has(item.title)) continue;
     const category = bySlug.get(item.category);
     if (!category) continue;
-    const [listing] = await db
-      .insert(listings)
-      .values({
-        sellerId: seller.id,
-        categoryId: category.id,
-        title: item.title,
-        description: item.description,
-        price: item.price,
-        currency: item.currency,
-        country: item.country,
-        city: item.city,
-        condition: item.condition,
-        deliveryModes: item.deliveryModes,
-        status: 'published',
-        publishedAt: new Date(),
-      })
-      .returning();
-    if (!listing) continue;
-    await db.insert(listingImages).values({
-      listingId: listing.id,
-      url: `https://picsum.photos/seed/mh-${item.slug}/800/600`,
-      sortOrder: 0,
-    });
-    created += 1;
+    const stored = await storeDemoImage(storage, item.slug, item.title);
+    let listingId = byTitle.get(item.title);
+
+    if (!listingId) {
+      const [listing] = await db
+        .insert(listings)
+        .values({
+          sellerId: seller.id,
+          categoryId: category.id,
+          title: item.title,
+          description: item.description,
+          price: item.price,
+          currency: item.currency,
+          country: item.country,
+          city: item.city,
+          condition: item.condition,
+          deliveryModes: item.deliveryModes,
+          status: 'published',
+          publishedAt: new Date(),
+        })
+        .returning();
+      if (!listing) continue;
+      listingId = listing.id;
+      created += 1;
+      await db.insert(listingImages).values({
+        listingId,
+        url: stored.url,
+        sortOrder: 0,
+      });
+      continue;
+    }
+
+    const images = await db
+      .select({ id: listingImages.id, url: listingImages.url })
+      .from(listingImages)
+      .where(eq(listingImages.listingId, listingId));
+    const cover = images[0];
+    if (!cover) {
+      await db.insert(listingImages).values({
+        listingId,
+        url: stored.url,
+        sortOrder: 0,
+      });
+      updatedImages += 1;
+      continue;
+    }
+    if (isHotlinkPlaceholder(cover.url)) {
+      await db.update(listingImages).set({ url: stored.url }).where(eq(listingImages.id, cover.id));
+      updatedImages += 1;
+    }
   }
 
-  if (created === 0) {
+  if (created === 0 && updatedImages === 0) {
     console.log('Demo listings already seeded');
     return;
   }
-  console.log(`Seeded ${created} demo listings for ${DEMO_EMAIL}`);
+  console.log(
+    `Seeded ${created} demo listings and replaced ${updatedImages} placeholder images for ${DEMO_EMAIL}`,
+  );
 }
 
 async function main() {
   const config = loadConfig();
   const { db, client } = createDatabase(config);
+  const storage = createObjectStorage(config);
   try {
+    await storage.ensureBucket();
     await seedCategories(db);
     await ensureModerator(db);
-    await seedDemoListings(db);
+    await seedDemoListings(db, storage);
   } finally {
     await client.end();
   }
