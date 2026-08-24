@@ -1,0 +1,30 @@
+{
+  "name": "markethub",
+  "private": true,
+  "packageManager": "pnpm@10.33.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @markethub/api --filter @markethub/web --parallel dev",
+    "dev:web": "pnpm --filter @markethub/web dev",
+    "dev:api": "pnpm --filter @markethub/api dev",
+    "build": "pnpm --filter @markethub/shared build && pnpm --filter @markethub/api --filter @markethub/web build",
+    "lint": "pnpm -r --if-present lint",
+    "typecheck": "pnpm -r --if-present typecheck",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "pnpm -r --if-present test",
+    "test:e2e": "pnpm --filter @markethub/web test:e2e",
+    "db:generate": "pnpm --filter @markethub/api db:generate",
+    "db:migrate": "pnpm --filter @markethub/api db:migrate",
+    "db:seed": "pnpm --filter @markethub/api db:seed",
+    "infra:up": "docker compose up -d postgres redis minio rabbitmq",
+    "infra:down": "docker compose down"
+  },
+  "devDependencies": {
+    "prettier": "^3.6.2",
+    "prettier-plugin-tailwindcss": "^0.6.14",
+    "typescript": "^5.9.2"
+  }
+}

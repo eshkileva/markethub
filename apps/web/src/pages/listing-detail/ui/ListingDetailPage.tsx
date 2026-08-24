@@ -1,0 +1,206 @@
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { Link, useNavigate } from '@tanstack/react-router';
+import { Heart } from 'lucide-react';
+import { formatMoney } from '@markethub/shared';
+import { apiRequest } from '@/shared/api/client';
+import { useAuthStore } from '@/shared/model/stores';
+import { useFavoriteToggle } from '@/features/favorites/model/use-favorite-toggle';
+import { mapDealError, useListingDeal } from '@/features/listings/model/use-listing-deal';
+import { ListingDealActions } from '@/features/listings/ui/ListingDealActions';
+import { deliveryModeLabels, listingConditionLabels } from '@/entities/listing/model/labels';
+import { listingStatusLabels } from '@/entities/listing/model/status';
+import { Badge } from '@/shared/ui/badge';
+import { Button } from '@/shared/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
+import { cn } from '@/shared/lib/cn';
+import { LeaveReviewCard } from '@/features/reviews/ui/LeaveReviewCard';
+import { ReportForm } from '@/features/reports/ui/ReportForm';
+import type { ListingDetail } from '@/pages/listing-detail/model/types';
+import { ListingAttributes } from '@/pages/listing-detail/ui/ListingAttributes';
+import { ListingGallery } from '@/pages/listing-detail/ui/ListingGallery';
+
+export function ListingDetailPage({ listingId }: { listingId: string }) {
+  const token = useAuthStore((s) => s.accessToken);
+  const user = useAuthStore((s) => s.user);
+  const navigate = useNavigate();
+  const favorite = useFavoriteToggle();
+  const deal = useListingDeal();
+
+  const listingQuery = useQuery({
+    queryKey: ['listing', listingId, token],
+    queryFn: () => apiRequest<ListingDetail>(`/v1/listings/${listingId}`, { token }),
+  });
+
+  const startChat = useMutation({
+    mutationFn: () =>
+      apiRequest<{ id: string }>('/v1/conversations', {
+        method: 'POST',
+        token,
+        body: { listingId },
+      }),
+    onSuccess: (conversation) =>
+      navigate({ to: '/messages', search: { conversation: conversation.id } }),
+  });
+
+  if (listingQuery.isLoading) {
+    return <Card className="h-80 animate-pulse bg-slate-100" />;
+  }
+
+  if (listingQuery.isError || !listingQuery.data) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Объявление не найдено</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Button asChild variant="secondary">
+            <Link to="/">На главную</Link>
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const listing = listingQuery.data;
+  const isOwner = listing.seller?.id === user?.id;
+
+  return (
+    <div className="grid gap-6 lg:grid-cols-[1.6fr_1fr]">
+      <div className="space-y-4">
+        <ListingGallery key={listing.id} title={listing.title} images={listing.images} />
+        <ListingAttributes items={listing.attributes ?? []} />
+        <Card>
+          <CardHeader>
+            <CardTitle>Описание</CardTitle>
+          </CardHeader>
+          <CardContent className="text-foreground whitespace-pre-wrap text-sm leading-relaxed">
+            {listing.description}
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="space-y-4">
+        <Card>
+          <CardContent className="space-y-4 p-6">
+            <div className="flex items-center gap-2">
+              <Badge className="bg-primary/10 text-primary">
+                {listingStatusLabels[listing.status]}
+              </Badge>
+              <Badge className="text-muted bg-slate-100">
+                {listingConditionLabels[listing.condition]}
+              </Badge>
+            </div>
+            {listing.status === 'reserved' ? (
+              <p className="text-muted text-sm">Скрыто из каталога, пока действует бронь.</p>
+            ) : null}
+            <h1 className="text-2xl font-bold tracking-tight">{listing.title}</h1>
+            <div>
+              <div className="text-3xl font-semibold tabular-nums">
+                {formatMoney(listing.price, listing.currency)}
+              </div>
+              <div className="text-muted mt-1 text-sm">
+                ≈ {formatMoney(listing.converted.BYN, 'BYN')} ·{' '}
+                {formatMoney(listing.converted.RUB, 'RUB')} ·{' '}
+                {formatMoney(listing.converted.KZT, 'KZT')}
+              </div>
+            </div>
+            <div className="text-muted text-sm">
+              {listing.city}, {listing.country}
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {listing.deliveryModes.map((mode) => (
+                <Badge key={mode} className="bg-blue-50 text-blue-700">
+                  {deliveryModeLabels[mode]}
+                </Badge>
+              ))}
+            </div>
+            <div className="space-y-2">
+              <div className="flex gap-2">
+                {isOwner ? (
+                  listing.status === 'sold' ? (
+                    <Button className="flex-1" disabled>
+                      Продано
+                    </Button>
+                  ) : (
+                    <Button className="flex-1" asChild>
+                      <Link to="/listings/$id/edit" params={{ id: listing.id }}>
+                        Редактировать
+                      </Link>
+                    </Button>
+                  )
+                ) : (
+                  <Button
+                    className="flex-1"
+                    disabled={startChat.isPending}
+                    onClick={() => {
+                      if (!token) {
+                        void navigate({ to: '/auth' });
+                        return;
+                      }
+                      startChat.mutate();
+                    }}
+                  >
+                    Написать продавцу
+                  </Button>
+                )}
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="icon"
+                  aria-label={listing.isFavorite ? 'Убрать из избранного' : 'В избранное'}
+                  onClick={() =>
+                    favorite.mutate({ listingId: listing.id, next: !listing.isFavorite })
+                  }
+                >
+                  <Heart
+                    className={cn('h-4 w-4', listing.isFavorite && 'fill-primary text-primary')}
+                  />
+                </Button>
+              </div>
+              {isOwner ? (
+                <div className="flex flex-wrap gap-2">
+                  <ListingDealActions
+                    listingId={listing.id}
+                    status={listing.status}
+                    deal={deal}
+                    size="default"
+                  />
+                </div>
+              ) : null}
+              {isOwner && deal.error ? (
+                <p className="text-danger text-sm">{mapDealError(deal.error.message)}</p>
+              ) : null}
+            </div>
+          </CardContent>
+        </Card>
+
+        {listing.seller ? (
+          <>
+            <Card>
+              <CardHeader>
+                <CardTitle>Продавец</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2 text-sm">
+                <Link
+                  to="/profile/$username"
+                  params={{ username: listing.seller.username }}
+                  className="text-primary font-medium"
+                >
+                  {listing.seller.displayName ?? listing.seller.username}
+                </Link>
+                <div className="text-muted">
+                  Trust Score {listing.seller.trustScore}
+                  {listing.seller.isVerified ? ' · проверен' : ''}
+                </div>
+              </CardContent>
+            </Card>
+            <LeaveReviewCard listingId={listing.id} sellerId={listing.seller.id} />
+            {user?.id !== listing.seller.id ? (
+              <ReportForm listingId={listing.id} userId={listing.seller.id} />
+            ) : null}
+          </>
+        ) : null}
+      </div>
+    </div>
+  );
+}
