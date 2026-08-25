@@ -1,10 +1,14 @@
 import {
+  Baby,
   Bike,
+  Briefcase,
   Car,
   Cpu,
   Flower2,
+  HandHelping,
   Home,
   Monitor,
+  PawPrint,
   Shirt,
   Smartphone,
   WashingMachine,
@@ -21,4 +25,8 @@ export const categoryIcons: Record<string, LucideIcon> = {
   hobby: Bike,
   fashion: Shirt,
   'home-garden': Flower2,
+  kids: Baby,
+  animals: PawPrint,
+  services: HandHelping,
+  jobs: Briefcase,
 };

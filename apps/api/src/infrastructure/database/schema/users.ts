@@ -1,5 +1,7 @@
+import { sql } from 'drizzle-orm';
 import {
   boolean,
+  check,
   index,
   integer,
   pgTable,
@@ -34,5 +36,6 @@ export const users = pgTable(
     uniqueIndex('users_username_uidx').on(table.username),
     uniqueIndex('users_phone_uidx').on(table.phone),
     index('users_country_idx').on(table.country),
+    check('users_country_chk', sql`${table.country} in ('BY', 'RU', 'KZ')`),
   ],
 );

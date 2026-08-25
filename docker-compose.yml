@@ -123,6 +123,11 @@ services:
       S3_PUBLIC_URL: http://localhost:9000/markethub
       RABBITMQ_ENABLED: 'false'
       SEED_ON_START: ${SEED_ON_START:-true}
+      GEOHELPER_API_KEY: ${GEOHELPER_API_KEY:-}
+      CURRENCYAPI_KEY: ${CURRENCYAPI_KEY:-}
+      MOBILEAPI_KEY: ${MOBILEAPI_KEY:-}
+      APIFY_TOKEN: ${APIFY_TOKEN:-}
+      FX_CACHE_TTL_SECONDS: ${FX_CACHE_TTL_SECONDS:-3600}
     depends_on:
       postgres:
         condition: service_healthy

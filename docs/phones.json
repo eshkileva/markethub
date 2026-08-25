@@ -1,0 +1,1360 @@
+[
+  {
+    "id": "apple",
+    "name": "Apple",
+    "models": [
+      {
+        "id": "iphone-11",
+        "name": "iPhone 11"
+      },
+      {
+        "id": "iphone-12",
+        "name": "iPhone 12"
+      },
+      {
+        "id": "iphone-13",
+        "name": "iPhone 13"
+      },
+      {
+        "id": "iphone-14",
+        "name": "iPhone 14"
+      },
+      {
+        "id": "iphone-15",
+        "name": "iPhone 15"
+      },
+      {
+        "id": "iphone-16",
+        "name": "iPhone 16"
+      },
+      {
+        "id": "iphone-16-pro",
+        "name": "iPhone 16 Pro"
+      },
+      {
+        "id": "iphone-16-pro-max",
+        "name": "iPhone 16 Pro Max"
+      },
+      {
+        "id": "iphone-se-2022",
+        "name": "iPhone SE (2022)"
+      },
+      {
+        "id": "iphone-se-2024",
+        "name": "iPhone SE (2024)"
+      }
+    ]
+  },
+  {
+    "id": "samsung",
+    "name": "Samsung",
+    "models": [
+      {
+        "id": "galaxy-a15",
+        "name": "Galaxy A15"
+      },
+      {
+        "id": "galaxy-a25",
+        "name": "Galaxy A25"
+      },
+      {
+        "id": "galaxy-a35",
+        "name": "Galaxy A35"
+      },
+      {
+        "id": "galaxy-a55",
+        "name": "Galaxy A55"
+      },
+      {
+        "id": "galaxy-a54",
+        "name": "Galaxy A54"
+      },
+      {
+        "id": "galaxy-s23",
+        "name": "Galaxy S23"
+      },
+      {
+        "id": "galaxy-s24",
+        "name": "Galaxy S24"
+      },
+      {
+        "id": "galaxy-s24-ultra",
+        "name": "Galaxy S24 Ultra"
+      },
+      {
+        "id": "galaxy-s25",
+        "name": "Galaxy S25"
+      },
+      {
+        "id": "galaxy-s25-ultra",
+        "name": "Galaxy S25 Ultra"
+      },
+      {
+        "id": "galaxy-z-flip5",
+        "name": "Galaxy Z Flip5"
+      },
+      {
+        "id": "galaxy-z-flip6",
+        "name": "Galaxy Z Flip6"
+      },
+      {
+        "id": "galaxy-z-fold5",
+        "name": "Galaxy Z Fold5"
+      },
+      {
+        "id": "galaxy-z-fold6",
+        "name": "Galaxy Z Fold6"
+      }
+    ]
+  },
+  {
+    "id": "xiaomi",
+    "name": "Xiaomi",
+    "models": [
+      {
+        "id": "redmi-note-12",
+        "name": "Redmi Note 12"
+      },
+      {
+        "id": "redmi-note-13",
+        "name": "Redmi Note 13"
+      },
+      {
+        "id": "redmi-note-13-pro",
+        "name": "Redmi Note 13 Pro"
+      },
+      {
+        "id": "redmi-13",
+        "name": "Redmi 13"
+      },
+      {
+        "id": "redmi-13c",
+        "name": "Redmi 13C"
+      },
+      {
+        "id": "poco-x6",
+        "name": "POCO X6"
+      },
+      {
+        "id": "poco-x6-pro",
+        "name": "POCO X6 Pro"
+      },
+      {
+        "id": "poco-f6",
+        "name": "POCO F6"
+      },
+      {
+        "id": "poco-m6",
+        "name": "POCO M6"
+      },
+      {
+        "id": "xiaomi-13",
+        "name": "Xiaomi 13"
+      },
+      {
+        "id": "xiaomi-14",
+        "name": "Xiaomi 14"
+      },
+      {
+        "id": "xiaomi-14-ultra",
+        "name": "Xiaomi 14 Ultra"
+      },
+      {
+        "id": "xiaomi-15",
+        "name": "Xiaomi 15"
+      }
+    ]
+  },
+  {
+    "id": "huawei",
+    "name": "Huawei",
+    "models": [
+      {
+        "id": "pura-70",
+        "name": "Pura 70"
+      },
+      {
+        "id": "pura-70-pro",
+        "name": "Pura 70 Pro"
+      },
+      {
+        "id": "pura-70-ultra",
+        "name": "Pura 70 Ultra"
+      },
+      {
+        "id": "nova-12",
+        "name": "nova 12"
+      },
+      {
+        "id": "nova-12-pro",
+        "name": "nova 12 Pro"
+      },
+      {
+        "id": "nova-13",
+        "name": "nova 13"
+      },
+      {
+        "id": "mate-60-pro",
+        "name": "Mate 60 Pro"
+      },
+      {
+        "id": "p60-pro",
+        "name": "P60 Pro"
+      }
+    ]
+  },
+  {
+    "id": "honor",
+    "name": "Honor",
+    "models": [
+      {
+        "id": "honor-90",
+        "name": "Honor 90"
+      },
+      {
+        "id": "honor-200",
+        "name": "Honor 200"
+      },
+      {
+        "id": "honor-200-pro",
+        "name": "Honor 200 Pro"
+      },
+      {
+        "id": "honor-magic6",
+        "name": "Honor Magic6"
+      },
+      {
+        "id": "honor-magic6-pro",
+        "name": "Honor Magic6 Pro"
+      },
+      {
+        "id": "honor-x7b",
+        "name": "Honor X7b"
+      },
+      {
+        "id": "honor-x8b",
+        "name": "Honor X8b"
+      },
+      {
+        "id": "honor-x9b",
+        "name": "Honor X9b"
+      }
+    ]
+  },
+  {
+    "id": "google",
+    "name": "Google",
+    "models": [
+      {
+        "id": "pixel-7a",
+        "name": "Pixel 7a"
+      },
+      {
+        "id": "pixel-8",
+        "name": "Pixel 8"
+      },
+      {
+        "id": "pixel-8-pro",
+        "name": "Pixel 8 Pro"
+      },
+      {
+        "id": "pixel-8a",
+        "name": "Pixel 8a"
+      },
+      {
+        "id": "pixel-9",
+        "name": "Pixel 9"
+      },
+      {
+        "id": "pixel-9-pro",
+        "name": "Pixel 9 Pro"
+      },
+      {
+        "id": "pixel-9-pro-xl",
+        "name": "Pixel 9 Pro XL"
+      },
+      {
+        "id": "pixel-fold",
+        "name": "Pixel Fold"
+      }
+    ]
+  },
+  {
+    "id": "oneplus",
+    "name": "OnePlus",
+    "models": [
+      {
+        "id": "oneplus-nord-ce-3",
+        "name": "OnePlus Nord CE 3"
+      },
+      {
+        "id": "oneplus-nord-4",
+        "name": "OnePlus Nord 4"
+      },
+      {
+        "id": "oneplus-12",
+        "name": "OnePlus 12"
+      },
+      {
+        "id": "oneplus-12r",
+        "name": "OnePlus 12R"
+      },
+      {
+        "id": "oneplus-13",
+        "name": "OnePlus 13"
+      },
+      {
+        "id": "oneplus-open",
+        "name": "OnePlus Open"
+      }
+    ]
+  },
+  {
+    "id": "oppo",
+    "name": "OPPO",
+    "models": [
+      {
+        "id": "oppo-a58",
+        "name": "OPPO A58"
+      },
+      {
+        "id": "oppo-a78",
+        "name": "OPPO A78"
+      },
+      {
+        "id": "oppo-reno11",
+        "name": "OPPO Reno11"
+      },
+      {
+        "id": "oppo-reno12",
+        "name": "OPPO Reno12"
+      },
+      {
+        "id": "oppo-reno12-pro",
+        "name": "OPPO Reno12 Pro"
+      },
+      {
+        "id": "oppo-find-x6-pro",
+        "name": "OPPO Find X6 Pro"
+      },
+      {
+        "id": "oppo-find-x7-ultra",
+        "name": "OPPO Find X7 Ultra"
+      }
+    ]
+  },
+  {
+    "id": "vivo",
+    "name": "vivo",
+    "models": [
+      {
+        "id": "vivo-y28",
+        "name": "vivo Y28"
+      },
+      {
+        "id": "vivo-y36",
+        "name": "vivo Y36"
+      },
+      {
+        "id": "vivo-v30",
+        "name": "vivo V30"
+      },
+      {
+        "id": "vivo-v30-pro",
+        "name": "vivo V30 Pro"
+      },
+      {
+        "id": "vivo-x100",
+        "name": "vivo X100"
+      },
+      {
+        "id": "vivo-x100-pro",
+        "name": "vivo X100 Pro"
+      },
+      {
+        "id": "vivo-x200-pro",
+        "name": "vivo X200 Pro"
+      },
+      {
+        "id": "iqoo-12",
+        "name": "iQOO 12"
+      },
+      {
+        "id": "iqoo-neo9-pro",
+        "name": "iQOO Neo9 Pro"
+      },
+      {
+        "id": "iqoo-z9",
+        "name": "iQOO Z9"
+      }
+    ]
+  },
+  {
+    "id": "realme",
+    "name": "Realme",
+    "models": [
+      {
+        "id": "realme-c55",
+        "name": "Realme C55"
+      },
+      {
+        "id": "realme-c67",
+        "name": "Realme C67"
+      },
+      {
+        "id": "realme-11",
+        "name": "Realme 11"
+      },
+      {
+        "id": "realme-12",
+        "name": "Realme 12"
+      },
+      {
+        "id": "realme-12-pro",
+        "name": "Realme 12 Pro"
+      },
+      {
+        "id": "realme-gt-6",
+        "name": "Realme GT 6"
+      },
+      {
+        "id": "realme-gt-neo6",
+        "name": "Realme GT Neo6"
+      }
+    ]
+  },
+  {
+    "id": "motorola",
+    "name": "Motorola",
+    "models": [
+      {
+        "id": "moto-g04",
+        "name": "Moto G04"
+      },
+      {
+        "id": "moto-g14",
+        "name": "Moto G14"
+      },
+      {
+        "id": "moto-g34",
+        "name": "Moto G34"
+      },
+      {
+        "id": "moto-g54",
+        "name": "Moto G54"
+      },
+      {
+        "id": "moto-g84",
+        "name": "Moto G84"
+      },
+      {
+        "id": "moto-edge-40",
+        "name": "Moto Edge 40"
+      },
+      {
+        "id": "moto-edge-50",
+        "name": "Moto Edge 50"
+      },
+      {
+        "id": "moto-edge-50-pro",
+        "name": "Moto Edge 50 Pro"
+      },
+      {
+        "id": "razr-40",
+        "name": "Razr 40"
+      },
+      {
+        "id": "razr-50",
+        "name": "Razr 50"
+      }
+    ]
+  },
+  {
+    "id": "nokia",
+    "name": "Nokia",
+    "models": [
+      {
+        "id": "nokia-g22",
+        "name": "Nokia G22"
+      },
+      {
+        "id": "nokia-g42",
+        "name": "Nokia G42"
+      },
+      {
+        "id": "nokia-x30",
+        "name": "Nokia X30"
+      },
+      {
+        "id": "nokia-xr21",
+        "name": "Nokia XR21"
+      },
+      {
+        "id": "nokia-c32",
+        "name": "Nokia C32"
+      },
+      {
+        "id": "nokia-105-4g",
+        "name": "Nokia 105 4G"
+      }
+    ]
+  },
+  {
+    "id": "sony",
+    "name": "Sony",
+    "models": [
+      {
+        "id": "xperia-10-v",
+        "name": "Xperia 10 V"
+      },
+      {
+        "id": "xperia-10-vi",
+        "name": "Xperia 10 VI"
+      },
+      {
+        "id": "xperia-5-v",
+        "name": "Xperia 5 V"
+      },
+      {
+        "id": "xperia-1-vi",
+        "name": "Xperia 1 VI"
+      },
+      {
+        "id": "xperia-pro-i",
+        "name": "Xperia Pro-I"
+      }
+    ]
+  },
+  {
+    "id": "asus",
+    "name": "ASUS",
+    "models": [
+      {
+        "id": "zenfone-10",
+        "name": "Zenfone 10"
+      },
+      {
+        "id": "zenfone-11-ultra",
+        "name": "Zenfone 11 Ultra"
+      },
+      {
+        "id": "rog-phone-7",
+        "name": "ROG Phone 7"
+      },
+      {
+        "id": "rog-phone-8",
+        "name": "ROG Phone 8"
+      },
+      {
+        "id": "rog-phone-8-pro",
+        "name": "ROG Phone 8 Pro"
+      }
+    ]
+  },
+  {
+    "id": "nothing",
+    "name": "Nothing",
+    "models": [
+      {
+        "id": "nothing-phone-1",
+        "name": "Nothing Phone (1)"
+      },
+      {
+        "id": "nothing-phone-2",
+        "name": "Nothing Phone (2)"
+      },
+      {
+        "id": "nothing-phone-2a",
+        "name": "Nothing Phone (2a)"
+      },
+      {
+        "id": "nothing-phone-2a-plus",
+        "name": "Nothing Phone (2a) Plus"
+      },
+      {
+        "id": "nothing-cmf-phone-1",
+        "name": "Nothing CMF Phone 1"
+      }
+    ]
+  },
+  {
+    "id": "tecno",
+    "name": "Tecno",
+    "models": [
+      {
+        "id": "spark-20",
+        "name": "Spark 20"
+      },
+      {
+        "id": "spark-20-pro",
+        "name": "Spark 20 Pro"
+      },
+      {
+        "id": "camon-30",
+        "name": "Camon 30"
+      },
+      {
+        "id": "camon-30-premier",
+        "name": "Camon 30 Premier"
+      },
+      {
+        "id": "pova-6",
+        "name": "Pova 6"
+      },
+      {
+        "id": "pova-6-pro",
+        "name": "Pova 6 Pro"
+      }
+    ]
+  },
+  {
+    "id": "infinix",
+    "name": "Infinix",
+    "models": [
+      {
+        "id": "hot-40",
+        "name": "Hot 40"
+      },
+      {
+        "id": "hot-40-pro",
+        "name": "Hot 40 Pro"
+      },
+      {
+        "id": "note-40",
+        "name": "Note 40"
+      },
+      {
+        "id": "note-40-pro",
+        "name": "Note 40 Pro"
+      },
+      {
+        "id": "zero-30",
+        "name": "Zero 30"
+      },
+      {
+        "id": "zero-40",
+        "name": "Zero 40"
+      }
+    ]
+  },
+  {
+    "id": "zte",
+    "name": "ZTE",
+    "models": [
+      {
+        "id": "blade-a54",
+        "name": "Blade A54"
+      },
+      {
+        "id": "blade-v50",
+        "name": "Blade V50"
+      },
+      {
+        "id": "blade-v50-vita",
+        "name": "Blade V50 Vita"
+      },
+      {
+        "id": "nubia-z60-ultra",
+        "name": "nubia Z60 Ultra"
+      },
+      {
+        "id": "nubia-redmagic-9-pro",
+        "name": "nubia RedMagic 9 Pro"
+      }
+    ]
+  },
+  {
+    "id": "meizu",
+    "name": "Meizu",
+    "models": [
+      {
+        "id": "meizu-21",
+        "name": "Meizu 21"
+      },
+      {
+        "id": "meizu-21-pro",
+        "name": "Meizu 21 Pro"
+      },
+      {
+        "id": "meizu-note-21",
+        "name": "Meizu Note 21"
+      }
+    ]
+  },
+  {
+    "id": "lg",
+    "name": "LG",
+    "models": [
+      {
+        "id": "lg-velvet",
+        "name": "LG Velvet"
+      },
+      {
+        "id": "lg-wing",
+        "name": "LG Wing"
+      },
+      {
+        "id": "lg-k52",
+        "name": "LG K52"
+      },
+      {
+        "id": "lg-q92",
+        "name": "LG Q92"
+      }
+    ]
+  },
+  {
+    "id": "htc",
+    "name": "HTC",
+    "models": [
+      {
+        "id": "htc-u23",
+        "name": "HTC U23"
+      },
+      {
+        "id": "htc-u23-pro",
+        "name": "HTC U23 Pro"
+      },
+      {
+        "id": "htc-desire-22-pro",
+        "name": "HTC Desire 22 Pro"
+      }
+    ]
+  },
+  {
+    "id": "blackview",
+    "name": "Blackview",
+    "models": [
+      {
+        "id": "bv6200",
+        "name": "BV6200"
+      },
+      {
+        "id": "bv5300-pro",
+        "name": "BV5300 Pro"
+      },
+      {
+        "id": "bv9300",
+        "name": "BV9300"
+      },
+      {
+        "id": "a96",
+        "name": "A96"
+      },
+      {
+        "id": "shark-8",
+        "name": "SHARK 8"
+      }
+    ]
+  },
+  {
+    "id": "doogee",
+    "name": "Doogee",
+    "models": [
+      {
+        "id": "s100-pro",
+        "name": "S100 Pro"
+      },
+      {
+        "id": "s110",
+        "name": "S110"
+      },
+      {
+        "id": "v30-pro",
+        "name": "V30 Pro"
+      },
+      {
+        "id": "v31gt",
+        "name": "V31GT"
+      },
+      {
+        "id": "blade-10",
+        "name": "Blade 10"
+      }
+    ]
+  },
+  {
+    "id": "ulefone",
+    "name": "Ulefone",
+    "models": [
+      {
+        "id": "armor-24",
+        "name": "Armor 24"
+      },
+      {
+        "id": "armor-26-ultra",
+        "name": "Armor 26 Ultra"
+      },
+      {
+        "id": "power-armor-18t",
+        "name": "Power Armor 18T"
+      },
+      {
+        "id": "note-16-pro",
+        "name": "Note 16 Pro"
+      }
+    ]
+  },
+  {
+    "id": "cubot",
+    "name": "Cubot",
+    "models": [
+      {
+        "id": "kingkong-9",
+        "name": "KingKong 9"
+      },
+      {
+        "id": "kingkong-star",
+        "name": "KingKong Star"
+      },
+      {
+        "id": "p80",
+        "name": "P80"
+      },
+      {
+        "id": "note-21",
+        "name": "Note 21"
+      }
+    ]
+  },
+  {
+    "id": "itel",
+    "name": "itel",
+    "models": [
+      {
+        "id": "itel-s23",
+        "name": "itel S23"
+      },
+      {
+        "id": "itel-s24",
+        "name": "itel S24"
+      },
+      {
+        "id": "itel-p55",
+        "name": "itel P55"
+      },
+      {
+        "id": "itel-a70",
+        "name": "itel A70"
+      }
+    ]
+  },
+  {
+    "id": "fairphone",
+    "name": "Fairphone",
+    "models": [
+      {
+        "id": "fairphone-4",
+        "name": "Fairphone 4"
+      },
+      {
+        "id": "fairphone-5",
+        "name": "Fairphone 5"
+      }
+    ]
+  },
+  {
+    "id": "cat",
+    "name": "CAT",
+    "models": [
+      {
+        "id": "cat-s62-pro",
+        "name": "CAT S62 Pro"
+      },
+      {
+        "id": "cat-s75",
+        "name": "CAT S75"
+      },
+      {
+        "id": "cat-s53",
+        "name": "CAT S53"
+      }
+    ]
+  },
+  {
+    "id": "lenovo",
+    "name": "Lenovo",
+    "models": [
+      {
+        "id": "lenovo-k14-plus",
+        "name": "Lenovo K14 Plus"
+      },
+      {
+        "id": "lenovo-legion-y70",
+        "name": "Lenovo Legion Y70"
+      },
+      {
+        "id": "lenovo-thinkphone",
+        "name": "Lenovo ThinkPhone"
+      }
+    ]
+  },
+  {
+    "id": "sharp",
+    "name": "Sharp",
+    "models": [
+      {
+        "id": "aquos-r8",
+        "name": "Aquos R8"
+      },
+      {
+        "id": "aquos-r8-pro",
+        "name": "Aquos R8 Pro"
+      },
+      {
+        "id": "aquos-sense8",
+        "name": "Aquos sense8"
+      }
+    ]
+  },
+  {
+    "id": "alcatel",
+    "name": "Alcatel",
+    "models": [
+      {
+        "id": "alcatel-1",
+        "name": "Alcatel 1"
+      },
+      {
+        "id": "alcatel-3l",
+        "name": "Alcatel 3L"
+      },
+      {
+        "id": "alcatel-v3-ultra",
+        "name": "Alcatel V3 Ultra"
+      }
+    ]
+  },
+  {
+    "id": "oukitel",
+    "name": "Oukitel",
+    "models": [
+      {
+        "id": "wp33-pro",
+        "name": "WP33 Pro"
+      },
+      {
+        "id": "wp35",
+        "name": "WP35"
+      },
+      {
+        "id": "c50",
+        "name": "C50"
+      },
+      {
+        "id": "g1",
+        "name": "G1"
+      }
+    ]
+  },
+  {
+    "id": "umidigi",
+    "name": "Umidigi",
+    "models": [
+      {
+        "id": "g3-max",
+        "name": "G3 Max"
+      },
+      {
+        "id": "g5-mecha",
+        "name": "G5 Mecha"
+      },
+      {
+        "id": "bison-gt2-pro",
+        "name": "Bison GT2 Pro"
+      }
+    ]
+  },
+  {
+    "id": "agm",
+    "name": "AGM",
+    "models": [
+      {
+        "id": "agm-h6",
+        "name": "AGM H6"
+      },
+      {
+        "id": "agm-g2-guardian",
+        "name": "AGM G2 Guardian"
+      },
+      {
+        "id": "agm-g1s-pro",
+        "name": "AGM G1S Pro"
+      }
+    ]
+  },
+  {
+    "id": "nubia",
+    "name": "nubia",
+    "models": [
+      {
+        "id": "nubia-z60-ultra",
+        "name": "nubia Z60 Ultra"
+      },
+      {
+        "id": "nubia-flip",
+        "name": "nubia Flip"
+      },
+      {
+        "id": "nubia-focus-pro",
+        "name": "nubia Focus Pro"
+      }
+    ]
+  },
+  {
+    "id": "redmagic",
+    "name": "RedMagic",
+    "models": [
+      {
+        "id": "redmagic-9-pro",
+        "name": "RedMagic 9 Pro"
+      },
+      {
+        "id": "redmagic-9s-pro",
+        "name": "RedMagic 9S Pro"
+      },
+      {
+        "id": "redmagic-10-pro",
+        "name": "RedMagic 10 Pro"
+      }
+    ]
+  },
+  {
+    "id": "iqoo",
+    "name": "iQOO",
+    "models": [
+      {
+        "id": "iqoo-12",
+        "name": "iQOO 12"
+      },
+      {
+        "id": "iqoo-13",
+        "name": "iQOO 13"
+      },
+      {
+        "id": "iqoo-neo9-pro",
+        "name": "iQOO Neo9 Pro"
+      },
+      {
+        "id": "iqoo-z9",
+        "name": "iQOO Z9"
+      },
+      {
+        "id": "iqoo-z9-turbo",
+        "name": "iQOO Z9 Turbo"
+      }
+    ]
+  },
+  {
+    "id": "poco",
+    "name": "POCO",
+    "models": [
+      {
+        "id": "poco-x6",
+        "name": "POCO X6"
+      },
+      {
+        "id": "poco-x6-pro",
+        "name": "POCO X6 Pro"
+      },
+      {
+        "id": "poco-f6",
+        "name": "POCO F6"
+      },
+      {
+        "id": "poco-f6-pro",
+        "name": "POCO F6 Pro"
+      },
+      {
+        "id": "poco-m6-pro",
+        "name": "POCO M6 Pro"
+      },
+      {
+        "id": "poco-c65",
+        "name": "POCO C65"
+      }
+    ]
+  },
+  {
+    "id": "redmi",
+    "name": "Redmi",
+    "models": [
+      {
+        "id": "redmi-13",
+        "name": "Redmi 13"
+      },
+      {
+        "id": "redmi-13c",
+        "name": "Redmi 13C"
+      },
+      {
+        "id": "redmi-note-12",
+        "name": "Redmi Note 12"
+      },
+      {
+        "id": "redmi-note-13",
+        "name": "Redmi Note 13"
+      },
+      {
+        "id": "redmi-note-13-pro",
+        "name": "Redmi Note 13 Pro"
+      },
+      {
+        "id": "redmi-note-13-pro",
+        "name": "Redmi Note 13 Pro+"
+      }
+    ]
+  },
+  {
+    "id": "hisense",
+    "name": "Hisense",
+    "models": [
+      {
+        "id": "hisense-h60",
+        "name": "Hisense H60"
+      },
+      {
+        "id": "hisense-e50",
+        "name": "Hisense E50"
+      },
+      {
+        "id": "hisense-infinity-h60",
+        "name": "Hisense Infinity H60"
+      }
+    ]
+  },
+  {
+    "id": "wiko",
+    "name": "Wiko",
+    "models": [
+      {
+        "id": "wiko-t50",
+        "name": "Wiko T50"
+      },
+      {
+        "id": "wiko-t60",
+        "name": "Wiko T60"
+      },
+      {
+        "id": "wiko-power-u30",
+        "name": "Wiko Power U30"
+      }
+    ]
+  },
+  {
+    "id": "micromax",
+    "name": "Micromax",
+    "models": [
+      {
+        "id": "in-note-2",
+        "name": "In Note 2"
+      },
+      {
+        "id": "in-2b",
+        "name": "In 2b"
+      },
+      {
+        "id": "in-2c",
+        "name": "In 2c"
+      }
+    ]
+  },
+  {
+    "id": "lava",
+    "name": "Lava",
+    "models": [
+      {
+        "id": "lava-blaze-2",
+        "name": "Lava Blaze 2"
+      },
+      {
+        "id": "lava-agni-2",
+        "name": "Lava Agni 2"
+      },
+      {
+        "id": "lava-yuva-3",
+        "name": "Lava Yuva 3"
+      }
+    ]
+  },
+  {
+    "id": "gigaset",
+    "name": "Gigaset",
+    "models": [
+      {
+        "id": "gigaset-gx6",
+        "name": "Gigaset GX6"
+      },
+      {
+        "id": "gigaset-gs5",
+        "name": "Gigaset GS5"
+      },
+      {
+        "id": "gigaset-gs5-lite",
+        "name": "Gigaset GS5 Lite"
+      }
+    ]
+  },
+  {
+    "id": "hammer",
+    "name": "Hammer",
+    "models": [
+      {
+        "id": "hammer-explorer-pro",
+        "name": "Hammer Explorer Pro"
+      },
+      {
+        "id": "hammer-blade-5g",
+        "name": "Hammer Blade 5G"
+      },
+      {
+        "id": "hammer-construction",
+        "name": "Hammer Construction"
+      }
+    ]
+  },
+  {
+    "id": "crosscall",
+    "name": "Crosscall",
+    "models": [
+      {
+        "id": "stellar-x5",
+        "name": "Stellar-X5"
+      },
+      {
+        "id": "action-x5",
+        "name": "Action-X5"
+      },
+      {
+        "id": "core-z5",
+        "name": "Core-Z5"
+      }
+    ]
+  },
+  {
+    "id": "ulephone",
+    "name": "Ulephone",
+    "models": [
+      {
+        "id": "armor-x13-pro",
+        "name": "Armor X13 Pro"
+      },
+      {
+        "id": "note-18-pro",
+        "name": "Note 18 Pro"
+      }
+    ]
+  },
+  {
+    "id": "blackshark",
+    "name": "Black Shark",
+    "models": [
+      {
+        "id": "black-shark-5-pro",
+        "name": "Black Shark 5 Pro"
+      },
+      {
+        "id": "black-shark-5",
+        "name": "Black Shark 5"
+      },
+      {
+        "id": "black-shark-4-pro",
+        "name": "Black Shark 4 Pro"
+      }
+    ]
+  },
+  {
+    "id": "leeco",
+    "name": "LeEco",
+    "models": [
+      {
+        "id": "leeco-le-pro3",
+        "name": "LeEco Le Pro3"
+      },
+      {
+        "id": "leeco-s3",
+        "name": "LeEco S3"
+      }
+    ]
+  },
+  {
+    "id": "essential",
+    "name": "Essential",
+    "models": [
+      {
+        "id": "essential-ph-1",
+        "name": "Essential PH-1"
+      }
+    ]
+  },
+  {
+    "id": "microsoft",
+    "name": "Microsoft",
+    "models": [
+      {
+        "id": "surface-duo-2",
+        "name": "Surface Duo 2"
+      }
+    ]
+  },
+  {
+    "id": "philips",
+    "name": "Philips",
+    "models": [
+      {
+        "id": "philips-x818",
+        "name": "Philips X818"
+      },
+      {
+        "id": "philips-s6505",
+        "name": "Philips S6505"
+      }
+    ]
+  },
+  {
+    "id": "panasonic",
+    "name": "Panasonic",
+    "models": [
+      {
+        "id": "eluga-ray-600",
+        "name": "Eluga Ray 600"
+      },
+      {
+        "id": "eluga-x1-pro",
+        "name": "Eluga X1 Pro"
+      }
+    ]
+  },
+  {
+    "id": "coolpad",
+    "name": "Coolpad",
+    "models": [
+      {
+        "id": "coolpad-cool-20",
+        "name": "Coolpad Cool 20"
+      },
+      {
+        "id": "coolpad-legacy",
+        "name": "Coolpad Legacy"
+      }
+    ]
+  },
+  {
+    "id": "blu",
+    "name": "BLU",
+    "models": [
+      {
+        "id": "blu-g91-pro",
+        "name": "BLU G91 Pro"
+      },
+      {
+        "id": "blu-f92e",
+        "name": "BLU F92e"
+      },
+      {
+        "id": "blu-g93",
+        "name": "BLU G93"
+      }
+    ]
+  }
+]

@@ -7,3 +7,5 @@ export * from './schemas/index.js';
 export * from './trust-score.js';
 export * from './limits.js';
 export * from './demo-listing-image.js';
+export * from './search/normalize.js';
+export * from './categories/condition.js';

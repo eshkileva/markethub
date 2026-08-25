@@ -25,7 +25,13 @@ export const listingsRoutes: FastifyPluginAsyncZod = async (app) => {
       },
       preHandler: [app.tryAuthenticate],
     },
-    async (request) => listCatalog(app.db, request.query, request.user?.id ?? null),
+    async (request) =>
+      listCatalog(
+        app.db,
+        request.query,
+        request.user?.id ?? null,
+        await app.services.rates.getRates(),
+      ),
   );
 
   app.get(
@@ -202,7 +208,12 @@ export const listingsRoutes: FastifyPluginAsyncZod = async (app) => {
         throw new NotFoundError('Listing not found');
       }
 
-      return getListingDetail(app.db, listing, viewerId);
+      return getListingDetail(
+        app.db,
+        listing,
+        viewerId,
+        await app.services.rates.getRates(),
+      );
     },
   );
 };

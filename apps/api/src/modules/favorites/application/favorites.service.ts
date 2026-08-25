@@ -1,14 +1,16 @@
 import { eq } from 'drizzle-orm';
-import { convertAmount, type CurrencyCode } from '@markethub/shared';
+import { convertedAmounts, type CurrencyCode } from '@markethub/shared';
 import type { Database } from '../../../infrastructure/database/client.js';
 import { listings } from '../../../infrastructure/database/schema/index.js';
 import { NotFoundError } from '../../../shared/errors/app-error.js';
 import type { FavoritesRepository } from '../infrastructure/favorites.repository.js';
+import type { RatesService } from '../../fx/application/rates.service.js';
 
 export class FavoritesService {
   constructor(
     private readonly repo: FavoritesRepository,
     private readonly db: Database,
+    private readonly rates: RatesService,
   ) {}
 
   async add(userId: string, listingId: string) {
@@ -43,6 +45,7 @@ export class FavoritesService {
       }
     }
 
+    const rates = await this.rates.getRates();
     return {
       items: rows.map(({ listing, sellerUsername, sellerDisplayName }) => {
         const price = Number(listing.price);
@@ -52,11 +55,7 @@ export class FavoritesService {
           title: listing.title,
           price,
           currency,
-          converted: {
-            RUB: Math.round(convertAmount(price, currency, 'RUB')),
-            BYN: Math.round(convertAmount(price, currency, 'BYN')),
-            KZT: Math.round(convertAmount(price, currency, 'KZT')),
-          },
+          converted: convertedAmounts(price, currency, rates),
           country: listing.country,
           city: listing.city,
           condition: listing.condition,

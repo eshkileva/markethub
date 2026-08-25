@@ -1,0 +1,33 @@
+export const AUTO_PARTS_FALLBACK = [
+  { name: 'Bosch', models: ['Стеклоочистители AeroTwin', 'Стартер', 'Аккумулятор S5', 'Свечи Platinum', 'Тормозные колодки'] },
+  { name: 'Mann-Filter', models: ['Масляный фильтр W 712/95', 'Воздушный фильтр C 25 011', 'Салонный фильтр CU 2945', 'Топливный фильтр WK 820/17'] },
+  { name: 'Mahle', models: ['Масляный фильтр OC 534', 'Поршневые кольца', 'Прокладка ГБЦ', 'Термостат'] },
+  { name: 'NGK', models: ['Свечи BKR6E', 'Свечи LFR6AIX', 'Катушки зажигания', 'Датчик кислорода'] },
+  { name: 'Denso', models: ['Свечи Iridium TT', 'Радиатор кондиционера', 'Генератор', 'Стартер'] },
+  { name: 'Valeo', models: ['Сцепление', 'Радиатор', 'Генератор', 'Компрессор кондиционера'] },
+  { name: 'Sachs', models: ['Амортизатор', 'Комплект сцепления', 'Подшипник ступицы'] },
+  { name: 'Monroe', models: ['Амортизатор Gas-Magnum', 'Опора амортизатора', 'Пружина'] },
+  { name: 'KYB', models: ['Амортизатор Excel-G', 'Амортизатор Premium', 'Стойка'] },
+  { name: 'TRW', models: ['Тормозные колодки', 'Тормозной диск', 'Рулевая тяга', 'Шаровая опора'] },
+  { name: 'Brembo', models: ['Тормозные колодки', 'Тормозной диск', 'Суппорт'] },
+  { name: 'ATE', models: ['Тормозная жидкость DOT 4', 'Тормозные колодки', 'Главный тормозной цилиндр'] },
+  { name: 'Febi', models: ['Ремень ГРМ', 'Ролик натяжителя', 'Помпа', 'Патрубок'] },
+  { name: 'Gates', models: ['Ремень ГРМ', 'Ремень генератора', 'Патрубок системы охлаждения', 'Шланг'] },
+  { name: 'SKF', models: ['Подшипник ступицы', 'Сальник', 'Ремкомплект'] },
+  { name: 'Lemförder', models: ['Рулевой наконечник', 'Шаровая опора', 'Сайлентблок', 'Опора двигателя'] },
+] as const;
+
+export const TIRES_FALLBACK = [
+  { name: 'Michelin', models: ['Pilot Sport 4', 'Pilot Sport 5', 'CrossClimate 2', 'Primacy 4+', 'X-Ice Snow', 'Latitude Cross'] },
+  { name: 'Continental', models: ['PremiumContact 6', 'PremiumContact 7', 'CrossContact LX2', 'WinterContact TS 870', 'ContiSportContact 5'] },
+  { name: 'Bridgestone', models: ['Turanza T005', 'Potenza Sport', 'Blizzak LM005', 'Dueler H/P Sport', 'Ecopia EP150'] },
+  { name: 'Goodyear', models: ['EfficientGrip Performance 2', 'Vector 4Seasons Gen-3', 'UltraGrip Performance+', 'Eagle F1 Asymmetric 6'] },
+  { name: 'Pirelli', models: ['P Zero', 'Cinturato P7', 'Scorpion Verde', 'Winter Sottozero 3', 'Powergy'] },
+  { name: 'Nokian', models: ['Hakkapeliitta 10', 'Hakkapeliitta R5', 'Seasonproof 2', 'Tyres Nordman 7', 'Outpost AT'] },
+  { name: 'Hankook', models: ['Ventus Prime 4', 'Kinergy 4S2', 'Winter i*cept evo3', 'Dynapro HPX', 'Ventus S1 evo3'] },
+  { name: 'Yokohama', models: ['Advan Sport V105', 'BluEarth-GT AE51', 'Geolandar G055', 'IceGuard IG53', 'Advan Fleva V701'] },
+  { name: 'Kumho', models: ['Ecsta PS71', 'Solus 4S HA32', 'WinterCraft WP52+', 'Crugen HP71', 'Road Venture AT52'] },
+  { name: 'Toyo', models: ['Proxes Sport', 'Open Country A/T III', 'Observe GSi-6 HP', 'NanoEnergy 3+'] },
+  { name: 'BF Goodrich', models: ['Advantage', 'All-Terrain T/A KO2', 'g-Force Phenom T/A', 'Trail-Terrain T/A'] },
+  { name: 'Laufenn', models: ['S Fit EQ+ LK01', 'G Fit EQ+ LK41', 'I Fit Ice LW71', 'X Fit AT LC01'] },
+] as const;

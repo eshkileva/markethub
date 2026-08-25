@@ -1,6 +1,6 @@
 import { Link } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
-import type { CurrencyCode } from '@markethub/shared';
+import type { ConvertedAmounts, CurrencyCode } from '@markethub/shared';
 import { apiRequest } from '@/shared/api/client';
 import { useAuthStore } from '@/shared/model/stores';
 import { Button } from '@/shared/ui/button';
@@ -13,6 +13,7 @@ type FavoritesResponse = {
     title: string;
     price: number;
     currency: CurrencyCode;
+    converted?: ConvertedAmounts;
     city: string;
     country: string;
     imageUrl: string | null;

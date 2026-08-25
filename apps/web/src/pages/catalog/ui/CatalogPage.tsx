@@ -1,9 +1,8 @@
-import { useMemo } from 'react';
 import { Link, useNavigate, useSearch } from '@tanstack/react-router';
+import { useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { LayoutGrid, List } from 'lucide-react';
+import { LayoutGrid, List, SlidersHorizontal } from 'lucide-react';
 import {
-  COUNTRIES,
   CURRENCIES,
   DELIVERY_MODES,
   LISTING_CONDITIONS,
@@ -18,12 +17,21 @@ import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Input } from '@/shared/ui/input';
 import { Label } from '@/shared/ui/label';
-import { NativeSelect } from '@/shared/ui/native-select';
+import { Combobox } from '@/shared/ui/combobox';
 import { ProductCard, type ProductCardData } from '@/entities/listing/ui/ProductCard';
 import { deliveryModeLabels, listingConditionLabels } from '@/entities/listing/model/labels';
 import { CitySelect } from '@/entities/geo/ui/CitySelect';
+import { CountrySelect } from '@/entities/geo/ui/CountrySelect';
+import { CategoryAttributeFields } from '@/entities/category/ui/CategoryAttributeFields';
+import {
+  categoryChildren,
+  categoryRoots,
+  findCategory,
+} from '@/entities/category/model/tree';
 import type { AttributeDef } from '@/pages/create-listing/ui/ListingAttributesFields';
 import type { CatalogSearch } from '@/pages/catalog/model/search';
+import { useSearchHistory } from '@/features/search/model/use-search-history';
+import { normalizeSearchQuery } from '@markethub/shared';
 
 type ListingsResponse = {
   items: Array<ProductCardData>;
@@ -33,7 +41,7 @@ type ListingsResponse = {
 };
 
 type CategoriesResponse = {
-  items: Array<{ id: string; slug: string; nameRu: string }>;
+  items: Array<{ id: string; slug: string; nameRu: string; parentId: string | null }>;
 };
 
 type AttributesResponse = { items: AttributeDef[] };
@@ -49,21 +57,37 @@ export function CatalogPage() {
   const navigate = useNavigate({ from: '/catalog' });
   const token = useAuthStore((s) => s.accessToken);
   const countryFilter = useUiStore((s) => s.countryFilter);
+  const filtersOpen = useUiStore((s) => s.filtersOpen);
+  const setFiltersOpen = useUiStore((s) => s.setFiltersOpen);
   const country = search.country ?? (countryFilter === 'ALL' ? undefined : countryFilter);
+  const { record: recordSearchHistory } = useSearchHistory();
+  const lastRecordedQuery = useRef<string | null>(null);
+
+  useEffect(() => {
+    const normalized = search.q ? normalizeSearchQuery(search.q) : null;
+    if (!normalized || normalized === lastRecordedQuery.current) return;
+    lastRecordedQuery.current = normalized;
+    recordSearchHistory(normalized);
+  }, [search.q, recordSearchHistory]);
 
   const categoriesQuery = useQuery({
     queryKey: ['categories'],
     queryFn: () => apiRequest<CategoriesResponse>('/v1/categories'),
   });
+  const categoryItems = categoriesQuery.data?.items ?? [];
+  const selectedCategory = findCategory(categoryItems, search.category);
+  const selectedRoot = selectedCategory
+    ? selectedCategory.parentId
+      ? categoryItems.find((item) => item.id === selectedCategory.parentId)
+      : selectedCategory
+    : undefined;
+  const selectedLeaf = selectedCategory?.parentId ? selectedCategory : undefined;
 
-  const categoryId = useMemo(() => {
-    if (!search.category) return undefined;
-    return categoriesQuery.data?.items.find((item) => item.slug === search.category)?.id;
-  }, [categoriesQuery.data, search.category]);
+  const categoryId = selectedCategory?.id;
 
   const attributesQuery = useQuery({
     queryKey: ['category-attributes', categoryId],
-    enabled: Boolean(categoryId),
+    enabled: Boolean(selectedLeaf),
     queryFn: () => apiRequest<AttributesResponse>(`/v1/categories/${categoryId}/attributes`),
   });
 
@@ -107,16 +131,19 @@ export function CatalogPage() {
   function patchAttr(key: string, value: string) {
     const current = (search.attr ?? []).filter((item) => !item.startsWith(`${key}:`));
     if (value) current.push(`${key}:${value}`);
-    patchSearch({ attr: current.length ? current : undefined });
+    const extra: Partial<CatalogSearch> = { attr: current.length ? current : undefined };
+    if (key === 'brand') {
+      extra.attr = (extra.attr ?? []).filter((item) => !item.startsWith('model:'));
+    }
+    patchSearch(extra);
   }
 
-  return (
-    <div className="grid gap-6 lg:grid-cols-[260px_1fr]">
-      <Card className="h-fit">
-        <CardHeader>
-          <CardTitle>Фильтры</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+  const filters = (
+    <Card className="h-fit">
+      <CardHeader>
+        <CardTitle>Фильтры</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
           <div className="space-y-1.5">
             <Label htmlFor="catalog-q">Поиск</Label>
             <Input
@@ -128,40 +155,50 @@ export function CatalogPage() {
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="catalog-category">Категория</Label>
-            <NativeSelect
+            <Combobox
               id="catalog-category"
-              value={search.category ?? ''}
-              onChange={(e) =>
-                patchSearch({ category: e.target.value || undefined, attr: undefined })
-              }
-            >
-              <option value="">Все категории</option>
-              {(categoriesQuery.data?.items ?? []).map((category) => (
-                <option key={category.id} value={category.slug}>
-                  {category.nameRu}
-                </option>
-              ))}
-            </NativeSelect>
+              value={selectedRoot?.slug ?? ''}
+              onChange={(value) => patchSearch({ category: value || undefined, attr: undefined })}
+              allowEmpty
+              clearLabel="Все категории"
+              options={categoryRoots(categoryItems).map((category) => ({
+                value: category.slug,
+                label: category.nameRu,
+              }))}
+            />
           </div>
+          {selectedRoot ? (
+            <div className="space-y-1.5">
+              <Label htmlFor="catalog-subcategory">Подкатегория</Label>
+              <Combobox
+                id="catalog-subcategory"
+                value={selectedLeaf?.slug ?? ''}
+                onChange={(value) =>
+                  patchSearch({ category: value || selectedRoot.slug, attr: undefined })
+                }
+                allowEmpty
+                clearLabel="Все в категории"
+                options={categoryChildren(categoryItems, selectedRoot.id).map((category) => ({
+                  value: category.slug,
+                  label: category.nameRu,
+                }))}
+              />
+            </div>
+          ) : null}
           <div className="space-y-1.5">
             <Label htmlFor="catalog-country">Страна</Label>
-            <NativeSelect
+            <CountrySelect
               id="catalog-country"
               value={country ?? ''}
-              onChange={(e) =>
+              allowEmpty
+              clearLabel="Весь СНГ"
+              onChange={(value) =>
                 patchSearch({
-                  country: (e.target.value || undefined) as CountryCode | undefined,
+                  country: (value || undefined) as CountryCode | undefined,
                   city: undefined,
                 })
               }
-            >
-              <option value="">Весь СНГ</option>
-              {COUNTRIES.map((item) => (
-                <option key={item.code} value={item.code}>
-                  {item.nameRu}
-                </option>
-              ))}
-            </NativeSelect>
+            />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="catalog-city">Город</Label>
@@ -205,92 +242,69 @@ export function CatalogPage() {
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="catalog-currency">Валюта</Label>
-            <NativeSelect
+            <Combobox
               id="catalog-currency"
               value={search.currency ?? ''}
-              onChange={(e) =>
+              onChange={(value) =>
                 patchSearch({
-                  currency: (e.target.value || undefined) as CurrencyCode | undefined,
+                  currency: (value || undefined) as CurrencyCode | undefined,
                 })
               }
-            >
-              <option value="">Любая</option>
-              {CURRENCIES.map((item) => (
-                <option key={item.code} value={item.code}>
-                  {item.code}
-                </option>
-              ))}
-            </NativeSelect>
+              allowEmpty
+              clearLabel="Любая"
+              options={CURRENCIES.map((item) => ({
+                value: item.code,
+                label: item.code,
+              }))}
+            />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="catalog-condition">Состояние</Label>
-            <NativeSelect
+            <Combobox
               id="catalog-condition"
               value={search.condition ?? ''}
-              onChange={(e) =>
+              onChange={(value) =>
                 patchSearch({
-                  condition: (e.target.value || undefined) as ListingCondition | undefined,
+                  condition: (value || undefined) as ListingCondition | undefined,
                 })
               }
-            >
-              <option value="">Любое</option>
-              {LISTING_CONDITIONS.map((item) => (
-                <option key={item} value={item}>
-                  {listingConditionLabels[item]}
-                </option>
-              ))}
-            </NativeSelect>
+              allowEmpty
+              clearLabel="Любое"
+              options={LISTING_CONDITIONS.map((item) => ({
+                value: item,
+                label: listingConditionLabels[item],
+              }))}
+            />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="catalog-delivery">Доставка</Label>
-            <NativeSelect
+            <Combobox
               id="catalog-delivery"
               value={search.delivery ?? ''}
-              onChange={(e) =>
+              onChange={(value) =>
                 patchSearch({
-                  delivery: (e.target.value || undefined) as DeliveryMode | undefined,
+                  delivery: (value || undefined) as DeliveryMode | undefined,
                 })
               }
-            >
-              <option value="">Любая</option>
-              {DELIVERY_MODES.map((item) => (
-                <option key={item} value={item}>
-                  {deliveryModeLabels[item]}
-                </option>
-              ))}
-            </NativeSelect>
+              allowEmpty
+              clearLabel="Любая"
+              options={DELIVERY_MODES.map((item) => ({
+                value: item,
+                label: deliveryModeLabels[item],
+              }))}
+            />
           </div>
-          {categoryId && (attributesQuery.data?.items.length ?? 0) > 0 ? (
+          {selectedLeaf && (attributesQuery.data?.items.length ?? 0) > 0 ? (
             <div className="border-border space-y-3 border-t pt-3">
               <p className="text-muted text-xs font-semibold uppercase tracking-wider">
                 Характеристики
               </p>
-              {attributesQuery.data?.items.map((attr) => (
-                <div key={attr.id} className="space-y-1.5">
-                  <Label htmlFor={`attr-${attr.key}`}>{attr.labelRu}</Label>
-                  {attr.type === 'enum' && attr.options ? (
-                    <NativeSelect
-                      id={`attr-${attr.key}`}
-                      value={attrValue(search.attr, attr.key)}
-                      onChange={(e) => patchAttr(attr.key, e.target.value)}
-                    >
-                      <option value="">Любое</option>
-                      {attr.options.map((option) => (
-                        <option key={option} value={option}>
-                          {option}
-                        </option>
-                      ))}
-                    </NativeSelect>
-                  ) : (
-                    <Input
-                      id={`attr-${attr.key}`}
-                      value={attrValue(search.attr, attr.key)}
-                      onChange={(e) => patchAttr(attr.key, e.target.value)}
-                      placeholder={attr.type === 'number' ? 'Число' : undefined}
-                    />
-                  )}
-                </div>
-              ))}
+              <CategoryAttributeFields
+                defs={attributesQuery.data?.items ?? []}
+                valueOf={(attr) => attrValue(search.attr, attr.key)}
+                onChange={(attr, value) => patchAttr(attr.key, value)}
+                enumClearLabel="Любое"
+              />
             </div>
           ) : null}
           <Button
@@ -309,6 +323,24 @@ export function CatalogPage() {
           </Button>
         </CardContent>
       </Card>
+  );
+
+  return (
+    <div className="grid gap-6 lg:grid-cols-[260px_1fr]">
+      <div className="hidden lg:block">{filters}</div>
+      {filtersOpen ? (
+        <div className="lg:hidden">
+          <button
+            type="button"
+            className="fixed inset-0 z-40 bg-black/40"
+            aria-label="Закрыть фильтры"
+            onClick={() => setFiltersOpen(false)}
+          />
+          <div className="fixed inset-x-0 bottom-16 z-50 max-h-[70dvh] overflow-y-auto p-3 pb-4">
+            {filters}
+          </div>
+        </div>
+      ) : null}
 
       <div className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -317,20 +349,30 @@ export function CatalogPage() {
             <p className="text-muted text-sm">{total} объявлений</p>
           </div>
           <div className="flex items-center gap-2">
-            <NativeSelect
-              className="w-auto"
+            <Button
+              type="button"
+              variant="secondary"
+              className="lg:hidden"
+              onClick={() => setFiltersOpen(true)}
+            >
+              <SlidersHorizontal className="h-4 w-4" />
+              Фильтры
+            </Button>
+            <Combobox
+              className="w-44"
               value={search.sort ?? 'newest'}
-              onChange={(e) =>
+              onChange={(value) =>
                 patchSearch({
-                  sort: e.target.value as 'newest' | 'price_asc' | 'price_desc',
+                  sort: value as 'newest' | 'price_asc' | 'price_desc',
                 })
               }
               aria-label="Сортировка"
-            >
-              <option value="newest">Сначала новые</option>
-              <option value="price_asc">Дешевле</option>
-              <option value="price_desc">Дороже</option>
-            </NativeSelect>
+              options={[
+                { value: 'newest', label: 'Сначала новые' },
+                { value: 'price_asc', label: 'Дешевле' },
+                { value: 'price_desc', label: 'Дороже' },
+              ]}
+            />
             <Button
               type="button"
               size="icon"
@@ -355,7 +397,7 @@ export function CatalogPage() {
         {listingsQuery.isLoading ? (
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {Array.from({ length: 6 }).map((_, i) => (
-              <Card key={i} className="h-72 animate-pulse bg-slate-100" />
+              <Card key={i} className="bg-surface-secondary h-72 animate-pulse" />
             ))}
           </div>
         ) : null}

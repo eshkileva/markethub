@@ -27,6 +27,26 @@ const envSchema = z.object({
     .string()
     .optional()
     .transform((v) => v === 'true'),
+  GEOHELPER_API_KEY: z
+    .string()
+    .optional()
+    .transform((v) => v || undefined),
+  CURRENCYAPI_KEY: z
+    .string()
+    .optional()
+    .transform((v) => v || undefined),
+  MOBILEAPI_KEY: z
+    .string()
+    .optional()
+    .transform((v) => v || undefined),
+  APIFY_TOKEN: z
+    .string()
+    .optional()
+    .transform((v) => v || undefined),
+  FX_CACHE_TTL_SECONDS: z.preprocess(
+    (value) => (value === '' || value == null ? undefined : value),
+    z.coerce.number().int().min(60).default(3600),
+  ),
 });
 
 export type AppConfig = z.infer<typeof envSchema> & {

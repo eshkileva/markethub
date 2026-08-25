@@ -1,7 +1,7 @@
 import { config as loadDotenv } from 'dotenv';
 import path from 'node:path';
-import { and, eq } from 'drizzle-orm';
-import { demoListingImageSvg, isHotlinkPlaceholder } from '@markethub/shared';
+import { and, eq, inArray } from 'drizzle-orm';
+import { allCities, demoListingImageSvg, isHotlinkPlaceholder } from '@markethub/shared';
 import { loadConfig } from '../../config/env.js';
 import { hashPassword } from '../../modules/auth/domain/crypto.js';
 import { createObjectStorage, type ObjectStorage } from '../storage/s3.js';
@@ -16,39 +16,160 @@ import {
   users,
 } from './schema/index.js';
 import { CATEGORY_ATTRIBUTE_DEFS, DEMO_LISTING_ATTRIBUTES } from './category-attributes.seed.js';
+import { SEED_LEAVES, SEED_ROOTS, leafSlugForRoot } from './category-tree.seed.js';
+import { CatalogsRepository } from '../../modules/catalogs/infrastructure/catalogs.repository.js';
+import { CatalogsService } from '../../modules/catalogs/application/catalogs.service.js';
+import { CitiesRepository } from '../../modules/geo/infrastructure/cities.repository.js';
 
 loadDotenv({ path: path.resolve(process.cwd(), '../../.env') });
 loadDotenv();
-
-const SEED_CATEGORIES = [
-  { slug: 'electronics', nameRu: 'Электроника', icon: 'cpu', sortOrder: 1 },
-  { slug: 'computers', nameRu: 'Компьютеры', icon: 'monitor', sortOrder: 2 },
-  { slug: 'phones', nameRu: 'Телефоны', icon: 'smartphone', sortOrder: 3 },
-  { slug: 'appliances', nameRu: 'Бытовая техника', icon: 'washing-machine', sortOrder: 4 },
-  { slug: 'auto', nameRu: 'Авто', icon: 'car', sortOrder: 5 },
-  { slug: 'realty', nameRu: 'Недвижимость', icon: 'home', sortOrder: 6 },
-  { slug: 'hobby', nameRu: 'Хобби и отдых', icon: 'bike', sortOrder: 7 },
-  { slug: 'fashion', nameRu: 'Одежда и обувь', icon: 'shirt', sortOrder: 8 },
-  { slug: 'home-garden', nameRu: 'Дом и сад', icon: 'flower-2', sortOrder: 9 },
-] as const;
 
 const MODERATOR_EMAIL = 'moderator@markethub.local';
 const MODERATOR_USERNAME = 'moderator';
 const MODERATOR_PASSWORD = 'password12';
 
 async function seedCategories(db: ReturnType<typeof createDatabase>['db']) {
-  const existing = await db.select().from(categories).limit(1);
-  if (existing.length > 0) {
-    console.log('Categories already seeded');
-    return;
+  for (const root of SEED_ROOTS) {
+    const [existing] = await db
+      .select()
+      .from(categories)
+      .where(eq(categories.slug, root.slug))
+      .limit(1);
+    if (!existing) {
+      await db.insert(categories).values({ ...root, parentId: null });
+      continue;
+    }
+    await db
+      .update(categories)
+      .set({
+        nameRu: root.nameRu,
+        icon: root.icon,
+        sortOrder: root.sortOrder,
+        parentId: null,
+        updatedAt: new Date(),
+      })
+      .where(eq(categories.id, existing.id));
   }
 
-  const inserted = await db
-    .insert(categories)
-    .values([...SEED_CATEGORIES])
-    .returning();
+  const roots = await db.select().from(categories);
+  const bySlug = new Map(roots.map((item) => [item.slug, item]));
 
-  console.log(`Seeded ${inserted.length} categories`);
+  for (const leaf of SEED_LEAVES) {
+    const parent = bySlug.get(leaf.parentSlug);
+    if (!parent) continue;
+    const [existing] = await db
+      .select()
+      .from(categories)
+      .where(eq(categories.slug, leaf.slug))
+      .limit(1);
+    if (!existing) {
+      const [row] = await db
+        .insert(categories)
+        .values({
+          slug: leaf.slug,
+          nameRu: leaf.nameRu,
+          parentId: parent.id,
+          sortOrder: leaf.sortOrder,
+        })
+        .returning();
+      if (row) bySlug.set(row.slug, row);
+      continue;
+    }
+    await db
+      .update(categories)
+      .set({
+        nameRu: leaf.nameRu,
+        parentId: parent.id,
+        sortOrder: leaf.sortOrder,
+        updatedAt: new Date(),
+      })
+      .where(eq(categories.id, existing.id));
+  }
+
+  console.log(`Categories upserted: ${SEED_ROOTS.length} roots, ${SEED_LEAVES.length} leaves`);
+}
+
+async function remapListingsToLeaves(db: ReturnType<typeof createDatabase>['db']) {
+  const cats = await db.select().from(categories);
+  const byId = new Map(cats.map((item) => [item.id, item]));
+  const bySlug = new Map(cats.map((item) => [item.slug, item]));
+  const rows = await db.select({ id: listings.id, categoryId: listings.categoryId }).from(listings);
+  let moved = 0;
+
+  for (const listing of rows) {
+    const cat = byId.get(listing.categoryId);
+    if (!cat || cat.parentId) continue;
+    const hasChildren = cats.some((item) => item.parentId === cat.id);
+    if (!hasChildren) continue;
+
+    const attrs = await db
+      .select({
+        id: listingAttributes.id,
+        attributeId: listingAttributes.attributeId,
+        value: listingAttributes.value,
+        key: categoryAttributes.key,
+      })
+      .from(listingAttributes)
+      .innerJoin(categoryAttributes, eq(categoryAttributes.id, listingAttributes.attributeId))
+      .where(eq(listingAttributes.listingId, listing.id));
+
+    const kind = attrs.find((item) => item.key === 'kind')?.value;
+    const leaf = bySlug.get(leafSlugForRoot(cat.slug, kind));
+    if (!leaf) continue;
+
+    const leafDefs = await db
+      .select()
+      .from(categoryAttributes)
+      .where(eq(categoryAttributes.categoryId, leaf.id));
+    const defByKey = new Map(leafDefs.map((item) => [item.key, item]));
+
+    for (const attr of attrs) {
+      if (attr.key === 'kind') {
+        await db.delete(listingAttributes).where(eq(listingAttributes.id, attr.id));
+        continue;
+      }
+      const next = defByKey.get(attr.key);
+      if (!next) {
+        await db.delete(listingAttributes).where(eq(listingAttributes.id, attr.id));
+        continue;
+      }
+      if (next.id !== attr.attributeId) {
+        await db
+          .update(listingAttributes)
+          .set({ attributeId: next.id })
+          .where(eq(listingAttributes.id, attr.id));
+      }
+    }
+
+    await db
+      .update(listings)
+      .set({ categoryId: leaf.id, updatedAt: new Date() })
+      .where(eq(listings.id, listing.id));
+    moved += 1;
+  }
+
+  const kindDefs = await db
+    .select({ id: categoryAttributes.id })
+    .from(categoryAttributes)
+    .where(eq(categoryAttributes.key, 'kind'));
+  for (const def of kindDefs) {
+    await db.delete(listingAttributes).where(eq(listingAttributes.attributeId, def.id));
+    await db.delete(categoryAttributes).where(eq(categoryAttributes.id, def.id));
+  }
+
+  if (moved > 0) console.log(`Remapped ${moved} listings to leaf categories`);
+
+  const rootIds = cats.filter((item) => cats.some((child) => child.parentId === item.id)).map((item) => item.id);
+  if (rootIds.length > 0) {
+    const stale = await db
+      .select({ id: categoryAttributes.id })
+      .from(categoryAttributes)
+      .where(inArray(categoryAttributes.categoryId, rootIds));
+    for (const def of stale) {
+      await db.delete(listingAttributes).where(eq(listingAttributes.attributeId, def.id));
+      await db.delete(categoryAttributes).where(eq(categoryAttributes.id, def.id));
+    }
+  }
 }
 
 async function seedCategoryAttributes(db: ReturnType<typeof createDatabase>['db']) {
@@ -77,6 +198,8 @@ async function seedCategoryAttributes(db: ReturnType<typeof createDatabase>['db'
           options: def.options ?? null,
           required: def.required,
           sortOrder: def.sortOrder,
+          dictionary: def.dictionary ?? null,
+          parentKey: def.parentKey ?? null,
         });
         added += 1;
         continue;
@@ -89,6 +212,8 @@ async function seedCategoryAttributes(db: ReturnType<typeof createDatabase>['db'
           options: def.options ?? null,
           required: def.required,
           sortOrder: def.sortOrder,
+          dictionary: def.dictionary ?? null,
+          parentKey: def.parentKey ?? null,
         })
         .where(eq(categoryAttributes.id, current.id));
       updated += 1;
@@ -245,7 +370,7 @@ async function seedDemoListings(
       city: 'Минск',
       condition: 'used' as const,
       deliveryModes: ['meetup', 'post'],
-      category: 'phones',
+      category: 'smartphones',
     },
     {
       slug: 'macbook',
@@ -257,7 +382,7 @@ async function seedDemoListings(
       city: 'Москва',
       condition: 'used' as const,
       deliveryModes: ['meetup', 'courier'],
-      category: 'computers',
+      category: 'laptops',
     },
     {
       slug: 'washer',
@@ -269,7 +394,7 @@ async function seedDemoListings(
       city: 'Алматы',
       condition: 'used' as const,
       deliveryModes: ['meetup', 'courier'],
-      category: 'appliances',
+      category: 'large-appliances',
     },
     {
       slug: 'bike',
@@ -281,7 +406,7 @@ async function seedDemoListings(
       city: 'Гродно',
       condition: 'used' as const,
       deliveryModes: ['meetup'],
-      category: 'hobby',
+      category: 'bikes',
     },
     {
       slug: 'jacket',
@@ -293,7 +418,7 @@ async function seedDemoListings(
       city: 'Санкт-Петербург',
       condition: 'used' as const,
       deliveryModes: ['meetup', 'post'],
-      category: 'fashion',
+      category: 'clothes',
     },
     {
       slug: 'sofa',
@@ -305,7 +430,7 @@ async function seedDemoListings(
       city: 'Астана',
       condition: 'used' as const,
       deliveryModes: ['meetup'],
-      category: 'home-garden',
+      category: 'furniture',
     },
     {
       slug: 'monitor',
@@ -317,7 +442,7 @@ async function seedDemoListings(
       city: 'Казань',
       condition: 'used' as const,
       deliveryModes: ['meetup', 'post'],
-      category: 'electronics',
+      category: 'tv-video',
     },
     {
       slug: 'headphones',
@@ -329,7 +454,7 @@ async function seedDemoListings(
       city: 'Брест',
       condition: 'used' as const,
       deliveryModes: ['meetup', 'post'],
-      category: 'electronics',
+      category: 'audio',
     },
     {
       slug: 'ps5',
@@ -341,7 +466,7 @@ async function seedDemoListings(
       city: 'Москва',
       condition: 'used' as const,
       deliveryModes: ['meetup'],
-      category: 'electronics',
+      category: 'consoles',
     },
     {
       slug: 'coffee',
@@ -353,7 +478,7 @@ async function seedDemoListings(
       city: 'Алматы',
       condition: 'new' as const,
       deliveryModes: ['meetup', 'courier'],
-      category: 'appliances',
+      category: 'small-appliances',
     },
   ];
 
@@ -408,6 +533,10 @@ async function seedDemoListings(
       .select({ id: listingImages.id, url: listingImages.url })
       .from(listingImages)
       .where(eq(listingImages.listingId, listingId));
+    await db
+      .update(listings)
+      .set({ categoryId: category.id, updatedAt: new Date() })
+      .where(eq(listings.id, listingId));
     const cover = images[0];
     if (!cover) {
       await db.insert(listingImages).values({
@@ -441,6 +570,19 @@ async function seedDemoListings(
   );
 }
 
+async function seedCities(db: ReturnType<typeof createDatabase>['db']) {
+  const cities = new CitiesRepository(db);
+  await cities.insertIgnore(allCities());
+  const [row] = await cities.count();
+  console.log(`Cities in dictionary: ${row?.count ?? 0}`);
+}
+
+async function seedCatalogs(db: ReturnType<typeof createDatabase>['db']) {
+  const catalogs = new CatalogsService(new CatalogsRepository(db));
+  await catalogs.migrateLegacyKinds();
+  await catalogs.seedAllIfEmpty();
+}
+
 async function main() {
   const config = loadConfig();
   const { db, client } = createDatabase(config);
@@ -449,6 +591,9 @@ async function main() {
     await storage.ensureBucket();
     await seedCategories(db);
     await seedCategoryAttributes(db);
+    await remapListingsToLeaves(db);
+    await seedCities(db);
+    await seedCatalogs(db);
     await ensureModerator(db);
     await seedDemoListings(db, storage);
   } finally {

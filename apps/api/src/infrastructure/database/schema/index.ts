@@ -4,3 +4,6 @@ export * from './categories.js';
 export * from './listings.js';
 export * from './messaging.js';
 export * from './social.js';
+export * from './catalogs.js';
+export * from './cities.js';
+export * from './search-history.js';

@@ -2,22 +2,22 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-  COUNTRIES,
   changePasswordSchema,
   updateProfileSchema,
   type CountryCode,
 } from '@markethub/shared';
 import { apiRequest, apiUpload } from '@/shared/api/client';
 import { logoutSession } from '@/shared/api/session';
-import { useAuthStore, type AuthUser } from '@/shared/model/stores';
+import { useAuthStore, type AuthUser, useUiStore, type ThemeMode } from '@/shared/model/stores';
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/avatar';
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Input } from '@/shared/ui/input';
 import { Label } from '@/shared/ui/label';
 import { Textarea } from '@/shared/ui/textarea';
-import { NativeSelect } from '@/shared/ui/native-select';
+import { Combobox } from '@/shared/ui/combobox';
 import { CitySelect } from '@/entities/geo/ui/CitySelect';
+import { CountrySelect } from '@/entities/geo/ui/CountrySelect';
 
 type MeResponse = {
   user: AuthUser;
@@ -66,15 +66,22 @@ export function SettingsPage() {
 
   if (!token) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Настройки</CardTitle>
-        </CardHeader>
-        <CardContent className="text-muted space-y-3 text-sm">
-          <p>Войдите, чтобы менять профиль, пароль и сессии.</p>
-          <Button onClick={() => void navigate({ to: '/auth' })}>Войти</Button>
-        </CardContent>
-      </Card>
+      <div className="mx-auto max-w-3xl space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Настройки</h1>
+          <p className="text-muted text-sm">Тема доступна без входа.</p>
+        </div>
+        <ThemeCard />
+        <Card>
+          <CardHeader>
+            <CardTitle>Профиль</CardTitle>
+          </CardHeader>
+          <CardContent className="text-muted space-y-3 text-sm">
+            <p>Войдите, чтобы менять профиль, пароль и сессии.</p>
+            <Button onClick={() => void navigate({ to: '/auth' })}>Войти</Button>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
@@ -86,8 +93,9 @@ export function SettingsPage() {
     <div className="mx-auto max-w-3xl space-y-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Настройки</h1>
-        <p className="text-muted text-sm">Профиль, безопасность и активные сессии.</p>
+        <p className="text-muted text-sm">Профиль, тема, безопасность и активные сессии.</p>
       </div>
+      <ThemeCard />
       <ProfileCard
         user={meQuery.data.user}
         identities={meQuery.data.identities}
@@ -113,6 +121,36 @@ export function SettingsPage() {
         }}
       />
     </div>
+  );
+}
+
+function ThemeCard() {
+  const theme = useUiStore((s) => s.theme);
+  const setTheme = useUiStore((s) => s.setTheme);
+  const options: Array<{ id: ThemeMode; label: string }> = [
+    { id: 'system', label: 'Как в системе' },
+    { id: 'light', label: 'Светлая' },
+    { id: 'dark', label: 'Тёмная' },
+  ];
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Оформление</CardTitle>
+      </CardHeader>
+      <CardContent className="flex flex-wrap gap-2">
+        {options.map((option) => (
+          <Button
+            key={option.id}
+            type="button"
+            variant={theme === option.id ? 'default' : 'secondary'}
+            onClick={() => setTheme(option.id)}
+          >
+            {option.label}
+          </Button>
+        ))}
+      </CardContent>
+    </Card>
   );
 }
 
@@ -226,20 +264,12 @@ function ProfileCard({
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="country">Страна</Label>
-            <NativeSelect
+            <CountrySelect
               id="country"
               value={country}
-              onChange={(e) => {
-                setCountry(e.target.value as CountryCode);
-                setCity('');
-              }}
-            >
-              {COUNTRIES.map((item) => (
-                <option key={item.code} value={item.code}>
-                  {item.nameRu}
-                </option>
-              ))}
-            </NativeSelect>
+              onChange={(value) => setCountry(value as CountryCode)}
+              onCountryChange={() => setCity('')}
+            />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="city">Город</Label>

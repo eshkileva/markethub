@@ -23,6 +23,13 @@ import { registerNotificationHandlers } from '../modules/notifications/applicati
 import { ChatHub } from '../modules/messaging/infrastructure/chat-hub.js';
 import { UsersRepository } from '../modules/users/infrastructure/users.repository.js';
 import { UsersService } from '../modules/users/application/users.service.js';
+import { GeoService } from '../modules/geo/application/geo.service.js';
+import { CitiesRepository } from '../modules/geo/infrastructure/cities.repository.js';
+import { RatesService } from '../modules/fx/application/rates.service.js';
+import { CatalogsRepository } from '../modules/catalogs/infrastructure/catalogs.repository.js';
+import { CatalogsService } from '../modules/catalogs/application/catalogs.service.js';
+import { SearchHistoryRepository } from '../modules/search/infrastructure/search-history.repository.js';
+import { SearchHistoryService } from '../modules/search/application/search-history.service.js';
 
 export type AppServices = {
   auth: AuthService;
@@ -33,6 +40,10 @@ export type AppServices = {
   reports: ReportsService;
   notifications: NotificationsService;
   users: UsersService;
+  geo: GeoService;
+  rates: RatesService;
+  catalogs: CatalogsService;
+  searchHistory: SearchHistoryService;
 };
 
 declare module 'fastify' {
@@ -56,12 +67,16 @@ type Container = {
 };
 
 const containerPlugin: FastifyPluginAsync<Container> = async (app, opts) => {
+  const geo = new GeoService(new CitiesRepository(opts.db));
+  const rates = new RatesService(opts.config, opts.redis);
+  const catalogs = new CatalogsService(new CatalogsRepository(opts.db));
+  const searchHistory = new SearchHistoryService(new SearchHistoryRepository(opts.db));
   const authRepo = new AuthRepository(opts.db);
-  const auth = new AuthService(authRepo, opts.config, opts.events);
+  const auth = new AuthService(authRepo, opts.config, opts.events, geo);
   const listingsRepo = new ListingsRepository(opts.db);
-  const listings = new ListingsService(listingsRepo, opts.events);
+  const listings = new ListingsService(listingsRepo, opts.events, geo);
   const favoritesRepo = new FavoritesRepository(opts.db);
-  const favorites = new FavoritesService(favoritesRepo, opts.db);
+  const favorites = new FavoritesService(favoritesRepo, opts.db, rates);
   const chatHub = new ChatHub();
   const messagingRepo = new MessagingRepository(opts.db);
   const messaging = new MessagingService(messagingRepo, opts.events, chatHub);
@@ -90,6 +105,10 @@ const containerPlugin: FastifyPluginAsync<Container> = async (app, opts) => {
     reports,
     notifications,
     users,
+    geo,
+    rates,
+    catalogs,
+    searchHistory,
   });
 };
 

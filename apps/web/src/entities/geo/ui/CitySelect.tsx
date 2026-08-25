@@ -1,8 +1,10 @@
-import { useEffect, useRef } from 'react';
+import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { MAX_COMBOBOX_VISIBLE } from '@markethub/shared/limits';
 import type { CountryCode } from '@markethub/shared';
 import { apiRequest } from '@/shared/api/client';
-import { NativeSelect } from '@/shared/ui/native-select';
+import { useDebouncedValue } from '@/shared/lib/use-debounced-value';
+import { Combobox } from '@/shared/ui/combobox';
 
 type CitiesResponse = {
   items: Array<{ nameRu: string; country: CountryCode }>;
@@ -25,47 +27,54 @@ export function CitySelect({
   emptyLabel?: string;
   disabled?: boolean;
 }) {
-  const onChangeRef = useRef(onChange);
-  onChangeRef.current = onChange;
+  const [searchQuery, setSearchQuery] = useState('');
+  const debouncedQuery = useDebouncedValue(searchQuery, 250);
 
-  const query = useQuery({
-    queryKey: ['geo-cities', country],
+  const citiesQuery = useQuery({
+    queryKey: ['geo-cities', country, debouncedQuery],
     enabled: Boolean(country),
-    queryFn: () => apiRequest<CitiesResponse>(`/v1/geo/cities?country=${country}`),
+    queryFn: () => {
+      const params = new URLSearchParams({ country: country! });
+      const trimmed = debouncedQuery.trim();
+      if (trimmed) params.set('q', trimmed);
+      return apiRequest<CitiesResponse>(`/v1/geo/cities?${params.toString()}`);
+    },
+    staleTime: 60_000,
   });
 
-  const cities = query.data?.items ?? [];
-  const ready = Boolean(country) && query.isSuccess;
+  const options = useMemo(() => {
+    const items = (citiesQuery.data?.items ?? []).map((city) => ({
+      value: city.nameRu,
+      label: city.nameRu,
+    }));
+    if (value && !items.some((item) => item.value === value)) {
+      items.unshift({ value, label: value });
+    }
+    return items;
+  }, [citiesQuery.data?.items, value]);
 
-  useEffect(() => {
-    if (!ready) return;
-    const known = cities.some((city) => city.nameRu === value);
-    if (value && !known) {
-      onChangeRef.current(allowEmpty ? '' : (cities[0]?.nameRu ?? ''));
-      return;
-    }
-    if (!value && !allowEmpty && cities[0]) {
-      onChangeRef.current(cities[0].nameRu);
-    }
-  }, [allowEmpty, cities, ready, value]);
+  const loading = Boolean(country) && citiesQuery.isLoading;
+  const errored = Boolean(country) && citiesQuery.isError;
+  const showMoreHint =
+    !debouncedQuery.trim() && (citiesQuery.data?.items.length ?? 0) >= MAX_COMBOBOX_VISIBLE;
 
   return (
-    <NativeSelect
+    <Combobox
       id={id}
       value={value}
-      disabled={disabled || !country}
-      onChange={(event) => onChange(event.target.value)}
-      aria-label="Город"
-    >
-      {allowEmpty ? (
-        <option value="">{country ? emptyLabel : 'Сначала выберите страну'}</option>
-      ) : null}
-      {!allowEmpty && !country ? <option value="">Сначала выберите страну</option> : null}
-      {cities.map((city) => (
-        <option key={city.nameRu} value={city.nameRu}>
-          {city.nameRu}
-        </option>
-      ))}
-    </NativeSelect>
+      onChange={onChange}
+      options={options}
+      disabled={disabled || !country || loading}
+      allowEmpty={allowEmpty}
+      clearLabel={country ? emptyLabel : 'Сначала выберите страну'}
+      placeholder={
+        !country ? 'Сначала выберите страну' : loading ? 'Загрузка…' : errored ? 'Ошибка загрузки' : 'Город'
+      }
+      emptyLabel={errored ? 'Не удалось загрузить города' : 'Город не найден'}
+      maxVisibleOptions={MAX_COMBOBOX_VISIBLE}
+      showMoreHint={showMoreHint}
+      truncatedHint="Продолжайте вводить название"
+      onQueryChange={setSearchQuery}
+    />
   );
 }

@@ -1,5 +1,4 @@
 import { and, desc, eq, gt, inArray, isNull, ne, or, sql } from 'drizzle-orm';
-import { alias } from 'drizzle-orm/pg-core';
 import type { Database } from '../../../infrastructure/database/client.js';
 import {
   conversationParticipants,
@@ -10,8 +9,14 @@ import {
   users,
 } from '../../../infrastructure/database/schema/index.js';
 
-const participantA = alias(conversationParticipants, 'participant_a');
-const participantB = alias(conversationParticipants, 'participant_b');
+function isUniqueViolation(error: unknown) {
+  return Boolean(
+    error &&
+      typeof error === 'object' &&
+      'code' in error &&
+      (error as { code?: string }).code === '23505',
+  );
+}
 
 export class MessagingRepository {
   constructor(private readonly db: Database) {}
@@ -22,35 +27,37 @@ export class MessagingRepository {
     });
   }
 
-  async findBetween(listingId: string, userA: string, userB: string) {
+  async findBetween(listingId: string, buyerId: string) {
     const [row] = await this.db
       .select({ id: conversations.id })
       .from(conversations)
-      .innerJoin(participantA, eq(participantA.conversationId, conversations.id))
-      .innerJoin(participantB, eq(participantB.conversationId, conversations.id))
-      .where(
-        and(
-          eq(conversations.listingId, listingId),
-          eq(participantA.userId, userA),
-          eq(participantB.userId, userB),
-        ),
-      )
+      .where(and(eq(conversations.listingId, listingId), eq(conversations.buyerId, buyerId)))
       .limit(1);
     return row ?? null;
   }
 
   async createWithParticipants(listingId: string, buyerId: string, sellerId: string) {
-    return this.db.transaction(async (tx) => {
-      const [conversation] = await tx.insert(conversations).values({ listingId }).returning();
-      if (!conversation) {
-        throw new Error('Failed to create conversation');
+    try {
+      return await this.db.transaction(async (tx) => {
+        const [conversation] = await tx
+          .insert(conversations)
+          .values({ listingId, buyerId })
+          .returning();
+        if (!conversation) {
+          throw new Error('Failed to create conversation');
+        }
+        await tx.insert(conversationParticipants).values([
+          { conversationId: conversation.id, userId: buyerId, lastReadAt: new Date() },
+          { conversationId: conversation.id, userId: sellerId },
+        ]);
+        return conversation;
+      });
+    } catch (error) {
+      if (isUniqueViolation(error)) {
+        return this.findBetween(listingId, buyerId);
       }
-      await tx.insert(conversationParticipants).values([
-        { conversationId: conversation.id, userId: buyerId, lastReadAt: new Date() },
-        { conversationId: conversation.id, userId: sellerId },
-      ]);
-      return conversation;
-    });
+      throw error;
+    }
   }
 
   findConversation(id: string) {

@@ -1,5 +1,5 @@
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
-import { citiesQuerySchema, listCities } from '@markethub/shared';
+import { citiesQuerySchema } from '@markethub/shared';
 
 export const geoRoutes: FastifyPluginAsyncZod = async (app) => {
   app.get(
@@ -11,7 +11,7 @@ export const geoRoutes: FastifyPluginAsyncZod = async (app) => {
       },
     },
     async (request) => ({
-      items: listCities(request.query.country, request.query.q),
+      items: await app.services.geo.listCities(request.query.country, request.query.q),
     }),
   );
 };

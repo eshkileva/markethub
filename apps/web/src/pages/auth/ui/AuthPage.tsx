@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { useForm } from '@tanstack/react-form';
-import { loginSchema, registerSchema, COUNTRIES, type CountryCode } from '@markethub/shared';
+import { loginSchema, registerSchema, type CountryCode } from '@markethub/shared';
+import { CountrySelect } from '@/entities/geo/ui/CountrySelect';
 import { apiRequest } from '@/shared/api/client';
 import { useAuthStore, type AuthUser } from '@/shared/model/stores';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
@@ -182,18 +183,11 @@ export function AuthPage() {
                 {(field) => (
                   <div className="space-y-1.5">
                     <Label htmlFor="country">Страна</Label>
-                    <select
+                    <CountrySelect
                       id="country"
-                      className="border-border bg-card flex h-10 w-full rounded-xl border px-3 text-sm"
                       value={field.state.value}
-                      onChange={(e) => field.handleChange(e.target.value as CountryCode)}
-                    >
-                      {COUNTRIES.map((c) => (
-                        <option key={c.code} value={c.code}>
-                          {c.nameRu}
-                        </option>
-                      ))}
-                    </select>
+                      onChange={(value) => field.handleChange(value as CountryCode)}
+                    />
                   </div>
                 )}
               </registerForm.Field>

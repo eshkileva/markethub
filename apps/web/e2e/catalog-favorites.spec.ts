@@ -27,14 +27,14 @@ test('catalog loads and favorite opens auth', async ({ page }) => {
   const registerJson = await registerRes.json();
   const token = registerJson.accessToken as string;
 
-  // 2) Get computers category + attributes
+  // 2) Get laptops leaf + attributes
   const catsRes = await page.request.get(`${apiBase}/v1/categories`);
   await assertOk(catsRes, 'categories');
   const catsJson = await catsRes.json();
-  const computers = catsJson.items.find((c: any) => c.slug === 'computers');
-  if (!computers) throw new Error('Missing computers category seed');
+  const laptops = catsJson.items.find((c: { slug: string }) => c.slug === 'laptops');
+  if (!laptops) throw new Error('Missing laptops category seed');
 
-  const attrsRes = await page.request.get(`${apiBase}/v1/categories/${computers.id}/attributes`);
+  const attrsRes = await page.request.get(`${apiBase}/v1/categories/${laptops.id}/attributes`);
   await assertOk(attrsRes, 'category attributes');
   const attrsJson = await attrsRes.json();
   const manufacturer =
@@ -48,7 +48,7 @@ test('catalog loads and favorite opens auth', async ({ page }) => {
     data: {
       title,
       description: 'Test listing for Playwright',
-      categoryId: computers.id,
+      categoryId: laptops.id,
       price: 12345,
       currency: 'RUB',
       country: 'RU',

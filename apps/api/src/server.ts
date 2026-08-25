@@ -26,6 +26,7 @@ async function main() {
   }
 
   const app = await buildApp({ config, db, redis, storage, events });
+  app.services.rates.startHourlyRefresh();
 
   const shutdown = async () => {
     await app.close();
