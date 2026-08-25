@@ -1,0 +1,426 @@
+[
+  {
+    "id": "apple",
+    "name": "Apple",
+    "models": [
+      {
+        "id": "ipad-9",
+        "name": "iPad 9"
+      },
+      {
+        "id": "ipad-10",
+        "name": "iPad 10"
+      },
+      {
+        "id": "ipad-air-5th-gen",
+        "name": "iPad Air (5th gen)"
+      },
+      {
+        "id": "ipad-air-6th-gen",
+        "name": "iPad Air (6th gen)"
+      },
+      {
+        "id": "ipad-mini-6",
+        "name": "iPad mini 6"
+      },
+      {
+        "id": "ipad-mini-7",
+        "name": "iPad mini 7"
+      },
+      {
+        "id": "ipad-pro-11-2024",
+        "name": "iPad Pro 11 (2024)"
+      },
+      {
+        "id": "ipad-pro-13-2024",
+        "name": "iPad Pro 13 (2024)"
+      }
+    ]
+  },
+  {
+    "id": "samsung",
+    "name": "Samsung",
+    "models": [
+      {
+        "id": "galaxy-tab-a9",
+        "name": "Galaxy Tab A9"
+      },
+      {
+        "id": "galaxy-tab-a9",
+        "name": "Galaxy Tab A9+"
+      },
+      {
+        "id": "galaxy-tab-s9",
+        "name": "Galaxy Tab S9"
+      },
+      {
+        "id": "galaxy-tab-s9",
+        "name": "Galaxy Tab S9+"
+      },
+      {
+        "id": "galaxy-tab-s9-ultra",
+        "name": "Galaxy Tab S9 Ultra"
+      },
+      {
+        "id": "galaxy-tab-s9-fe",
+        "name": "Galaxy Tab S9 FE"
+      },
+      {
+        "id": "galaxy-tab-s10",
+        "name": "Galaxy Tab S10+"
+      },
+      {
+        "id": "galaxy-tab-s10-ultra",
+        "name": "Galaxy Tab S10 Ultra"
+      }
+    ]
+  },
+  {
+    "id": "xiaomi",
+    "name": "Xiaomi",
+    "models": [
+      {
+        "id": "xiaomi-pad-6",
+        "name": "Xiaomi Pad 6"
+      },
+      {
+        "id": "xiaomi-pad-6-pro",
+        "name": "Xiaomi Pad 6 Pro"
+      },
+      {
+        "id": "xiaomi-pad-6s-pro",
+        "name": "Xiaomi Pad 6S Pro"
+      },
+      {
+        "id": "xiaomi-pad-7",
+        "name": "Xiaomi Pad 7"
+      },
+      {
+        "id": "redmi-pad-se",
+        "name": "Redmi Pad SE"
+      },
+      {
+        "id": "redmi-pad-pro",
+        "name": "Redmi Pad Pro"
+      }
+    ]
+  },
+  {
+    "id": "huawei",
+    "name": "Huawei",
+    "models": [
+      {
+        "id": "matepad-11",
+        "name": "MatePad 11"
+      },
+      {
+        "id": "matepad-11-5",
+        "name": "MatePad 11.5"
+      },
+      {
+        "id": "matepad-pro-13-2",
+        "name": "MatePad Pro 13.2"
+      },
+      {
+        "id": "matepad-se-11",
+        "name": "MatePad SE 11"
+      }
+    ]
+  },
+  {
+    "id": "honor",
+    "name": "Honor",
+    "models": [
+      {
+        "id": "honor-pad-x9",
+        "name": "Honor Pad X9"
+      },
+      {
+        "id": "honor-pad-9",
+        "name": "Honor Pad 9"
+      },
+      {
+        "id": "honor-magicpad-2",
+        "name": "Honor MagicPad 2"
+      }
+    ]
+  },
+  {
+    "id": "lenovo",
+    "name": "Lenovo",
+    "models": [
+      {
+        "id": "tab-m10-plus",
+        "name": "Tab M10 Plus"
+      },
+      {
+        "id": "tab-m11",
+        "name": "Tab M11"
+      },
+      {
+        "id": "tab-p11-pro",
+        "name": "Tab P11 Pro"
+      },
+      {
+        "id": "tab-p12",
+        "name": "Tab P12"
+      },
+      {
+        "id": "tab-p12-pro",
+        "name": "Tab P12 Pro"
+      },
+      {
+        "id": "yoga-tab-13",
+        "name": "Yoga Tab 13"
+      }
+    ]
+  },
+  {
+    "id": "realme",
+    "name": "Realme",
+    "models": [
+      {
+        "id": "realme-pad-2",
+        "name": "Realme Pad 2"
+      },
+      {
+        "id": "realme-pad-x",
+        "name": "Realme Pad X"
+      },
+      {
+        "id": "realme-pad-mini",
+        "name": "Realme Pad Mini"
+      }
+    ]
+  },
+  {
+    "id": "oneplus",
+    "name": "OnePlus",
+    "models": [
+      {
+        "id": "oneplus-pad",
+        "name": "OnePlus Pad"
+      },
+      {
+        "id": "oneplus-pad-2",
+        "name": "OnePlus Pad 2"
+      },
+      {
+        "id": "oneplus-pad-go",
+        "name": "OnePlus Pad Go"
+      }
+    ]
+  },
+  {
+    "id": "oppo",
+    "name": "OPPO",
+    "models": [
+      {
+        "id": "oppo-pad-air2",
+        "name": "OPPO Pad Air2"
+      },
+      {
+        "id": "oppo-pad-2",
+        "name": "OPPO Pad 2"
+      },
+      {
+        "id": "oppo-pad-neo",
+        "name": "OPPO Pad Neo"
+      }
+    ]
+  },
+  {
+    "id": "nokia",
+    "name": "Nokia",
+    "models": [
+      {
+        "id": "nokia-t21",
+        "name": "Nokia T21"
+      },
+      {
+        "id": "nokia-t10",
+        "name": "Nokia T10"
+      },
+      {
+        "id": "nokia-t20",
+        "name": "Nokia T20"
+      }
+    ]
+  },
+  {
+    "id": "microsoft",
+    "name": "Microsoft",
+    "models": [
+      {
+        "id": "surface-pro-9",
+        "name": "Surface Pro 9"
+      },
+      {
+        "id": "surface-pro-10",
+        "name": "Surface Pro 10"
+      },
+      {
+        "id": "surface-go-4",
+        "name": "Surface Go 4"
+      }
+    ]
+  },
+  {
+    "id": "amazon",
+    "name": "Amazon",
+    "models": [
+      {
+        "id": "fire-hd-8",
+        "name": "Fire HD 8"
+      },
+      {
+        "id": "fire-hd-10",
+        "name": "Fire HD 10"
+      },
+      {
+        "id": "fire-max-11",
+        "name": "Fire Max 11"
+      }
+    ]
+  },
+  {
+    "id": "asus",
+    "name": "ASUS",
+    "models": [
+      {
+        "id": "zenpad",
+        "name": "ZenPad"
+      },
+      {
+        "id": "rog-flow-z13",
+        "name": "ROG Flow Z13"
+      },
+      {
+        "id": "asus-chromebook-tablet-cm3",
+        "name": "ASUS Chromebook Tablet CM3"
+      }
+    ]
+  },
+  {
+    "id": "google",
+    "name": "Google",
+    "models": [
+      {
+        "id": "pixel-tablet",
+        "name": "Pixel Tablet"
+      },
+      {
+        "id": "pixel-slate-refurb",
+        "name": "Pixel Slate (refurb)"
+      }
+    ]
+  },
+  {
+    "id": "teclast",
+    "name": "Teclast",
+    "models": [
+      {
+        "id": "t40-pro",
+        "name": "T40 Pro"
+      },
+      {
+        "id": "m50-plus",
+        "name": "M50 Plus"
+      },
+      {
+        "id": "t50-pro",
+        "name": "T50 Pro"
+      }
+    ]
+  },
+  {
+    "id": "blackview",
+    "name": "Blackview",
+    "models": [
+      {
+        "id": "tab-16-pro",
+        "name": "Tab 16 Pro"
+      },
+      {
+        "id": "tab-18",
+        "name": "Tab 18"
+      },
+      {
+        "id": "active-8-pro",
+        "name": "Active 8 Pro"
+      }
+    ]
+  },
+  {
+    "id": "doogee",
+    "name": "Doogee",
+    "models": [
+      {
+        "id": "u10",
+        "name": "U10"
+      },
+      {
+        "id": "u11-pro",
+        "name": "U11 Pro"
+      },
+      {
+        "id": "t30-pro",
+        "name": "T30 Pro"
+      }
+    ]
+  },
+  {
+    "id": "tcl",
+    "name": "TCL",
+    "models": [
+      {
+        "id": "tcl-tab-10",
+        "name": "TCL Tab 10"
+      },
+      {
+        "id": "tcl-tab-10l",
+        "name": "TCL Tab 10L"
+      },
+      {
+        "id": "tcl-nxtpaper-11",
+        "name": "TCL NxtPaper 11"
+      }
+    ]
+  },
+  {
+    "id": "alldocube",
+    "name": "Alldocube",
+    "models": [
+      {
+        "id": "iplay-50-pro",
+        "name": "iPlay 50 Pro"
+      },
+      {
+        "id": "iplay-60-mini-turbo",
+        "name": "iPlay 60 Mini Turbo"
+      },
+      {
+        "id": "xpad",
+        "name": "XPad"
+      }
+    ]
+  },
+  {
+    "id": "chuwi",
+    "name": "CHUWI",
+    "models": [
+      {
+        "id": "hipad-xpro",
+        "name": "HiPad XPro"
+      },
+      {
+        "id": "hipad-11",
+        "name": "HiPad 11"
+      },
+      {
+        "id": "hi10-xplus",
+        "name": "Hi10 XPlus"
+      }
+    ]
+  }
+]

@@ -9,10 +9,16 @@ export const conversations = pgTable(
     listingId: uuid('listing_id')
       .notNull()
       .references(() => listings.id, { onDelete: 'cascade' }),
+    buyerId: uuid('buyer_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
-  (table) => [index('conversations_listing_idx').on(table.listingId)],
+  (table) => [
+    index('conversations_listing_idx').on(table.listingId),
+    uniqueIndex('conversations_listing_buyer_uidx').on(table.listingId, table.buyerId),
+  ],
 );
 
 export const conversationParticipants = pgTable(

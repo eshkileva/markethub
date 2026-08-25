@@ -2,13 +2,13 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
 import {
-  COUNTRIES,
   CURRENCIES,
   DELIVERY_MODES,
   LISTING_CONDITIONS,
   MAX_LISTING_IMAGES,
   MAX_UPLOAD_BYTES,
   createListingSchema,
+  categoryRequiresCondition,
   type CountryCode,
   type CurrencyCode,
   type DeliveryMode,
@@ -18,29 +18,22 @@ import { apiRequest, apiUpload } from '@/shared/api/client';
 import { useAuthStore } from '@/shared/model/stores';
 import { deliveryModeLabels, listingConditionLabels } from '@/entities/listing/model/labels';
 import { CitySelect } from '@/entities/geo/ui/CitySelect';
-import { NativeSelect } from '@/shared/ui/native-select';
+import { CountrySelect } from '@/entities/geo/ui/CountrySelect';
+import { Combobox } from '@/shared/ui/combobox';
+import { categoryChildren, categoryRoots } from '@/entities/category/model/tree';
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Input } from '@/shared/ui/input';
 import { Label } from '@/shared/ui/label';
 import { mapListingError } from '../model/map-listing-error';
-import { ListingAttributesFields } from './ListingAttributesFields';
+import { ListingAttributesFields, type AttributeDef } from './ListingAttributesFields';
 import { ListingPhotosField, type EditorImage } from './ListingPhotosField';
 
 type CategoriesResponse = {
-  items: Array<{ id: string; slug: string; nameRu: string }>;
+  items: Array<{ id: string; slug: string; nameRu: string; parentId: string | null }>;
 };
 
-type AttributesResponse = {
-  items: Array<{
-    id: string;
-    key: string;
-    labelRu: string;
-    type: string;
-    options: string[] | null;
-    required: boolean;
-  }>;
-};
+type AttributesResponse = { items: AttributeDef[] };
 
 type ListingResponse = {
   id: string;
@@ -104,11 +97,18 @@ export function CreateListingPage({ listingId }: { listingId?: string }) {
     queryFn: () => apiRequest<AttributesResponse>(`/v1/categories/${categoryId}/attributes`),
   });
 
+  const categoryItems = categoriesQuery.data?.items ?? [];
+  const selectedCategory = categoryItems.find((item) => item.id === categoryId);
+  const selectedRootId = selectedCategory?.parentId ?? '';
+  const selectedRoot = categoryItems.find((item) => item.id === selectedRootId);
+  const showCondition = categoryRequiresCondition(selectedRoot?.slug);
+  const leafOptions = selectedRootId ? categoryChildren(categoryItems, selectedRootId) : [];
+
   useEffect(() => {
     if (isEdit) return;
     if (!categoriesQuery.data?.items.length || categoryId) return;
-    const computers = categoriesQuery.data.items.find((c) => c.slug === 'computers');
-    setCategoryId(computers?.id ?? categoriesQuery.data.items[0]!.id);
+    const laptops = categoriesQuery.data.items.find((c) => c.slug === 'laptops');
+    setCategoryId(laptops?.id ?? categoriesQuery.data.items.find((c) => c.parentId)?.id ?? '');
   }, [categoriesQuery.data, categoryId, isEdit]);
 
   useEffect(() => {
@@ -161,7 +161,7 @@ export function CreateListingPage({ listingId }: { listingId?: string }) {
       currency,
       country,
       city,
-      condition,
+      condition: showCondition ? condition : 'used',
       deliveryModes,
       attributes: attributeDefs
         .filter((attr) => (attributeValues[attr.id] ?? '').trim().length > 0)
@@ -179,6 +179,7 @@ export function CreateListingPage({ listingId }: { listingId?: string }) {
       country,
       city,
       condition,
+      showCondition,
       deliveryModes,
       attributeDefs,
       attributeValues,
@@ -407,35 +408,48 @@ export function CreateListingPage({ listingId }: { listingId?: string }) {
             </div>
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-1.5">
-                <Label htmlFor="category">Категория</Label>
-                <select
-                  id="category"
-                  className="border-border bg-card flex h-10 w-full rounded-xl border px-3 text-sm"
-                  value={categoryId}
-                  onChange={(e) => setCategoryId(e.target.value)}
-                >
-                  {(categoriesQuery.data?.items ?? []).map((category) => (
-                    <option key={category.id} value={category.id}>
-                      {category.nameRu}
-                    </option>
-                  ))}
-                </select>
+                <Label htmlFor="category-root">Категория</Label>
+                <Combobox
+                  id="category-root"
+                  value={selectedRootId}
+                  onChange={(rootId) => {
+                    const first = categoryChildren(categoryItems, rootId)[0];
+                    setCategoryId(first?.id ?? '');
+                  }}
+                  options={categoryRoots(categoryItems).map((category) => ({
+                    value: category.id,
+                    label: category.nameRu,
+                  }))}
+                />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="condition">Состояние</Label>
-                <select
-                  id="condition"
-                  className="border-border bg-card flex h-10 w-full rounded-xl border px-3 text-sm"
-                  value={condition}
-                  onChange={(e) => setCondition(e.target.value as ListingCondition)}
-                >
-                  {LISTING_CONDITIONS.map((item) => (
-                    <option key={item} value={item}>
-                      {listingConditionLabels[item]}
-                    </option>
-                  ))}
-                </select>
+                <Label htmlFor="category">Подкатегория</Label>
+                <Combobox
+                  id="category"
+                  value={categoryId}
+                  onChange={setCategoryId}
+                  disabled={!selectedRootId}
+                  placeholder={selectedRootId ? 'Подкатегория' : 'Сначала выберите категорию'}
+                  options={leafOptions.map((category) => ({
+                    value: category.id,
+                    label: category.nameRu,
+                  }))}
+                />
               </div>
+              {showCondition ? (
+                <div className="space-y-1.5">
+                  <Label htmlFor="condition">Состояние</Label>
+                  <Combobox
+                    id="condition"
+                    value={condition}
+                    onChange={(value) => setCondition(value as ListingCondition)}
+                    options={LISTING_CONDITIONS.map((item) => ({
+                      value: item,
+                      label: listingConditionLabels[item],
+                    }))}
+                  />
+                </div>
+              ) : null}
             </div>
           </CardContent>
         </Card>
@@ -472,35 +486,24 @@ export function CreateListingPage({ listingId }: { listingId?: string }) {
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="currency">Валюта</Label>
-              <select
+              <Combobox
                 id="currency"
-                className="border-border bg-card flex h-10 w-full rounded-xl border px-3 text-sm"
                 value={currency}
-                onChange={(e) => setCurrency(e.target.value as CurrencyCode)}
-              >
-                {CURRENCIES.map((item) => (
-                  <option key={item.code} value={item.code}>
-                    {item.code} — {item.nameRu}
-                  </option>
-                ))}
-              </select>
+                onChange={(value) => setCurrency(value as CurrencyCode)}
+                options={CURRENCIES.map((item) => ({
+                  value: item.code,
+                  label: `${item.code} — ${item.nameRu}`,
+                }))}
+              />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="country">Страна</Label>
-              <NativeSelect
+              <CountrySelect
                 id="country"
                 value={country}
-                onChange={(e) => {
-                  setCountry(e.target.value as CountryCode);
-                  setCity('');
-                }}
-              >
-                {COUNTRIES.map((item) => (
-                  <option key={item.code} value={item.code}>
-                    {item.nameRu}
-                  </option>
-                ))}
-              </NativeSelect>
+                onChange={(value) => setCountry(value as CountryCode)}
+                onCountryChange={() => setCity('')}
+              />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="city">Город</Label>

@@ -3,14 +3,23 @@ import { apiRequest } from '@/shared/api/client';
 import { useAuthStore } from '@/shared/model/stores';
 
 export function mapDealError(message: string) {
-  if (message === 'Only published listings can be reserved') {
-    return 'Забронировать можно только активное объявление';
+  if (
+    message === 'Only published listings can be reserved' ||
+    message === 'Забронировать можно только опубликованное объявление'
+  ) {
+    return 'Забронировать можно только опубликованное объявление';
   }
-  if (message === 'Only active listings can be marked as sold') {
-    return 'Проданным можно отметить только активное или забронированное объявление';
+  if (
+    message === 'Only active listings can be marked as sold' ||
+    message === 'Продать можно только активное объявление'
+  ) {
+    return 'Продать можно только активное объявление';
   }
-  if (message === 'Only reserved or sold listings can be relisted') {
-    return 'Вернуть в продажу можно бронь или проданное объявление';
+  if (
+    message === 'Only reserved or sold listings can be relisted' ||
+    message === 'Вернуть в продажу можно только забронированное или проданное объявление'
+  ) {
+    return 'Вернуть в продажу можно только забронированное или проданное объявление';
   }
   return message;
 }

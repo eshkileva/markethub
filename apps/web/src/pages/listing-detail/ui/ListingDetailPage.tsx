@@ -1,9 +1,10 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { Heart } from 'lucide-react';
-import { formatMoney } from '@markethub/shared';
+import { PriceDisplay } from '@/shared/ui/price-display';
+import { CountryBadge } from '@/shared/ui/country-badge';
 import { apiRequest } from '@/shared/api/client';
-import { useAuthStore } from '@/shared/model/stores';
+import { useAuthStore, useUiStore } from '@/shared/model/stores';
 import { useFavoriteToggle } from '@/features/favorites/model/use-favorite-toggle';
 import { mapDealError, useListingDeal } from '@/features/listings/model/use-listing-deal';
 import { ListingDealActions } from '@/features/listings/ui/ListingDealActions';
@@ -22,6 +23,7 @@ import { ListingGallery } from '@/pages/listing-detail/ui/ListingGallery';
 export function ListingDetailPage({ listingId }: { listingId: string }) {
   const token = useAuthStore((s) => s.accessToken);
   const user = useAuthStore((s) => s.user);
+  const preferred = useUiStore((s) => s.displayCurrency);
   const navigate = useNavigate();
   const favorite = useFavoriteToggle();
   const deal = useListingDeal();
@@ -43,7 +45,7 @@ export function ListingDetailPage({ listingId }: { listingId: string }) {
   });
 
   if (listingQuery.isLoading) {
-    return <Card className="h-80 animate-pulse bg-slate-100" />;
+    return <Card className="bg-surface-secondary h-80 animate-pulse" />;
   }
 
   if (listingQuery.isError || !listingQuery.data) {
@@ -65,7 +67,7 @@ export function ListingDetailPage({ listingId }: { listingId: string }) {
   const isOwner = listing.seller?.id === user?.id;
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[1.6fr_1fr]">
+    <div className={cn('grid gap-6 lg:grid-cols-[1.6fr_1fr]', !isOwner && 'pb-20 lg:pb-0')}>
       <div className="space-y-4">
         <ListingGallery key={listing.id} title={listing.title} images={listing.images} />
         <ListingAttributes items={listing.attributes ?? []} />
@@ -86,27 +88,22 @@ export function ListingDetailPage({ listingId }: { listingId: string }) {
               <Badge className="bg-primary/10 text-primary">
                 {listingStatusLabels[listing.status]}
               </Badge>
-              <Badge className="text-muted bg-slate-100">
+              <Badge className="text-muted bg-surface-secondary">
                 {listingConditionLabels[listing.condition]}
               </Badge>
             </div>
             {listing.status === 'reserved' ? (
               <p className="text-muted text-sm">Скрыто из каталога, пока действует бронь.</p>
             ) : null}
-            <h1 className="text-2xl font-bold tracking-tight">{listing.title}</h1>
-            <div>
-              <div className="text-3xl font-semibold tabular-nums">
-                {formatMoney(listing.price, listing.currency)}
-              </div>
-              <div className="text-muted mt-1 text-sm">
-                ≈ {formatMoney(listing.converted.BYN, 'BYN')} ·{' '}
-                {formatMoney(listing.converted.RUB, 'RUB')} ·{' '}
-                {formatMoney(listing.converted.KZT, 'KZT')}
-              </div>
-            </div>
-            <div className="text-muted text-sm">
-              {listing.city}, {listing.country}
-            </div>
+            <h1 className="font-display text-2xl font-semibold tracking-tight">{listing.title}</h1>
+            <PriceDisplay
+              price={listing.price}
+              currency={listing.currency}
+              converted={listing.converted}
+              preferred={preferred}
+              size="lg"
+            />
+            <CountryBadge country={listing.country} city={listing.city} />
             <div className="flex flex-wrap gap-2">
               {listing.deliveryModes.map((mode) => (
                 <Badge key={mode} className="bg-blue-50 text-blue-700">
@@ -201,6 +198,23 @@ export function ListingDetailPage({ listingId }: { listingId: string }) {
           </>
         ) : null}
       </div>
+      {!isOwner ? (
+        <div className="border-border bg-card/95 fixed inset-x-0 bottom-16 z-20 rounded-t-2xl border-t p-3 shadow-md backdrop-blur lg:hidden">
+          <Button
+            className="w-full"
+            disabled={startChat.isPending}
+            onClick={() => {
+              if (!token) {
+                void navigate({ to: '/auth' });
+                return;
+              }
+              startChat.mutate();
+            }}
+          >
+            Написать продавцу
+          </Button>
+        </div>
+      ) : null}
     </div>
   );
 }

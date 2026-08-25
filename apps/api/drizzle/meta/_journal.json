@@ -8,6 +8,48 @@
       "when": 1787553712602,
       "tag": "0000_flawless_metal_master",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1787640000000,
+      "tag": "0001_catalog_dictionaries",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1787643600000,
+      "tag": "0002_production_hardening",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1787647200000,
+      "tag": "0003_owned_cities",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1787650800000,
+      "tag": "0004_leaf_catalogs",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1787654400000,
+      "tag": "0005_search_history",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1787658000000,
+      "tag": "0006_catalog_auto_parts_tires",
+      "breakpoints": true
     }
   ]
 }

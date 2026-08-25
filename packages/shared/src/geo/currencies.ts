@@ -13,7 +13,7 @@ export function isCurrencyCode(value: string): value is CurrencyCode {
 }
 
 /**
- * Seed FX table quoted against RUB. Replace with a rates service later.
+ * Fallback FX table quoted against RUB.
  * 1 unit of `code` = `toRub` RUB.
  */
 export const DEMO_RATES_TO_RUB: Record<CurrencyCode, number> = {
@@ -22,15 +22,31 @@ export const DEMO_RATES_TO_RUB: Record<CurrencyCode, number> = {
   KZT: 0.18,
 };
 
+export type RatesToRub = Record<CurrencyCode, number>;
+
+export type ConvertedAmounts = Record<CurrencyCode, number>;
+
 export function convertAmount(
   amount: number,
   from: CurrencyCode,
   to: CurrencyCode,
-  rates: Record<CurrencyCode, number> = DEMO_RATES_TO_RUB,
+  rates: RatesToRub = DEMO_RATES_TO_RUB,
 ): number {
   if (from === to) return amount;
   const inRub = amount * rates[from];
   return inRub / rates[to];
+}
+
+export function convertedAmounts(
+  amount: number,
+  from: CurrencyCode,
+  rates: RatesToRub = DEMO_RATES_TO_RUB,
+): ConvertedAmounts {
+  return {
+    RUB: Math.round(convertAmount(amount, from, 'RUB', rates)),
+    BYN: Math.round(convertAmount(amount, from, 'BYN', rates)),
+    KZT: Math.round(convertAmount(amount, from, 'KZT', rates)),
+  };
 }
 
 export function formatMoney(amount: number, currency: CurrencyCode, locale = 'ru-RU'): string {

@@ -5,6 +5,7 @@ import {
   Bell,
   Heart,
   Home,
+  LayoutGrid,
   MessageSquare,
   Package,
   Settings,
@@ -18,9 +19,11 @@ import { useUnreadNotifications } from '@/features/notifications/model/use-unrea
 import { useUnreadMessages } from '@/features/messaging/model/use-unread-count';
 import { BrandMark } from '@/shared/ui/brand-mark';
 import { categoryIcons } from '@/entities/category/model/icons';
+import { categoryRoots } from '@/entities/category/model/tree';
 
 const mainNav = [
   { to: '/', label: 'Главная', icon: Home },
+  { to: '/catalog', label: 'Каталог', icon: LayoutGrid },
   { to: '/favorites', label: 'Избранное', icon: Heart },
   { to: '/messages', label: 'Сообщения', icon: MessageSquare },
   { to: '/my-listings', label: 'Мои объявления', icon: Package },
@@ -31,7 +34,7 @@ const mainNav = [
 ] as const;
 
 type CategoriesResponse = {
-  items: Array<{ id: string; slug: string; nameRu: string }>;
+  items: Array<{ id: string; slug: string; nameRu: string; parentId: string | null }>;
 };
 
 function NavCount({ count, active }: { count: number; active: boolean }) {
@@ -102,7 +105,12 @@ export function AppSidebar() {
         <nav className="min-h-0 flex-1 space-y-6 overflow-y-auto px-3 pb-6">
           <div className="space-y-1">
             {mainNav.map((item) => {
-              const active = pathname === item.to;
+              const active =
+                item.to === '/'
+                  ? pathname === '/'
+                  : item.to === '/catalog'
+                    ? pathname.startsWith('/catalog')
+                    : pathname === item.to;
               const Icon = item.icon;
               return (
                 <Link
@@ -147,7 +155,7 @@ export function AppSidebar() {
               Категории
             </div>
             <div className="space-y-1">
-              {(categoriesQuery.data?.items ?? []).map((item) => {
+              {categoryRoots(categoriesQuery.data?.items ?? []).map((item) => {
                 const Icon = categoryIcons[item.slug] ?? Package;
                 const active = activeCategory === item.slug;
                 return (

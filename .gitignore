@@ -18,3 +18,7 @@ apps/web/src/app/routeTree.gen.ts
 .idea
 .vscode/*
 !.vscode/extensions.json
+
+# Local agent specs/plans (not for the repo)
+docs/superpowers/specs/
+docs/superpowers/plans/

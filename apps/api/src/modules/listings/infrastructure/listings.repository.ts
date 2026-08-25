@@ -1,15 +1,18 @@
-import { and, eq } from 'drizzle-orm';
-import type { createListingSchema } from '@markethub/shared';
+import { and, eq, inArray, sql } from 'drizzle-orm';
+import { MAX_LISTING_IMAGES, type createListingSchema } from '@markethub/shared';
 import type { z } from 'zod';
 import type { Database } from '../../../infrastructure/database/client.js';
+import { ValidationError } from '../../../shared/errors/app-error.js';
 import {
   listingAttributes,
   listingImages,
   listings,
   categoryAttributes,
+  categories,
 } from '../../../infrastructure/database/schema/index.js';
 
 type CreateListingInput = z.infer<typeof createListingSchema>;
+type ListingStatus = 'archived' | 'published' | 'reserved' | 'sold';
 
 export class ListingsRepository {
   constructor(private readonly db: Database) {}
@@ -18,6 +21,19 @@ export class ListingsRepository {
     return this.db.query.listings.findFirst({
       where: eq(listings.id, id),
     });
+  }
+
+  async isLeafCategory(id: string) {
+    const row = await this.db.query.categories.findFirst({
+      where: eq(categories.id, id),
+    });
+    if (!row) return null;
+    const [child] = await this.db
+      .select({ id: categories.id })
+      .from(categories)
+      .where(eq(categories.parentId, id))
+      .limit(1);
+    return !child;
   }
 
   async create(sellerId: string, input: CreateListingInput) {
@@ -95,35 +111,80 @@ export class ListingsRepository {
     });
   }
 
-  async publish(listingId: string) {
+  async publishIfReady(listingId: string, from: string[]) {
+    return this.db.transaction(async (tx) => {
+      await tx.execute(sql`SELECT 1 FROM listings WHERE id = ${listingId}::uuid FOR UPDATE`);
+      const [row] = await tx.select().from(listings).where(eq(listings.id, listingId));
+      if (!row || !from.includes(row.status)) return null;
+
+      const images = await tx
+        .select({ id: listingImages.id })
+        .from(listingImages)
+        .where(eq(listingImages.listingId, listingId));
+      if (images.length === 0) {
+        throw new ValidationError('Add at least one image before publishing');
+      }
+
+      const defs = await tx
+        .select()
+        .from(categoryAttributes)
+        .where(eq(categoryAttributes.categoryId, row.categoryId));
+      const values = await tx
+        .select({
+          attributeId: listingAttributes.attributeId,
+          value: listingAttributes.value,
+        })
+        .from(listingAttributes)
+        .where(eq(listingAttributes.listingId, listingId));
+      const filled = new Set(
+        values.filter((item) => item.value.trim().length > 0).map((item) => item.attributeId),
+      );
+      const missing = defs.filter((def) => def.required && !filled.has(def.id));
+      if (missing.length > 0) {
+        throw new ValidationError(
+          `Missing required attributes: ${missing.map((item) => item.labelRu).join(', ')}`,
+        );
+      }
+
+      const [listing] = await tx
+        .update(listings)
+        .set({
+          status: 'published',
+          publishedAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .where(and(eq(listings.id, listingId), inArray(listings.status, from)))
+        .returning();
+      return listing ?? null;
+    });
+  }
+
+  async addImage(listingId: string, url: string) {
+    return this.db.transaction(async (tx) => {
+      await tx.execute(sql`SELECT 1 FROM listings WHERE id = ${listingId}::uuid FOR UPDATE`);
+      const images = await tx
+        .select({ id: listingImages.id })
+        .from(listingImages)
+        .where(eq(listingImages.listingId, listingId));
+      if (images.length >= MAX_LISTING_IMAGES) return null;
+      const [image] = await tx
+        .insert(listingImages)
+        .values({ listingId, url, sortOrder: images.length })
+        .returning();
+      return image ?? null;
+    });
+  }
+
+  async setStatusIf(listingId: string, from: string[], to: ListingStatus) {
+    const extra = to === 'published' ? { publishedAt: new Date() } : {};
     const [listing] = await this.db
       .update(listings)
       .set({
-        status: 'published',
-        publishedAt: new Date(),
+        status: to,
         updatedAt: new Date(),
+        ...extra,
       })
-      .where(and(eq(listings.id, listingId)))
-      .returning();
-    return listing ?? null;
-  }
-
-  async addImage(listingId: string, url: string, sortOrder: number) {
-    const [image] = await this.db
-      .insert(listingImages)
-      .values({ listingId, url, sortOrder })
-      .returning();
-    return image!;
-  }
-
-  async setStatus(listingId: string, status: 'archived' | 'published' | 'reserved' | 'sold') {
-    const [listing] = await this.db
-      .update(listings)
-      .set({
-        status,
-        updatedAt: new Date(),
-      })
-      .where(eq(listings.id, listingId))
+      .where(and(eq(listings.id, listingId), inArray(listings.status, from)))
       .returning();
     return listing ?? null;
   }

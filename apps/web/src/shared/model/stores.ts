@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { CountryCode } from '@markethub/shared';
+import type { CountryCode, CurrencyCode } from '@markethub/shared';
 
 export type AuthUser = {
   id: string;
@@ -46,16 +46,54 @@ export const useAuthStore = create<AuthState>()(
   ),
 );
 
+export type ThemeMode = 'light' | 'dark' | 'system';
+
 type UiState = {
   sidebarOpen: boolean;
+  filtersOpen: boolean;
   countryFilter: CountryCode | 'ALL';
+  displayCurrency: CurrencyCode;
+  theme: ThemeMode;
   setSidebarOpen: (open: boolean) => void;
+  setFiltersOpen: (open: boolean) => void;
   setCountryFilter: (country: CountryCode | 'ALL') => void;
+  setDisplayCurrency: (currency: CurrencyCode) => void;
+  setTheme: (theme: ThemeMode) => void;
 };
 
-export const useUiStore = create<UiState>((set) => ({
-  sidebarOpen: true,
-  countryFilter: 'ALL',
-  setSidebarOpen: (sidebarOpen) => set({ sidebarOpen }),
-  setCountryFilter: (countryFilter) => set({ countryFilter }),
-}));
+export const useUiStore = create<UiState>()(
+  persist(
+    (set) => ({
+      sidebarOpen: false,
+      filtersOpen: false,
+      countryFilter: 'ALL',
+      displayCurrency: 'RUB',
+      theme: 'system',
+      setSidebarOpen: (sidebarOpen) => set({ sidebarOpen }),
+      setFiltersOpen: (filtersOpen) => set({ filtersOpen }),
+      setCountryFilter: (countryFilter) => set({ countryFilter }),
+      setDisplayCurrency: (displayCurrency) => set({ displayCurrency }),
+      setTheme: (theme) => set({ theme }),
+    }),
+    {
+      name: 'kupilko-ui',
+      partialize: (state) => ({
+        countryFilter: state.countryFilter,
+        displayCurrency: state.displayCurrency,
+        theme: state.theme,
+      }),
+    },
+  ),
+);
+
+export function resolveTheme(theme: ThemeMode): 'light' | 'dark' {
+  if (theme !== 'system') return theme;
+  if (typeof window === 'undefined') return 'light';
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+
+export function applyTheme(theme: ThemeMode) {
+  const resolved = resolveTheme(theme);
+  document.documentElement.classList.toggle('dark', resolved === 'dark');
+  document.documentElement.style.colorScheme = resolved;
+}

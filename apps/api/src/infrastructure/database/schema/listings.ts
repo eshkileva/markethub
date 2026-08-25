@@ -1,4 +1,6 @@
+import { sql } from 'drizzle-orm';
 import {
+  check,
   index,
   integer,
   jsonb,
@@ -9,7 +11,7 @@ import {
   uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core';
-import { categories } from './categories.js';
+import { categories, categoryAttributes } from './categories.js';
 import { users } from './users.js';
 
 export const listings = pgTable(
@@ -40,6 +42,18 @@ export const listings = pgTable(
     index('listings_category_idx').on(table.categoryId),
     index('listings_country_status_idx').on(table.country, table.status),
     index('listings_published_idx').on(table.publishedAt),
+    index('listings_status_country_published_idx').on(
+      table.status,
+      table.country,
+      table.publishedAt,
+    ),
+    check(
+      'listings_status_chk',
+      sql`${table.status} in ('draft', 'pending_moderation', 'published', 'reserved', 'sold', 'archived', 'rejected')`,
+    ),
+    check('listings_condition_chk', sql`${table.condition} in ('new', 'used', 'for_parts')`),
+    check('listings_currency_chk', sql`${table.currency} in ('BYN', 'RUB', 'KZT')`),
+    check('listings_country_chk', sql`${table.country} in ('BY', 'RU', 'KZ')`),
   ],
 );
 
@@ -50,12 +64,15 @@ export const listingAttributes = pgTable(
     listingId: uuid('listing_id')
       .notNull()
       .references(() => listings.id, { onDelete: 'cascade' }),
-    attributeId: uuid('attribute_id').notNull(),
+    attributeId: uuid('attribute_id')
+      .notNull()
+      .references(() => categoryAttributes.id, { onDelete: 'restrict' }),
     value: text('value').notNull(),
   },
   (table) => [
     index('listing_attributes_listing_idx').on(table.listingId),
     uniqueIndex('listing_attributes_unique').on(table.listingId, table.attributeId),
+    index('listing_attributes_attribute_value_idx').on(table.attributeId, table.value),
   ],
 );
 

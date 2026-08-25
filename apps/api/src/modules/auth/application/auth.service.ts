@@ -21,6 +21,8 @@ import {
   verifyPassword,
 } from '../domain/crypto.js';
 import type { AuthRepository } from '../infrastructure/auth.repository.js';
+import type { CountryCode } from '@markethub/shared';
+import type { GeoService } from '../../geo/application/geo.service.js';
 
 type RegisterInput = z.infer<typeof registerSchema>;
 type LoginInput = z.infer<typeof loginSchema>;
@@ -60,6 +62,7 @@ export class AuthService {
     private readonly repo: AuthRepository,
     private readonly config: AppConfig,
     private readonly events: EventBus,
+    private readonly geo: GeoService,
   ) {}
 
   async register(input: RegisterInput, meta: { userAgent?: string; ip?: string }) {
@@ -150,6 +153,11 @@ export class AuthService {
       if (taken && taken.id !== userId) {
         throw new ConflictError('Username already taken');
       }
+    }
+    if (input.city) {
+      const existing = await this.repo.findUserById(userId);
+      const country = (input.country ?? existing?.country) as CountryCode | undefined;
+      if (country) await this.geo.assertCity(country, input.city);
     }
     const user = await this.repo.updateUser(userId, {
       ...input,

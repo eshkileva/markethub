@@ -41,7 +41,7 @@ export class MessagingService {
       throw new ValidationError('Cannot message yourself');
     }
 
-    const existing = await this.repo.findBetween(listingId, userId, listing.sellerId);
+    const existing = await this.repo.findBetween(listingId, userId);
     if (existing) {
       const conversation = await this.repo.findConversation(existing.id);
       if (!conversation) throw new NotFoundError('Conversation not found');

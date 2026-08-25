@@ -1,11 +1,13 @@
 import {
   boolean,
+  foreignKey,
   index,
   integer,
   jsonb,
   pgTable,
   text,
   timestamp,
+  uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core';
 
@@ -21,7 +23,14 @@ export const categories = pgTable(
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
-  (table) => [index('categories_parent_idx').on(table.parentId)],
+  (table) => [
+    index('categories_parent_idx').on(table.parentId),
+    foreignKey({
+      columns: [table.parentId],
+      foreignColumns: [table.id],
+      name: 'categories_parent_id_fk',
+    }).onDelete('restrict'),
+  ],
 );
 
 export const categoryAttributes = pgTable(
@@ -37,6 +46,11 @@ export const categoryAttributes = pgTable(
     options: jsonb('options').$type<string[]>(),
     required: boolean('required').notNull().default(false),
     sortOrder: integer('sort_order').notNull().default(0),
+    dictionary: text('dictionary'),
+    parentKey: text('parent_key'),
   },
-  (table) => [index('category_attributes_category_idx').on(table.categoryId)],
+  (table) => [
+    index('category_attributes_category_idx').on(table.categoryId),
+    uniqueIndex('category_attributes_category_key_uidx').on(table.categoryId, table.key),
+  ],
 );

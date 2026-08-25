@@ -5,14 +5,23 @@ export const COUNTRIES = [
     nameEn: 'Belarus',
     phonePrefix: '+375',
     defaultCurrency: 'BYN',
+    defaultCity: 'Минск',
   },
-  { code: 'RU', nameRu: 'Россия', nameEn: 'Russia', phonePrefix: '+7', defaultCurrency: 'RUB' },
+  {
+    code: 'RU',
+    nameRu: 'Россия',
+    nameEn: 'Russia',
+    phonePrefix: '+7',
+    defaultCurrency: 'RUB',
+    defaultCity: 'Москва',
+  },
   {
     code: 'KZ',
     nameRu: 'Казахстан',
     nameEn: 'Kazakhstan',
     phonePrefix: '+7',
     defaultCurrency: 'KZT',
+    defaultCity: 'Астана',
   },
 ] as const;
 
@@ -30,4 +39,13 @@ export function getCountry(code: CountryCode) {
     throw new Error(`Unknown country: ${code}`);
   }
   return country;
+}
+
+export function defaultCityForCountry(code: CountryCode): string {
+  return getCountry(code).defaultCity;
+}
+
+export function countryName(code: string): string {
+  const country = COUNTRIES.find((item) => item.code === code);
+  return country?.nameRu ?? code;
 }

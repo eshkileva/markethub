@@ -1,20 +1,23 @@
 import { and, desc, eq, gte, ilike, inArray, lte, sql } from 'drizzle-orm';
 import {
-  convertAmount,
-  listingFilterSchema,
+  convertedAmounts,
   type CurrencyCode,
   type ListingStatus,
+  type RatesToRub,
+  listingFilterSchema,
 } from '@markethub/shared';
 import type { z } from 'zod';
 import type { Database } from '../../../infrastructure/database/client.js';
 import {
   categoryAttributes,
+  categories,
   favorites,
   listingAttributes,
   listingImages,
   listings,
   users,
 } from '../../../infrastructure/database/schema/index.js';
+import { listingCategoryIds } from '../../categories/application/category-tree.js';
 import { serializeListing } from './listings.serialize.js';
 
 type CatalogQuery = z.infer<typeof listingFilterSchema>;
@@ -33,12 +36,23 @@ function parseAttrFilters(raw: string[] | undefined): Array<{ key: string; value
   return [...seen].map(([key, value]) => ({ key, value }));
 }
 
-export async function listCatalog(db: Database, query: CatalogQuery, viewerId: string | null) {
+export async function listCatalog(
+  db: Database,
+  query: CatalogQuery,
+  viewerId: string | null,
+  rates?: RatesToRub,
+) {
   const conditions = [eq(listings.status, 'published')];
 
   if (query.country) conditions.push(eq(listings.country, query.country));
   if (query.sellerId) conditions.push(eq(listings.sellerId, query.sellerId));
-  if (query.categoryId) conditions.push(eq(listings.categoryId, query.categoryId));
+  if (query.categoryId) {
+    const tree = await db
+      .select({ id: categories.id, parentId: categories.parentId })
+      .from(categories);
+    const ids = listingCategoryIds(tree, query.categoryId);
+    conditions.push(inArray(listings.categoryId, ids));
+  }
   if (query.city) conditions.push(ilike(listings.city, `%${query.city}%`));
   if (query.condition) conditions.push(eq(listings.condition, query.condition));
   if (query.currency) conditions.push(eq(listings.currency, query.currency));
@@ -126,11 +140,7 @@ export async function listCatalog(db: Database, query: CatalogQuery, viewerId: s
         title: listing.title,
         price,
         currency,
-        converted: {
-          RUB: Math.round(convertAmount(price, currency, 'RUB')),
-          BYN: Math.round(convertAmount(price, currency, 'BYN')),
-          KZT: Math.round(convertAmount(price, currency, 'KZT')),
-        },
+        converted: convertedAmounts(price, currency, rates),
         country: listing.country,
         city: listing.city,
         condition: listing.condition,
@@ -192,6 +202,7 @@ export async function getListingDetail(
   db: Database,
   listing: NonNullable<Awaited<ReturnType<typeof findListingById>>>,
   viewerId: string | null,
+  rates?: RatesToRub,
 ) {
   const id = listing.id;
   let isFavorite = false;
@@ -228,11 +239,7 @@ export async function getListingDetail(
 
   return {
     ...serializeListing(listing),
-    converted: {
-      RUB: Math.round(convertAmount(price, currency, 'RUB')),
-      BYN: Math.round(convertAmount(price, currency, 'BYN')),
-      KZT: Math.round(convertAmount(price, currency, 'KZT')),
-    },
+    converted: convertedAmounts(price, currency, rates),
     images: images.map((img) => ({ id: img.id, url: img.url, sortOrder: img.sortOrder })),
     attributes: attributes.map((attr) => ({
       attributeId: attr.attributeId,

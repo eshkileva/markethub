@@ -19,6 +19,8 @@
     "db:generate": "pnpm --filter @markethub/api db:generate",
     "db:migrate": "pnpm --filter @markethub/api db:migrate",
     "db:seed": "pnpm --filter @markethub/api db:seed",
+    "db:studio": "pnpm --filter @markethub/api db:studio",
+    "catalogs:sync": "pnpm --filter @markethub/api catalogs:sync",
     "infra:up": "docker compose up -d postgres redis minio rabbitmq",
     "infra:down": "docker compose down",
     "stack:up": "docker compose --profile app up -d --build postgres redis minio minio-init api web",

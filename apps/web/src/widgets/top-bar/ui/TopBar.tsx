@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { Link, useNavigate } from '@tanstack/react-router';
-import { Bell, MapPin, Menu, Plus, Search } from 'lucide-react';
-import { COUNTRIES, type CountryCode } from '@markethub/shared';
+import { Bell, MapPin, Menu, Plus } from 'lucide-react';
+import { COUNTRIES, CURRENCIES, type CountryCode, type CurrencyCode } from '@markethub/shared';
 import { Button } from '@/shared/ui/button';
-import { Input } from '@/shared/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/avatar';
 import { useAuthStore, useUiStore } from '@/shared/model/stores';
 import { useUnreadNotifications } from '@/features/notifications/model/use-unread-count';
+import { Combobox } from '@/shared/ui/combobox';
+import { ThemeSwitch } from '@/widgets/top-bar/ui/ThemeSwitch';
+import { SearchBox } from '@/widgets/top-bar/ui/SearchBox';
 
 export function TopBar() {
   const user = useAuthStore((s) => s.user);
@@ -14,13 +16,15 @@ export function TopBar() {
   const unreadCount = unread.data?.count ?? 0;
   const countryFilter = useUiStore((s) => s.countryFilter);
   const setCountryFilter = useUiStore((s) => s.setCountryFilter);
+  const displayCurrency = useUiStore((s) => s.displayCurrency);
+  const setDisplayCurrency = useUiStore((s) => s.setDisplayCurrency);
   const setSidebarOpen = useUiStore((s) => s.setSidebarOpen);
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
 
   return (
     <header className="border-border bg-card/90 z-20 shrink-0 border-b backdrop-blur">
-      <div className="flex items-center gap-3 px-4 py-3 lg:px-6">
+      <div className="flex items-center gap-2 px-3 py-3 sm:gap-3 lg:px-6">
         <Button
           type="button"
           variant="ghost"
@@ -31,41 +35,51 @@ export function TopBar() {
         >
           <Menu className="h-5 w-5" />
         </Button>
-        <form
-          className="relative min-w-0 flex-1"
-          onSubmit={(event) => {
-            event.preventDefault();
+        <SearchBox
+          value={query}
+          onChange={setQuery}
+          onSubmit={(queryOverride) => {
+            const term = (queryOverride ?? query).trim();
             void navigate({
               to: '/catalog',
-              search: { q: query.trim() || undefined },
+              search: { q: term || undefined },
             });
           }}
-        >
-          <Search className="text-muted pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
-          <Input
-            className="border-border bg-background h-11 rounded-2xl pl-10"
-            placeholder="Найти на Купилко..."
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
-        </form>
+        />
 
-        <div className="border-border bg-background hidden items-center gap-2 rounded-2xl border px-3 py-2 md:flex">
-          <MapPin className="text-primary h-4 w-4" />
-          <select
-            className="bg-transparent text-sm outline-none"
+        <div className="border-border bg-background flex shrink-0 items-center gap-1 overflow-visible rounded-2xl border px-2 py-1.5 sm:gap-2 sm:px-3 sm:py-2">
+          <MapPin className="text-primary h-4 w-4 shrink-0" />
+          <Combobox
+            className="w-[4.5rem]"
+            size="sm"
+            variant="ghost"
             value={countryFilter}
-            onChange={(e) => setCountryFilter(e.target.value as CountryCode | 'ALL')}
+            onChange={(next) => setCountryFilter(next as CountryCode | 'ALL')}
             aria-label="Страна"
-          >
-            <option value="ALL">Весь СНГ</option>
-            {COUNTRIES.map((country) => (
-              <option key={country.code} value={country.code}>
-                {country.nameRu}
-              </option>
-            ))}
-          </select>
+            options={[
+              { value: 'ALL', label: 'СНГ' },
+              ...COUNTRIES.map((country) => ({
+                value: country.code,
+                label: country.code,
+              })),
+            ]}
+          />
+          <span className="text-border hidden sm:inline">·</span>
+          <Combobox
+            className="w-[4.75rem]"
+            size="sm"
+            variant="ghost"
+            value={displayCurrency}
+            onChange={(next) => setDisplayCurrency(next as CurrencyCode)}
+            aria-label="Валюта отображения"
+            options={CURRENCIES.map((item) => ({
+              value: item.code,
+              label: item.code,
+            }))}
+          />
         </div>
+
+        <ThemeSwitch />
 
         <Button asChild variant="accent" className="hidden sm:inline-flex">
           <Link to="/listings/create">
@@ -93,7 +107,7 @@ export function TopBar() {
             </Avatar>
           </Link>
         ) : (
-          <Button variant="secondary" asChild>
+          <Button variant="secondary" asChild className="hidden sm:inline-flex">
             <Link to="/auth">Войти</Link>
           </Button>
         )}

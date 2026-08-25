@@ -6,6 +6,7 @@ import { apiRequest } from '@/shared/api/client';
 import { useAuthStore } from '@/shared/model/stores';
 import { Button } from '@/shared/ui/button';
 import { Label } from '@/shared/ui/label';
+import { Combobox } from '@/shared/ui/combobox';
 import { Textarea } from '@/shared/ui/textarea';
 
 const errorMessages: Record<string, string> = {
@@ -88,18 +89,15 @@ export function ReportForm({ listingId, userId }: { listingId?: string; userId?:
     >
       <div className="space-y-1.5">
         <Label htmlFor="report-reason">Причина</Label>
-        <select
+        <Combobox
           id="report-reason"
-          className="border-border bg-card flex h-10 w-full rounded-xl border px-3 text-sm"
           value={reason}
-          onChange={(e) => setReason(e.target.value as ReportReason)}
-        >
-          {REPORT_REASONS.map((item) => (
-            <option key={item} value={item}>
-              {reasonLabels[item]}
-            </option>
-          ))}
-        </select>
+          onChange={(value) => setReason(value as ReportReason)}
+          options={REPORT_REASONS.map((item) => ({
+            value: item,
+            label: reasonLabels[item],
+          }))}
+        />
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="report-details">Комментарий</Label>

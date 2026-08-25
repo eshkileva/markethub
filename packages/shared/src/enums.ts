@@ -38,3 +38,20 @@ export const NOTIFICATION_TYPES = [
   'listing_sold',
 ] as const;
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
+
+export const CATALOG_KINDS = [
+  'cars',
+  'moto',
+  'smartphones',
+  'tablets',
+  'laptops',
+  'desktops',
+  'pc-parts',
+  'auto-parts',
+  'tires',
+] as const;
+export type CatalogKind = (typeof CATALOG_KINDS)[number];
+
+export function isCatalogKind(value: string): value is CatalogKind {
+  return (CATALOG_KINDS as readonly string[]).includes(value);
+}
