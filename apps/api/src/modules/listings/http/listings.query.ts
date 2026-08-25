@@ -19,6 +19,20 @@ import { serializeListing } from './listings.serialize.js';
 
 type CatalogQuery = z.infer<typeof listingFilterSchema>;
 
+function parseAttrFilters(raw: string[] | undefined): Array<{ key: string; value: string }> {
+  if (!raw?.length) return [];
+  const seen = new Map<string, string>();
+  for (const item of raw) {
+    const sep = item.indexOf(':');
+    if (sep <= 0) continue;
+    const key = item.slice(0, sep).trim();
+    const value = item.slice(sep + 1).trim();
+    if (!key || !value) continue;
+    seen.set(key, value);
+  }
+  return [...seen].map(([key, value]) => ({ key, value }));
+}
+
 export async function listCatalog(db: Database, query: CatalogQuery, viewerId: string | null) {
   const conditions = [eq(listings.status, 'published')];
 
@@ -40,6 +54,18 @@ export async function listCatalog(db: Database, query: CatalogQuery, viewerId: s
   if (query.q) {
     conditions.push(
       sql`(${listings.title} ILIKE ${`%${query.q}%`} OR ${listings.description} ILIKE ${`%${query.q}%`})`,
+    );
+  }
+  for (const filter of parseAttrFilters(query.attr)) {
+    conditions.push(
+      sql`exists (
+        select 1
+        from listing_attributes la
+        inner join category_attributes ca on ca.id = la.attribute_id
+        where la.listing_id = ${listings.id}
+          and ca.key = ${filter.key}
+          and la.value ilike ${`%${filter.value}%`}
+      )`,
     );
   }
 

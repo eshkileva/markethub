@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 import { Label } from '@/shared/ui/label';
+import { BrandMark } from '@/shared/ui/brand-mark';
 import { mapAuthError } from '../model/map-auth-error';
 
 type AuthResponse = { accessToken: string; user: AuthUser; expiresIn?: number };
@@ -72,10 +73,19 @@ export function AuthPage() {
   });
 
   return (
-    <div className="mx-auto flex min-h-[70vh] max-w-md items-center">
-      <Card className="w-full">
+    <div className="relative mx-auto flex min-h-[70vh] max-w-md items-center px-4">
+      <div
+        className="bg-primary/15 pointer-events-none absolute -left-16 top-8 h-40 w-40 rounded-full blur-3xl"
+        aria-hidden
+      />
+      <div
+        className="bg-accent/20 pointer-events-none absolute -right-10 bottom-6 h-32 w-32 rounded-full blur-3xl"
+        aria-hidden
+      />
+      <Card className="relative w-full">
         <CardHeader>
-          <CardTitle>{mode === 'login' ? 'Вход в MarketHub' : 'Регистрация'}</CardTitle>
+          <BrandMark tone="onLight" className="mb-3" />
+          <CardTitle>{mode === 'login' ? 'Вход в Купилко' : 'Регистрация'}</CardTitle>
           <p className="text-muted text-sm">
             {mode === 'login'
               ? 'Войдите по email и паролю, чтобы писать продавцам и размещать объявления.'

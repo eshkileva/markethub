@@ -17,6 +17,8 @@ import {
 import { apiRequest, apiUpload } from '@/shared/api/client';
 import { useAuthStore } from '@/shared/model/stores';
 import { deliveryModeLabels, listingConditionLabels } from '@/entities/listing/model/labels';
+import { CitySelect } from '@/entities/geo/ui/CitySelect';
+import { NativeSelect } from '@/shared/ui/native-select';
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Input } from '@/shared/ui/input';
@@ -74,7 +76,7 @@ export function CreateListingPage({ listingId }: { listingId?: string }) {
   const [price, setPrice] = useState('1000');
   const [currency, setCurrency] = useState<CurrencyCode>('RUB');
   const [country, setCountry] = useState<CountryCode>((user?.country as CountryCode) ?? 'RU');
-  const [city, setCity] = useState('Москва');
+  const [city, setCity] = useState('');
   const [condition, setCondition] = useState<ListingCondition>('used');
   const [deliveryModes, setDeliveryModes] = useState<DeliveryMode[]>(['meetup']);
   const [attributeValues, setAttributeValues] = useState<Record<string, string>>({});
@@ -485,22 +487,24 @@ export function CreateListingPage({ listingId }: { listingId?: string }) {
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="country">Страна</Label>
-              <select
+              <NativeSelect
                 id="country"
-                className="border-border bg-card flex h-10 w-full rounded-xl border px-3 text-sm"
                 value={country}
-                onChange={(e) => setCountry(e.target.value as CountryCode)}
+                onChange={(e) => {
+                  setCountry(e.target.value as CountryCode);
+                  setCity('');
+                }}
               >
                 {COUNTRIES.map((item) => (
                   <option key={item.code} value={item.code}>
                     {item.nameRu}
                   </option>
                 ))}
-              </select>
+              </NativeSelect>
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="city">Город</Label>
-              <Input id="city" value={city} onChange={(e) => setCity(e.target.value)} />
+              <CitySelect id="city" country={country} value={city} onChange={setCity} />
             </div>
           </CardContent>
         </Card>

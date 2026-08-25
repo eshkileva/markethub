@@ -18,8 +18,11 @@ import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Input } from '@/shared/ui/input';
 import { Label } from '@/shared/ui/label';
+import { NativeSelect } from '@/shared/ui/native-select';
 import { ProductCard, type ProductCardData } from '@/entities/listing/ui/ProductCard';
 import { deliveryModeLabels, listingConditionLabels } from '@/entities/listing/model/labels';
+import { CitySelect } from '@/entities/geo/ui/CitySelect';
+import type { AttributeDef } from '@/pages/create-listing/ui/ListingAttributesFields';
 import type { CatalogSearch } from '@/pages/catalog/model/search';
 
 type ListingsResponse = {
@@ -32,6 +35,14 @@ type ListingsResponse = {
 type CategoriesResponse = {
   items: Array<{ id: string; slug: string; nameRu: string }>;
 };
+
+type AttributesResponse = { items: AttributeDef[] };
+
+function attrValue(attrs: string[] | undefined, key: string): string {
+  const prefix = `${key}:`;
+  const match = attrs?.find((item) => item.startsWith(prefix));
+  return match ? match.slice(prefix.length) : '';
+}
 
 export function CatalogPage() {
   const search = useSearch({ from: '/catalog' });
@@ -50,6 +61,12 @@ export function CatalogPage() {
     return categoriesQuery.data?.items.find((item) => item.slug === search.category)?.id;
   }, [categoriesQuery.data, search.category]);
 
+  const attributesQuery = useQuery({
+    queryKey: ['category-attributes', categoryId],
+    enabled: Boolean(categoryId),
+    queryFn: () => apiRequest<AttributesResponse>(`/v1/categories/${categoryId}/attributes`),
+  });
+
   const listingsQuery = useQuery({
     queryKey: ['listings', 'catalog', search, country, categoryId, token],
     enabled: !search.category || Boolean(categoryId) || categoriesQuery.isSuccess,
@@ -67,6 +84,7 @@ export function CatalogPage() {
       if (search.maxPrice !== undefined) params.set('maxPrice', String(search.maxPrice));
       if (search.condition) params.set('condition', search.condition);
       if (search.delivery) params.set('delivery', search.delivery);
+      for (const item of search.attr ?? []) params.append('attr', item);
       return apiRequest<ListingsResponse>(`/v1/listings?${params}`, { token });
     },
   });
@@ -84,6 +102,12 @@ export function CatalogPage() {
         return merged;
       },
     });
+  }
+
+  function patchAttr(key: string, value: string) {
+    const current = (search.attr ?? []).filter((item) => !item.startsWith(`${key}:`));
+    if (value) current.push(`${key}:${value}`);
+    patchSearch({ attr: current.length ? current : undefined });
   }
 
   return (
@@ -104,11 +128,12 @@ export function CatalogPage() {
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="catalog-category">Категория</Label>
-            <select
+            <NativeSelect
               id="catalog-category"
-              className="border-border bg-card flex h-10 w-full rounded-xl border px-3 text-sm"
               value={search.category ?? ''}
-              onChange={(e) => patchSearch({ category: e.target.value || undefined })}
+              onChange={(e) =>
+                patchSearch({ category: e.target.value || undefined, attr: undefined })
+              }
             >
               <option value="">Все категории</option>
               {(categoriesQuery.data?.items ?? []).map((category) => (
@@ -116,16 +141,18 @@ export function CatalogPage() {
                   {category.nameRu}
                 </option>
               ))}
-            </select>
+            </NativeSelect>
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="catalog-country">Страна</Label>
-            <select
+            <NativeSelect
               id="catalog-country"
-              className="border-border bg-card flex h-10 w-full rounded-xl border px-3 text-sm"
               value={country ?? ''}
               onChange={(e) =>
-                patchSearch({ country: (e.target.value || undefined) as CountryCode | undefined })
+                patchSearch({
+                  country: (e.target.value || undefined) as CountryCode | undefined,
+                  city: undefined,
+                })
               }
             >
               <option value="">Весь СНГ</option>
@@ -134,14 +161,16 @@ export function CatalogPage() {
                   {item.nameRu}
                 </option>
               ))}
-            </select>
+            </NativeSelect>
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="catalog-city">Город</Label>
-            <Input
+            <CitySelect
               id="catalog-city"
+              country={country}
               value={search.city ?? ''}
-              onChange={(e) => patchSearch({ city: e.target.value || undefined })}
+              allowEmpty
+              onChange={(city) => patchSearch({ city: city || undefined })}
             />
           </div>
           <div className="grid grid-cols-2 gap-2">
@@ -176,9 +205,8 @@ export function CatalogPage() {
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="catalog-currency">Валюта</Label>
-            <select
+            <NativeSelect
               id="catalog-currency"
-              className="border-border bg-card flex h-10 w-full rounded-xl border px-3 text-sm"
               value={search.currency ?? ''}
               onChange={(e) =>
                 patchSearch({
@@ -192,13 +220,12 @@ export function CatalogPage() {
                   {item.code}
                 </option>
               ))}
-            </select>
+            </NativeSelect>
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="catalog-condition">Состояние</Label>
-            <select
+            <NativeSelect
               id="catalog-condition"
-              className="border-border bg-card flex h-10 w-full rounded-xl border px-3 text-sm"
               value={search.condition ?? ''}
               onChange={(e) =>
                 patchSearch({
@@ -212,13 +239,12 @@ export function CatalogPage() {
                   {listingConditionLabels[item]}
                 </option>
               ))}
-            </select>
+            </NativeSelect>
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="catalog-delivery">Доставка</Label>
-            <select
+            <NativeSelect
               id="catalog-delivery"
-              className="border-border bg-card flex h-10 w-full rounded-xl border px-3 text-sm"
               value={search.delivery ?? ''}
               onChange={(e) =>
                 patchSearch({
@@ -232,8 +258,41 @@ export function CatalogPage() {
                   {deliveryModeLabels[item]}
                 </option>
               ))}
-            </select>
+            </NativeSelect>
           </div>
+          {categoryId && (attributesQuery.data?.items.length ?? 0) > 0 ? (
+            <div className="border-border space-y-3 border-t pt-3">
+              <p className="text-muted text-xs font-semibold uppercase tracking-wider">
+                Характеристики
+              </p>
+              {attributesQuery.data?.items.map((attr) => (
+                <div key={attr.id} className="space-y-1.5">
+                  <Label htmlFor={`attr-${attr.key}`}>{attr.labelRu}</Label>
+                  {attr.type === 'enum' && attr.options ? (
+                    <NativeSelect
+                      id={`attr-${attr.key}`}
+                      value={attrValue(search.attr, attr.key)}
+                      onChange={(e) => patchAttr(attr.key, e.target.value)}
+                    >
+                      <option value="">Любое</option>
+                      {attr.options.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                    </NativeSelect>
+                  ) : (
+                    <Input
+                      id={`attr-${attr.key}`}
+                      value={attrValue(search.attr, attr.key)}
+                      onChange={(e) => patchAttr(attr.key, e.target.value)}
+                      placeholder={attr.type === 'number' ? 'Число' : undefined}
+                    />
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : null}
           <Button
             type="button"
             variant="secondary"
@@ -254,12 +313,12 @@ export function CatalogPage() {
       <div className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Каталог</h1>
+            <h1 className="font-display text-2xl font-semibold tracking-tight">Каталог</h1>
             <p className="text-muted text-sm">{total} объявлений</p>
           </div>
           <div className="flex items-center gap-2">
-            <select
-              className="border-border bg-card h-10 rounded-xl border px-3 text-sm"
+            <NativeSelect
+              className="w-auto"
               value={search.sort ?? 'newest'}
               onChange={(e) =>
                 patchSearch({
@@ -271,7 +330,7 @@ export function CatalogPage() {
               <option value="newest">Сначала новые</option>
               <option value="price_asc">Дешевле</option>
               <option value="price_desc">Дороже</option>
-            </select>
+            </NativeSelect>
             <Button
               type="button"
               size="icon"

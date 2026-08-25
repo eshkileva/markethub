@@ -12,6 +12,10 @@ export const catalogSearchSchema = z.object({
   currency: z.preprocess(empty, z.enum(['BYN', 'RUB', 'KZT']).optional()),
   condition: z.preprocess(empty, z.enum(['new', 'used', 'for_parts']).optional()),
   delivery: z.preprocess(empty, z.enum(['meetup', 'courier', 'post', 'pickup']).optional()),
+  attr: z.preprocess((value) => {
+    if (value == null || value === '') return undefined;
+    return Array.isArray(value) ? value : [value];
+  }, z.array(z.string()).optional()),
   sort: z.preprocess(empty, z.enum(['newest', 'price_asc', 'price_desc']).optional()),
   page: z.preprocess(empty, z.coerce.number().int().min(1).optional()),
   view: z.preprocess(empty, z.enum(['grid', 'list']).optional()),

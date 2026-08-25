@@ -34,6 +34,7 @@ import { reviewsRoutes } from './modules/reviews/http/reviews.routes.js';
 import { reportsRoutes } from './modules/reports/http/reports.routes.js';
 import { notificationsRoutes } from './modules/notifications/http/notifications.routes.js';
 import { usersRoutes } from './modules/users/http/users.routes.js';
+import { geoRoutes } from './modules/geo/http/geo.routes.js';
 
 function isLocalDevOrigin(origin: string): boolean {
   try {
@@ -99,7 +100,7 @@ export async function buildApp(deps: {
   await app.register(swagger, {
     openapi: {
       info: {
-        title: 'MarketHub API',
+        title: 'Купилко API',
         description: 'C2C marketplace for CIS countries',
         version: '0.1.0',
       },
@@ -159,6 +160,7 @@ export async function buildApp(deps: {
 
   await app.register(authRoutes, { prefix: '/v1/auth' });
   await app.register(usersRoutes, { prefix: '/v1/users' });
+  await app.register(geoRoutes, { prefix: '/v1/geo' });
   await app.register(categoriesRoutes, { prefix: '/v1/categories' });
   await app.register(listingsRoutes, { prefix: '/v1/listings' });
   await app.register(favoritesRoutes, { prefix: '/v1/favorites' });

@@ -16,6 +16,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Input } from '@/shared/ui/input';
 import { Label } from '@/shared/ui/label';
 import { Textarea } from '@/shared/ui/textarea';
+import { NativeSelect } from '@/shared/ui/native-select';
+import { CitySelect } from '@/entities/geo/ui/CitySelect';
 
 type MeResponse = {
   user: AuthUser;
@@ -224,22 +226,31 @@ function ProfileCard({
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="country">Страна</Label>
-            <select
+            <NativeSelect
               id="country"
-              className="border-border bg-card flex h-10 w-full rounded-xl border px-3 text-sm"
               value={country}
-              onChange={(e) => setCountry(e.target.value as CountryCode)}
+              onChange={(e) => {
+                setCountry(e.target.value as CountryCode);
+                setCity('');
+              }}
             >
               {COUNTRIES.map((item) => (
                 <option key={item.code} value={item.code}>
                   {item.nameRu}
                 </option>
               ))}
-            </select>
+            </NativeSelect>
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="city">Город</Label>
-            <Input id="city" value={city} onChange={(e) => setCity(e.target.value)} />
+            <CitySelect
+              id="city"
+              country={country}
+              value={city}
+              allowEmpty
+              emptyLabel="Не указан"
+              onChange={setCity}
+            />
           </div>
         </div>
         <div className="space-y-1.5">
