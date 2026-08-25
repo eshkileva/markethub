@@ -15,5 +15,7 @@ apps/web/test-results
 .env.local
 .idea
 .vscode
-docs
-design-system
+docs/superpowers
+docs/cars.csv
+docs/mvp-plan.md
+docs/deploy.md
