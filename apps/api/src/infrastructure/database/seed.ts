@@ -159,7 +159,9 @@ async function remapListingsToLeaves(db: ReturnType<typeof createDatabase>['db']
 
   if (moved > 0) console.log(`Remapped ${moved} listings to leaf categories`);
 
-  const rootIds = cats.filter((item) => cats.some((child) => child.parentId === item.id)).map((item) => item.id);
+  const rootIds = cats
+    .filter((item) => cats.some((child) => child.parentId === item.id))
+    .map((item) => item.id);
   if (rootIds.length > 0) {
     const stale = await db
       .select({ id: categoryAttributes.id })

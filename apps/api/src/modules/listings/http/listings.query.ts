@@ -47,7 +47,9 @@ export async function listCatalog(
   if (query.country) conditions.push(eq(listings.country, query.country));
   if (query.sellerId) conditions.push(eq(listings.sellerId, query.sellerId));
   if (query.categoryId) {
-    const tree = await db.select({ id: categories.id, parentId: categories.parentId }).from(categories);
+    const tree = await db
+      .select({ id: categories.id, parentId: categories.parentId })
+      .from(categories);
     const ids = listingCategoryIds(tree, query.categoryId);
     conditions.push(inArray(listings.categoryId, ids));
   }

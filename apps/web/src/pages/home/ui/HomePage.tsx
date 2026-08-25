@@ -68,8 +68,8 @@ export function HomePage() {
             <span className="text-primary"> и через границу</span>
           </h1>
           <p className="text-muted max-w-xl text-sm sm:text-base">
-            Один аккаунт для Беларуси, России и Казахстана. Цены с конвертацией и доверие к
-            продавцу на виду.
+            Один аккаунт для Беларуси, России и Казахстана. Цены с конвертацией и доверие к продавцу
+            на виду.
           </p>
           <form
             className="flex max-w-xl flex-col gap-2 sm:flex-row"
@@ -106,7 +106,7 @@ export function HomePage() {
           </Link>
         </div>
         <div className="no-scrollbar -mx-4 flex gap-3 overflow-x-auto px-4 pb-1 lg:mx-0 lg:px-0">
-          {(categoryRoots(categoriesQuery.data?.items ?? [])).map((category) => {
+          {categoryRoots(categoriesQuery.data?.items ?? []).map((category) => {
             const Icon = categoryIcons[category.slug];
             return (
               <Link

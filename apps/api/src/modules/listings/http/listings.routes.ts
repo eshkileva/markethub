@@ -208,12 +208,7 @@ export const listingsRoutes: FastifyPluginAsyncZod = async (app) => {
         throw new NotFoundError('Listing not found');
       }
 
-      return getListingDetail(
-        app.db,
-        listing,
-        viewerId,
-        await app.services.rates.getRates(),
-      );
+      return getListingDetail(app.db, listing, viewerId, await app.services.rates.getRates());
     },
   );
 };

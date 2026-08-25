@@ -155,7 +155,7 @@ export function AppSidebar() {
               Категории
             </div>
             <div className="space-y-1">
-              {(categoryRoots(categoriesQuery.data?.items ?? [])).map((item) => {
+              {categoryRoots(categoriesQuery.data?.items ?? []).map((item) => {
                 const Icon = categoryIcons[item.slug] ?? Package;
                 const active = activeCategory === item.slug;
                 return (

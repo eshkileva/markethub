@@ -158,12 +158,7 @@ export class CatalogsRepository {
     return row;
   }
 
-  async upsertModel(input: {
-    brandId: string;
-    key: string;
-    name: string;
-    nameRu?: string | null;
-  }) {
+  async upsertModel(input: { brandId: string; key: string; name: string; nameRu?: string | null }) {
     await this.db
       .insert(catalogModels)
       .values({

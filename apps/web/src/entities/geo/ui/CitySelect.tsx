@@ -68,7 +68,13 @@ export function CitySelect({
       allowEmpty={allowEmpty}
       clearLabel={country ? emptyLabel : 'Сначала выберите страну'}
       placeholder={
-        !country ? 'Сначала выберите страну' : loading ? 'Загрузка…' : errored ? 'Ошибка загрузки' : 'Город'
+        !country
+          ? 'Сначала выберите страну'
+          : loading
+            ? 'Загрузка…'
+            : errored
+              ? 'Ошибка загрузки'
+              : 'Город'
       }
       emptyLabel={errored ? 'Не удалось загрузить города' : 'Город не найден'}
       maxVisibleOptions={MAX_COMBOBOX_VISIBLE}

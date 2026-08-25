@@ -2,7 +2,10 @@ import { test, expect } from '@playwright/test';
 
 const apiBase = 'http://localhost:3000';
 
-async function assertOk(res: { ok(): boolean; status(): number; text(): Promise<string> }, label: string) {
+async function assertOk(
+  res: { ok(): boolean; status(): number; text(): Promise<string> },
+  label: string,
+) {
   if (!res.ok()) {
     const text = await res.text().catch(() => '');
     throw new Error(`${label} failed: ${res.status()} ${text}`);
@@ -17,7 +20,9 @@ test.describe('stabilization API smoke', () => {
     expect(allJson.items.length).toBeLessThanOrEqual(50);
     expect(allJson.items.some((city: { nameRu: string }) => city.nameRu === 'Омск')).toBe(false);
 
-    const searchRes = await request.get(`${apiBase}/v1/geo/cities?country=RU&q=${encodeURIComponent('Омск')}`);
+    const searchRes = await request.get(
+      `${apiBase}/v1/geo/cities?country=RU&q=${encodeURIComponent('Омск')}`,
+    );
     await assertOk(searchRes, 'cities RU q=Omsk');
     const searchJson = await searchRes.json();
     expect(searchJson.items.some((city: { nameRu: string }) => city.nameRu === 'Омск')).toBe(true);
