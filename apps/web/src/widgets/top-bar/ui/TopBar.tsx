@@ -44,7 +44,7 @@ export function TopBar() {
           <Search className="text-muted pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
           <Input
             className="border-border bg-background h-11 rounded-2xl pl-10"
-            placeholder="Поиск по объявлениям СНГ..."
+            placeholder="Найти на Купилко..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
@@ -67,7 +67,7 @@ export function TopBar() {
           </select>
         </div>
 
-        <Button asChild className="hidden sm:inline-flex">
+        <Button asChild variant="accent" className="hidden sm:inline-flex">
           <Link to="/listings/create">
             <Plus className="h-4 w-4" />
             Разместить

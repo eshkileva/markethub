@@ -1,39 +1,41 @@
-# MarketHub Design System
+# Купилко Design System
 
-Premium C2C marketplace for CIS (BY / RU / KZ). Dashboard-style product, not a marketing landing page.
+C2C marketplace for CIS (BY / RU / KZ). Warm paper canvas, plum navigation, orange sell CTA — not a generic SaaS dashboard.
 
 ## Tokens
 
-| Role          | Value     | Usage                                     |
-| ------------- | --------- | ----------------------------------------- |
-| Primary       | `#7C3AED` | CTA, active nav, links, user chat bubbles |
-| Primary hover | `#6D28D9` | Buttons                                   |
-| Secondary     | `#A78BFA` | Soft highlights                           |
-| Success       | `#16A34A` | Active, sold, online                      |
-| Warning       | `#EA580C` | Pending moderation                        |
-| Info          | `#2563EB` | Delivery, info chips                      |
-| Danger        | `#DC2626` | Removed, errors                           |
-| Canvas        | `#F9FAFB` | Main background                           |
-| Surface       | `#FFFFFF` | Cards, top bar                            |
-| Sidebar       | `#0B1220` | Dark navy navigation                      |
-| Sidebar muted | `#94A3B8` | Inactive nav                              |
-| Text          | `#0F172A` | Headings and body                         |
-| Muted         | `#475569` | Meta (city, time)                         |
-| Border        | `#E5E7EB` | Hairline borders                          |
+| Role          | Value     | Usage                         |
+| ------------- | --------- | ----------------------------- |
+| Primary       | `#6D28D9` | Nav active, links, brand mark |
+| Primary hover | `#5B21B6` | Primary buttons               |
+| Accent        | `#EA580C` | «Разместить», conversion CTA  |
+| Accent hover  | `#C2410C` | Accent buttons                |
+| Canvas        | `#F4EFE6` | App background (warm paper)   |
+| Surface       | `#FFFDF8` | Cards                         |
+| Sidebar       | `#1C0B33` | Plum navigation               |
+| Sidebar muted | `#C4B5D6` | Inactive nav                  |
+| Text          | `#1A1225` | Headings and body             |
+| Muted         | `#5C5268` | Meta (city, time)             |
+| Border        | `#E4D8C8` | Warm hairline                 |
+| Success       | `#15803D` | Active, sold                  |
+| Warning       | `#C2410C` | Pending                       |
+| Danger        | `#BE123C` | Errors                        |
 
 ## Typography
 
-- UI: **Inter** (400/500/600/700)
+- Display / wordmark: **Unbounded** (500/600/700)
+- UI: **Manrope** (400/500/600/700)
 - Feature numbers / prices: tabular lining
 - Scale: 12 / 14 / 16 / 18 / 24 / 32 / 40
 
 ## Layout
 
-- Persistent dark sidebar + white top bar + gray canvas
-- Max content width inside the app shell, not a centered marketing column
+- Persistent plum sidebar + cream canvas + ivory cards
+- Brand mark: rotated «К» in a rounded square
+- Max content width inside the app shell
 - Product grid: 1 / 2 / 3 / 4 columns
-- Cards: `rounded-2xl`, `shadow-sm`, hover `shadow-md` (no layout-shifting scale)
-- Buttons: large radius (`rounded-full` for primary CTAs)
+- Cards: `rounded-[1.25rem]`, `shadow-sm`, hover `shadow-md` (no layout-shifting scale)
+- Buttons: pill (`rounded-full`); sell CTA uses accent orange
 - Status: tinted pills, never color-only
 
 ## Motion
@@ -46,3 +48,4 @@ Premium C2C marketplace for CIS (BY / RU / KZ). Dashboard-style product, not a m
 
 - Country + currency always visible in chrome
 - Listing price shows source currency and converted amounts (BYN / RUB / KZT)
+- Cities come from `/v1/geo/cities` and follow the selected country

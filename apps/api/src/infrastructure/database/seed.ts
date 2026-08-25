@@ -1,6 +1,6 @@
 import { config as loadDotenv } from 'dotenv';
 import path from 'node:path';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { demoListingImageSvg, isHotlinkPlaceholder } from '@markethub/shared';
 import { loadConfig } from '../../config/env.js';
 import { hashPassword } from '../../modules/auth/domain/crypto.js';
@@ -10,10 +10,12 @@ import {
   authIdentities,
   categories,
   categoryAttributes,
+  listingAttributes,
   listingImages,
   listings,
   users,
 } from './schema/index.js';
+import { CATEGORY_ATTRIBUTE_DEFS, DEMO_LISTING_ATTRIBUTES } from './category-attributes.seed.js';
 
 loadDotenv({ path: path.resolve(process.cwd(), '../../.env') });
 loadDotenv();
@@ -46,61 +48,90 @@ async function seedCategories(db: ReturnType<typeof createDatabase>['db']) {
     .values([...SEED_CATEGORIES])
     .returning();
 
-  const computers = inserted.find((c) => c.slug === 'computers');
-  const phones = inserted.find((c) => c.slug === 'phones');
-
-  if (computers) {
-    await db.insert(categoryAttributes).values([
-      {
-        categoryId: computers.id,
-        key: 'manufacturer',
-        labelRu: 'Производитель',
-        type: 'string',
-        required: true,
-        sortOrder: 1,
-      },
-      {
-        categoryId: computers.id,
-        key: 'memory',
-        labelRu: 'Память',
-        type: 'string',
-        required: false,
-        sortOrder: 2,
-      },
-      {
-        categoryId: computers.id,
-        key: 'chipset',
-        labelRu: 'Чипсет',
-        type: 'string',
-        required: false,
-        sortOrder: 3,
-      },
-    ]);
-  }
-
-  if (phones) {
-    await db.insert(categoryAttributes).values([
-      {
-        categoryId: phones.id,
-        key: 'storage',
-        labelRu: 'Память',
-        type: 'enum',
-        options: ['64', '128', '256', '512'],
-        required: true,
-        sortOrder: 1,
-      },
-      {
-        categoryId: phones.id,
-        key: 'color',
-        labelRu: 'Цвет',
-        type: 'string',
-        required: false,
-        sortOrder: 2,
-      },
-    ]);
-  }
-
   console.log(`Seeded ${inserted.length} categories`);
+}
+
+async function seedCategoryAttributes(db: ReturnType<typeof createDatabase>['db']) {
+  const cats = await db.select().from(categories);
+  const bySlug = new Map(cats.map((item) => [item.slug, item]));
+  let added = 0;
+  let updated = 0;
+
+  for (const [slug, defs] of Object.entries(CATEGORY_ATTRIBUTE_DEFS)) {
+    const category = bySlug.get(slug);
+    if (!category) continue;
+    const existing = await db
+      .select()
+      .from(categoryAttributes)
+      .where(eq(categoryAttributes.categoryId, category.id));
+    const byKey = new Map(existing.map((item) => [item.key, item]));
+
+    for (const def of defs) {
+      const current = byKey.get(def.key);
+      if (!current) {
+        await db.insert(categoryAttributes).values({
+          categoryId: category.id,
+          key: def.key,
+          labelRu: def.labelRu,
+          type: def.type,
+          options: def.options ?? null,
+          required: def.required,
+          sortOrder: def.sortOrder,
+        });
+        added += 1;
+        continue;
+      }
+      await db
+        .update(categoryAttributes)
+        .set({
+          labelRu: def.labelRu,
+          type: def.type,
+          options: def.options ?? null,
+          required: def.required,
+          sortOrder: def.sortOrder,
+        })
+        .where(eq(categoryAttributes.id, current.id));
+      updated += 1;
+    }
+  }
+
+  if (added === 0 && updated === 0) {
+    console.log('Category attributes already seeded');
+    return;
+  }
+  console.log(`Category attributes: added ${added}, updated ${updated}`);
+}
+
+async function attachDemoAttributes(
+  db: ReturnType<typeof createDatabase>['db'],
+  listingId: string,
+  categoryId: string,
+  values: Record<string, string>,
+) {
+  const defs = await db
+    .select()
+    .from(categoryAttributes)
+    .where(eq(categoryAttributes.categoryId, categoryId));
+  for (const [key, value] of Object.entries(values)) {
+    const def = defs.find((item) => item.key === key);
+    if (!def) continue;
+    const [current] = await db
+      .select({ id: listingAttributes.id })
+      .from(listingAttributes)
+      .where(
+        and(eq(listingAttributes.listingId, listingId), eq(listingAttributes.attributeId, def.id)),
+      )
+      .limit(1);
+    if (current) {
+      await db.update(listingAttributes).set({ value }).where(eq(listingAttributes.id, current.id));
+    } else {
+      await db.insert(listingAttributes).values({
+        listingId,
+        attributeId: def.id,
+        value,
+      });
+    }
+  }
 }
 
 async function ensureModerator(db: ReturnType<typeof createDatabase>['db']) {
@@ -366,6 +397,10 @@ async function seedDemoListings(
         url: stored.url,
         sortOrder: 0,
       });
+      const demoAttrs = DEMO_LISTING_ATTRIBUTES[item.slug];
+      if (demoAttrs) {
+        await attachDemoAttributes(db, listingId, category.id, demoAttrs);
+      }
       continue;
     }
 
@@ -381,11 +416,19 @@ async function seedDemoListings(
         sortOrder: 0,
       });
       updatedImages += 1;
+      const demoAttrs = DEMO_LISTING_ATTRIBUTES[item.slug];
+      if (demoAttrs) {
+        await attachDemoAttributes(db, listingId, category.id, demoAttrs);
+      }
       continue;
     }
     if (isHotlinkPlaceholder(cover.url)) {
       await db.update(listingImages).set({ url: stored.url }).where(eq(listingImages.id, cover.id));
       updatedImages += 1;
+    }
+    const demoAttrs = DEMO_LISTING_ATTRIBUTES[item.slug];
+    if (demoAttrs) {
+      await attachDemoAttributes(db, listingId, category.id, demoAttrs);
     }
   }
 
@@ -405,6 +448,7 @@ async function main() {
   try {
     await storage.ensureBucket();
     await seedCategories(db);
+    await seedCategoryAttributes(db);
     await ensureModerator(db);
     await seedDemoListings(db, storage);
   } finally {

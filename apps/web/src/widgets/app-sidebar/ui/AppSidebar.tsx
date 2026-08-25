@@ -3,28 +3,21 @@ import { Link, useRouterState } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
 import {
   Bell,
-  Bike,
-  Car,
-  Cpu,
-  Flower2,
   Heart,
   Home,
   MessageSquare,
-  Monitor,
   Package,
   Settings,
   Shield,
-  Shirt,
   ShoppingBag,
-  Smartphone,
-  WashingMachine,
-  type LucideIcon,
 } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
 import { apiRequest } from '@/shared/api/client';
 import { useAuthStore, useUiStore } from '@/shared/model/stores';
 import { useUnreadNotifications } from '@/features/notifications/model/use-unread-count';
 import { useUnreadMessages } from '@/features/messaging/model/use-unread-count';
+import { BrandMark } from '@/shared/ui/brand-mark';
+import { categoryIcons } from '@/entities/category/model/icons';
 
 const mainNav = [
   { to: '/', label: 'Главная', icon: Home },
@@ -36,18 +29,6 @@ const mainNav = [
   { to: '/notifications', label: 'Уведомления', icon: Bell },
   { to: '/settings', label: 'Настройки', icon: Settings },
 ] as const;
-
-const categoryIcons: Record<string, LucideIcon> = {
-  electronics: Cpu,
-  computers: Monitor,
-  phones: Smartphone,
-  appliances: WashingMachine,
-  auto: Car,
-  realty: Home,
-  hobby: Bike,
-  fashion: Shirt,
-  'home-garden': Flower2,
-};
 
 type CategoriesResponse = {
   items: Array<{ id: string; slug: string; nameRu: string }>;
@@ -114,14 +95,8 @@ export function AppSidebar() {
           sidebarOpen ? 'translate-x-0' : '-translate-x-full',
         )}
       >
-        <div className="flex items-center gap-2 px-5 py-5">
-          <div className="bg-primary flex h-9 w-9 items-center justify-center rounded-xl text-sm font-bold text-white">
-            MH
-          </div>
-          <div>
-            <div className="text-sm font-semibold tracking-tight">MarketHub</div>
-            <div className="text-sidebar-muted text-xs">Marketplace СНГ</div>
-          </div>
+        <div className="px-5 py-5">
+          <BrandMark />
         </div>
 
         <nav className="min-h-0 flex-1 space-y-6 overflow-y-auto px-3 pb-6">

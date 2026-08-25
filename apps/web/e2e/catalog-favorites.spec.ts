@@ -124,7 +124,7 @@ test('catalog loads and favorite opens auth', async ({ page }) => {
   await expect(heartButton).toBeVisible();
   await heartButton.click();
 
-  await expect(page.getByRole('heading', { name: /Вход в MarketHub/i })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /Вход в Купилко/i })).toBeVisible();
 });
 
 test('favorites page without auth shows login prompt', async ({ page }) => {

@@ -1,5 +1,6 @@
 import { Label } from '@/shared/ui/label';
 import { Input } from '@/shared/ui/input';
+import { NativeSelect } from '@/shared/ui/native-select';
 
 export type AttributeDef = {
   id: string;
@@ -28,9 +29,8 @@ export function ListingAttributesFields({
             {attr.required ? ' *' : ''}
           </Label>
           {attr.type === 'enum' && attr.options ? (
-            <select
+            <NativeSelect
               id={attr.id}
-              className="border-border bg-card flex h-10 w-full rounded-xl border px-3 text-sm"
               value={values[attr.id] ?? ''}
               onChange={(e) => onChange(attr.id, e.target.value)}
             >
@@ -40,7 +40,7 @@ export function ListingAttributesFields({
                   {option}
                 </option>
               ))}
-            </select>
+            </NativeSelect>
           ) : (
             <Input
               id={attr.id}

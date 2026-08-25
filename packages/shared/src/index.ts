@@ -1,4 +1,5 @@
 export * from './geo/countries.js';
+export * from './geo/cities.js';
 export * from './geo/currencies.js';
 export * from './events.js';
 export * from './enums.js';
