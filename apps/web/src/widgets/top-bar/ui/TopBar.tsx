@@ -29,21 +29,23 @@ export function TopBar() {
 
   return (
     <header className="border-border bg-card/90 z-20 shrink-0 border-b backdrop-blur">
-      <div className="flex items-center gap-2 px-3 py-3 sm:gap-3 lg:px-6">
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-2 px-3 py-2 sm:gap-3 sm:py-3 lg:flex-nowrap lg:px-6">
         <Button
           type="button"
           variant="ghost"
           size="icon"
-          className="lg:hidden"
+          className="shrink-0 lg:hidden"
           aria-label="Открыть меню"
           onClick={() => setSidebarOpen(true)}
         >
           <Menu className="h-5 w-5" />
         </Button>
+
         <SearchBox
           value={query}
           onChange={setQuery}
           placeholder="AI-поиск: iPhone до 50000..."
+          className="min-w-0 max-lg:order-last max-lg:basis-full lg:flex-1"
           onSubmit={(queryOverride) => {
             const term = (queryOverride ?? query).trim();
             if (!term) {
@@ -64,10 +66,10 @@ export function TopBar() {
           className="hidden md:inline-flex"
         />
 
-        <div className="border-border bg-background flex shrink-0 items-center gap-1 overflow-visible rounded-2xl border px-2 py-1.5 sm:gap-2 sm:px-3 sm:py-2">
-          <MapPin className="text-primary h-4 w-4 shrink-0" />
+        <div className="border-border bg-background flex shrink-0 items-center gap-1 overflow-visible rounded-2xl border px-2 py-1.5 max-lg:ml-auto sm:gap-2 sm:px-3 sm:py-2">
+          <MapPin className="text-primary hidden h-4 w-4 shrink-0 sm:block" />
           <Combobox
-            className="w-[4.5rem]"
+            className="w-[3.75rem] sm:w-[4.5rem]"
             size="sm"
             variant="ghost"
             value={countryFilter}
@@ -83,7 +85,7 @@ export function TopBar() {
           />
           <span className="text-border hidden sm:inline">·</span>
           <Combobox
-            className="w-[4.75rem]"
+            className="w-[3.75rem] sm:w-[4.75rem]"
             size="sm"
             variant="ghost"
             value={displayCurrency}
@@ -105,7 +107,13 @@ export function TopBar() {
           </Link>
         </Button>
 
-        <Button variant="ghost" size="icon" aria-label="Уведомления" asChild className="relative">
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label="Уведомления"
+          asChild
+          className="relative shrink-0"
+        >
           <Link to="/notifications">
             <Bell className="text-muted h-5 w-5" />
             {unreadCount > 0 ? (
@@ -115,8 +123,8 @@ export function TopBar() {
         </Button>
 
         {user ? (
-          <Link to="/profile/$username" params={{ username: user.username }}>
-            <Avatar>
+          <Link to="/profile/$username" params={{ username: user.username }} className="shrink-0">
+            <Avatar className="h-9 w-9">
               {user.avatarUrl ? <AvatarImage src={user.avatarUrl} alt="" /> : null}
               <AvatarFallback>
                 {(user.displayName ?? user.username).slice(0, 2).toUpperCase()}
@@ -124,7 +132,7 @@ export function TopBar() {
             </Avatar>
           </Link>
         ) : (
-          <Button variant="secondary" asChild className="hidden sm:inline-flex">
+          <Button variant="secondary" asChild className="hidden shrink-0 sm:inline-flex">
             <Link to="/auth">Войти</Link>
           </Button>
         )}
