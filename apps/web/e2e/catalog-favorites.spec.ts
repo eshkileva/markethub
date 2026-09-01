@@ -1,5 +1,10 @@
 import { test, expect } from '@playwright/test';
-import { expectAuthRedirect, registerVerifiedUser, seedBrowserSession } from './helpers/auth';
+import {
+  expectAuthRedirect,
+  registerVerifiedUser,
+  seedBrowserSession,
+  ensureListingPublished,
+} from './helpers/auth';
 import { E2E_API_BASE } from './helpers/config';
 
 test('catalog loads and favorite toggles for signed-in user', async ({ page }) => {
@@ -87,6 +92,8 @@ test('catalog loads and favorite toggles for signed-in user', async ({ page }) =
     data: {},
   });
   await assertOk(publishRes, 'publish listing');
+  const publishJson = await publishRes.json();
+  await ensureListingPublished(page.request, listingId, publishJson.status as string);
 
   // Wait until the listing is visible in the public feed (publish -> DB -> query).
   const start = Date.now();

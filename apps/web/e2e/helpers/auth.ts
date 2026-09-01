@@ -88,3 +88,37 @@ export async function registerVerifiedUser(
     user: verifiedUser,
   };
 }
+
+export async function loginApiUser(
+  request: APIRequestContext,
+  email: string,
+  password: string,
+  apiBase = E2E_API_BASE,
+) {
+  const loginRes = await request.post(`${apiBase}/v1/auth/login`, {
+    headers: { 'content-type': 'application/json' },
+    data: { email, password },
+  });
+  if (!loginRes.ok()) {
+    throw new Error(`login failed: ${loginRes.status()} ${await loginRes.text()}`);
+  }
+  return (await loginRes.json()) as AuthResponse;
+}
+
+/** Without AI in CI, publish routes to pending_moderation — approve so feed e2e can see the listing. */
+export async function ensureListingPublished(
+  request: APIRequestContext,
+  listingId: string,
+  publishStatus: string,
+  apiBase = E2E_API_BASE,
+) {
+  if (publishStatus === 'published') return;
+
+  const moderator = await loginApiUser(request, 'moderator@markethub.local', 'password12', apiBase);
+  const approveRes = await request.post(`${apiBase}/v1/moderation/listings/${listingId}/approve`, {
+    headers: { Authorization: `Bearer ${moderator.accessToken}` },
+  });
+  if (!approveRes.ok()) {
+    throw new Error(`moderator approve failed: ${approveRes.status()} ${await approveRes.text()}`);
+  }
+}
