@@ -1,5 +1,10 @@
 import type { z } from 'zod';
-import type { searchIntentRequestSchema } from '@markethub/shared';
+import type {
+  CountryCode,
+  CurrencyCode,
+  searchIntentRequestSchema,
+  searchIntentResponseSchema,
+} from '@markethub/shared';
 import type { AppConfig } from '../../../config/env.js';
 import type { AiCallLogger } from '../../../infrastructure/ai/ai-call-logger.js';
 import { OpenRouterClient } from '../../../infrastructure/ai/openrouter.client.js';
@@ -7,6 +12,22 @@ import { ValidationError } from '../../../shared/errors/app-error.js';
 import type { ListingCopilotRepository } from '../infrastructure/listing-copilot.repository.js';
 
 type SearchIntentInput = z.infer<typeof searchIntentRequestSchema>;
+type SearchIntentResponse = z.infer<typeof searchIntentResponseSchema>;
+
+function parseCurrency(value: unknown): CurrencyCode | undefined {
+  if (value === 'BYN' || value === 'RUB' || value === 'KZT') return value;
+  return undefined;
+}
+
+function parseCountry(value: unknown, fallback?: CountryCode): CountryCode | undefined {
+  if (value === 'BY' || value === 'RU' || value === 'KZ') return value;
+  return fallback;
+}
+
+function parseCondition(value: unknown): SearchIntentResponse['condition'] {
+  if (value === 'new' || value === 'used' || value === 'for_parts') return value;
+  return undefined;
+}
 
 const intentDraftSchema = {
   q: 'optional cleaned keyword for text search',
@@ -27,7 +48,7 @@ export class SearchIntentService {
     private readonly aiLogger: AiCallLogger,
   ) {}
 
-  async parse(input: SearchIntentInput) {
+  async parse(input: SearchIntentInput): Promise<SearchIntentResponse> {
     if (!this.config.aiEnabled) {
       return { q: input.q, country: input.country, aiEnabled: false };
     }
@@ -80,23 +101,14 @@ export class SearchIntentService {
     return {
       q: typeof draft.q === 'string' && draft.q.trim() ? draft.q.trim() : undefined,
       categorySlug,
-      country:
-        draft.country === 'BY' || draft.country === 'RU' || draft.country === 'KZ'
-          ? draft.country
-          : input.country,
+      country: parseCountry(draft.country, input.country),
       city: typeof draft.city === 'string' && draft.city.trim() ? draft.city.trim() : undefined,
       minPrice:
         typeof draft.minPrice === 'number' && draft.minPrice >= 0 ? draft.minPrice : undefined,
       maxPrice:
         typeof draft.maxPrice === 'number' && draft.maxPrice > 0 ? draft.maxPrice : undefined,
-      currency:
-        draft.currency === 'BYN' || draft.currency === 'RUB' || draft.currency === 'KZT'
-          ? draft.currency
-          : undefined,
-      condition:
-        draft.condition === 'new' || draft.condition === 'used' || draft.condition === 'for_parts'
-          ? draft.condition
-          : undefined,
+      currency: parseCurrency(draft.currency),
+      condition: parseCondition(draft.condition),
       aiEnabled: true,
     };
   }

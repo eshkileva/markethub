@@ -236,7 +236,7 @@ export class MessagingService {
       throw new NotFoundError('Listing not found');
     }
 
-    const role = listing.sellerId === userId ? 'seller' : 'buyer';
+    const role: 'buyer' | 'seller' = listing.sellerId === userId ? 'seller' : 'buyer';
 
     return {
       role,
