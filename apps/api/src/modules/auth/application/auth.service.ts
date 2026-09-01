@@ -30,7 +30,7 @@ import {
   verifyPassword,
 } from '../domain/crypto.js';
 import type { AuthRepository } from '../infrastructure/auth.repository.js';
-import type { CountryCode } from '@markethub/shared';
+import type { CountryCode, UserRole, AuthUser } from '@markethub/shared';
 import type { GeoService } from '../../geo/application/geo.service.js';
 
 type RegisterInput = z.infer<typeof registerSchema>;
@@ -54,7 +54,7 @@ function publicUser(user: {
   isVerified: boolean;
   role: string;
   emailVerifiedAt: Date | null;
-}) {
+}): AuthUser {
   return {
     id: user.id,
     email: user.email,
@@ -62,11 +62,11 @@ function publicUser(user: {
     displayName: user.displayName,
     avatarUrl: user.avatarUrl,
     bio: user.bio,
-    country: user.country,
+    country: user.country as CountryCode,
     city: user.city,
     trustScore: user.trustScore,
     isVerified: user.isVerified,
-    role: user.role,
+    role: user.role as UserRole,
     emailVerified: Boolean(user.emailVerifiedAt),
   };
 }

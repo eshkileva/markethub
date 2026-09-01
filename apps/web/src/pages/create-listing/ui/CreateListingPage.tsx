@@ -21,6 +21,8 @@ import { CitySelect } from '@/entities/geo/ui/CitySelect';
 import { CountrySelect } from '@/entities/geo/ui/CountrySelect';
 import { Combobox } from '@/shared/ui/combobox';
 import { categoryChildren, categoryRoots } from '@/entities/category/model/tree';
+import type { CategoriesResponse } from '@/entities/category/model/api';
+import type { ListingDetail } from '@/entities/listing/model/types';
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Input } from '@/shared/ui/input';
@@ -54,32 +56,11 @@ type PriceInsightResponse = {
   currency: CurrencyCode;
 };
 
-type CategoriesResponse = {
-  items: Array<{ id: string; slug: string; nameRu: string; parentId: string | null }>;
-};
-
 type AttributesResponse = { items: AttributeDef[] };
 
 type ListingResponse = {
   id: string;
   status: string;
-};
-
-type ListingDetail = {
-  id: string;
-  title: string;
-  description: string;
-  categoryId: string;
-  price: number;
-  currency: CurrencyCode;
-  country: CountryCode;
-  city: string;
-  condition: ListingCondition;
-  deliveryModes: DeliveryMode[];
-  status: string;
-  images: Array<{ id: string; url: string }>;
-  attributes: Array<{ attributeId: string; value: string }>;
-  seller: { id: string } | null;
 };
 
 export function CreateListingPage({ listingId }: { listingId?: string }) {
@@ -174,7 +155,7 @@ export function CreateListingPage({ listingId }: { listingId?: string }) {
     setCategoryId(listing.categoryId);
     setPrice(String(listing.price));
     setCurrency(listing.currency);
-    setCountry(listing.country);
+    setCountry(listing.country as CountryCode);
     setCity(listing.city);
     setCondition(listing.condition);
     setDeliveryModes(listing.deliveryModes);

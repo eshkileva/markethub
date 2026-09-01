@@ -18,6 +18,7 @@ import { useAuthStore, useUiStore } from '@/shared/model/stores';
 import { useUnreadNotifications } from '@/features/notifications/model/use-unread-count';
 import { useUnreadMessages } from '@/features/messaging/model/use-unread-count';
 import { BrandMark } from '@/shared/ui/brand-mark';
+import type { CategoriesResponse } from '@/entities/category/model/api';
 import { Button } from '@/shared/ui/button';
 import { categoryIcons } from '@/entities/category/model/icons';
 import { categoryRoots } from '@/entities/category/model/tree';
@@ -36,10 +37,6 @@ const mainNav = [
   { to: '/notifications', label: 'Уведомления', icon: Bell },
   { to: '/settings', label: 'Настройки', icon: Settings },
 ] as const;
-
-type CategoriesResponse = {
-  items: Array<{ id: string; slug: string; nameRu: string; parentId: string | null }>;
-};
 
 function NavCount({ count, active }: { count: number; active: boolean }) {
   if (count <= 0) return null;

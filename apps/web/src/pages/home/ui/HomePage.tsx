@@ -2,10 +2,11 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { ArrowRight, Search } from 'lucide-react';
-import type { ConvertedAmounts, CurrencyCode } from '@markethub/shared';
 import { apiRequest } from '@/shared/api/client';
 import { useAuthStore, useUiStore } from '@/shared/model/stores';
 import { ProductCard } from '@/entities/listing/ui/ProductCard';
+import type { ListingCard, Paginated } from '@/entities/listing/model/types';
+import type { CategoriesResponse } from '@/entities/category/model/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Badge } from '@/shared/ui/badge';
 import { Button } from '@/shared/ui/button';
@@ -19,30 +20,7 @@ import { useAiStatus } from '@/features/ai/model/use-ai-status';
 import { AI_HERO_HEADLINE, AI_PLATFORM_TAGLINE } from '@/features/ai/model/ai-messaging';
 import { AuthGuestBanner } from '@/features/auth/ui/AuthGuestBanner';
 
-type ListingsResponse = {
-  items: Array<{
-    id: string;
-    title: string;
-    price: number;
-    currency: CurrencyCode;
-    converted?: ConvertedAmounts;
-    city: string;
-    country: string;
-    imageUrl: string | null;
-    publishedAt: string | null;
-    isFavorite?: boolean;
-  }>;
-};
-
-type CategoriesResponse = {
-  items: Array<{
-    id: string;
-    slug: string;
-    nameRu: string;
-    icon: string | null;
-    parentId: string | null;
-  }>;
-};
+type ListingsResponse = Paginated<ListingCard>;
 
 export function HomePage() {
   const countryFilter = useUiStore((s) => s.countryFilter);

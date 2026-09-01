@@ -1,41 +1,15 @@
 import { expect, type APIRequestContext, type Page } from '@playwright/test';
+import type { AuthResponse, AuthUser, RegisterInput } from '@markethub/shared';
+import { AUTH_STORAGE_KEY } from '../../src/shared/constants/auth';
+import { E2E_API_BASE } from './config';
 
-type AuthSession = {
-  accessToken: string;
-  expiresIn?: number;
-  user: {
-    id: string;
-    email: string;
-    username: string;
-    displayName: string | null;
-    avatarUrl: string | null;
-    bio?: string | null;
-    country: string;
-    city: string | null;
-    trustScore: number;
-    isVerified: boolean;
-    role: string;
-    emailVerified: boolean;
-  };
-};
-
-type RegisterInput = {
-  email: string;
-  password: string;
-  username: string;
-  country: 'BY' | 'RU' | 'KZ';
-  displayName?: string;
-};
-
-type RegisterResponse = AuthSession & {
-  devVerificationCode?: string;
-};
+type AuthSession = AuthResponse;
 
 export async function seedBrowserSession(page: Page, session: AuthSession) {
   await page.addInitScript(
-    ({ token, profile, ttl }) => {
+    ({ token, profile, ttl, storageKey }) => {
       localStorage.setItem(
-        'markethub-auth',
+        storageKey,
         JSON.stringify({
           state: {
             accessToken: token,
@@ -46,11 +20,16 @@ export async function seedBrowserSession(page: Page, session: AuthSession) {
         }),
       );
     },
-    { token: session.accessToken, profile: session.user, ttl: session.expiresIn ?? 900 },
+    {
+      token: session.accessToken,
+      profile: session.user,
+      ttl: session.expiresIn ?? 900,
+      storageKey: AUTH_STORAGE_KEY,
+    },
   );
 }
 
-export async function loginDemoInBrowser(page: Page, apiBase: string) {
+export async function loginDemoInBrowser(page: Page, apiBase = E2E_API_BASE) {
   const loginRes = await page.request.post(`${apiBase}/v1/auth/login`, {
     headers: { 'content-type': 'application/json' },
     data: { email: 'demo@markethub.local', password: 'password12' },
@@ -71,8 +50,8 @@ export async function expectAuthRedirect(page: Page, path: string) {
 
 export async function registerVerifiedUser(
   request: APIRequestContext,
-  apiBase: string,
   input: RegisterInput,
+  apiBase = E2E_API_BASE,
 ) {
   const registerRes = await request.post(`${apiBase}/v1/auth/register`, {
     headers: { 'content-type': 'application/json' },
@@ -82,7 +61,7 @@ export async function registerVerifiedUser(
     throw new Error(`register failed: ${registerRes.status()} ${await registerRes.text()}`);
   }
 
-  const registerJson = (await registerRes.json()) as RegisterResponse;
+  const registerJson = (await registerRes.json()) as AuthResponse;
   if (registerJson.user.emailVerified) {
     return registerJson;
   }
@@ -103,7 +82,7 @@ export async function registerVerifiedUser(
     throw new Error(`verify-email failed: ${verifyRes.status()} ${await verifyRes.text()}`);
   }
 
-  const verifiedUser = (await verifyRes.json()) as RegisterResponse['user'];
+  const verifiedUser = (await verifyRes.json()) as AuthUser;
   return {
     ...registerJson,
     user: verifiedUser,

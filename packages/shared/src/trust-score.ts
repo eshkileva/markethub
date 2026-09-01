@@ -1,3 +1,5 @@
+import type { CurrencyCode } from './geo/currencies.js';
+
 export function trustScoreFromReviews(average: number | null, count: number): number {
   if (count <= 0 || average == null || Number.isNaN(average)) {
     return 0;
@@ -17,7 +19,7 @@ export type ListingPriceInsight = {
   median: number | null;
   sampleSize: number;
   verdict: PriceVerdict;
-  currency: string;
+  currency: CurrencyCode;
 };
 
 export type ListingAiAssessment = {
@@ -38,7 +40,7 @@ export function buildListingAssessment(input: {
   sellerTrustScore: number;
   price: number | null | undefined;
   stats: { min: number | null; max: number | null; median: number | null; sampleSize: number };
-  currency: string;
+  currency: CurrencyCode;
   reasons: string[];
   model: string;
   assessedAt?: string;

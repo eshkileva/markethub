@@ -1,8 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { loginDemoInBrowser } from './helpers/auth';
 
-const apiBase = 'http://localhost:3000';
-
 test('auth page is email/password only', async ({ page }) => {
   await page.goto('/auth');
   await expect(page.getByRole('heading', { name: 'Вход в Купилко' })).toBeVisible();
@@ -18,7 +16,7 @@ test('auth page is email/password only', async ({ page }) => {
 });
 
 test('auth redirects signed-in user to home', async ({ page }) => {
-  await loginDemoInBrowser(page, apiBase);
+  await loginDemoInBrowser(page);
   await page.goto('/auth');
   await expect(page).toHaveURL('/');
 });

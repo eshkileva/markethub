@@ -1,12 +1,11 @@
 import { test, expect } from '@playwright/test';
-import { registerVerifiedUser } from './helpers/auth';
+import { registerVerifiedUser, seedBrowserSession } from './helpers/auth';
 
 test('signed-in cabinets are real pages not stubs', async ({ page }) => {
-  const apiBase = 'http://localhost:3000';
   const stamp = Date.now();
   const email = `walk_${stamp}@example.com`;
   const username = `walk_${stamp}`;
-  const { accessToken, user, expiresIn } = await registerVerifiedUser(page.request, apiBase, {
+  const session = await registerVerifiedUser(page.request, {
     email,
     password: 'password12',
     username,
@@ -14,22 +13,7 @@ test('signed-in cabinets are real pages not stubs', async ({ page }) => {
     displayName: 'Walker',
   });
 
-  await page.addInitScript(
-    ({ token, profile, ttl }) => {
-      localStorage.setItem(
-        'markethub-auth',
-        JSON.stringify({
-          state: {
-            accessToken: token,
-            user: profile,
-            expiresAt: Date.now() + ttl * 1000,
-          },
-          version: 0,
-        }),
-      );
-    },
-    { token: accessToken, profile: user, ttl: expiresIn ?? 900 },
-  );
+  await seedBrowserSession(page, session);
 
   await page.goto('/');
   await expect(page.getByText('Foundation')).toHaveCount(0);

@@ -11,11 +11,13 @@ import {
   NOTIFICATION_TYPES,
   REPORT_REASONS,
   REPORT_STATUSES,
+  USER_ROLES,
 } from '../enums.js';
 
 export const countryCodeSchema = z.enum(COUNTRY_CODES);
 export const currencyCodeSchema = z.enum(CURRENCY_CODES);
 export const authProviderSchema = z.enum(AUTH_PROVIDERS);
+export const userRoleSchema = z.enum(USER_ROLES);
 export const listingStatusSchema = z.enum(LISTING_STATUSES);
 export const listingConditionSchema = z.enum(LISTING_CONDITIONS);
 export const attributeTypeSchema = z.enum(ATTRIBUTE_TYPES);
@@ -76,6 +78,28 @@ export const verifyEmailSchema = z.object({
     .regex(/^\d{6}$/, 'Код должен состоять из 6 цифр'),
 });
 
+export const authUserSchema = z.object({
+  id: z.string().uuid(),
+  email: z.string().email(),
+  username: z.string(),
+  displayName: z.string().nullable(),
+  avatarUrl: z.string().nullable(),
+  bio: z.string().nullable().optional(),
+  country: countryCodeSchema,
+  city: z.string().nullable(),
+  trustScore: z.number(),
+  isVerified: z.boolean(),
+  role: userRoleSchema,
+  emailVerified: z.boolean(),
+});
+
+export const authResponseSchema = z.object({
+  accessToken: z.string(),
+  expiresIn: z.number().int(),
+  user: authUserSchema,
+  devVerificationCode: z.string().optional(),
+});
+
 export const forgotPasswordSchema = z.object({
   email: z.string().email('Введите корректный email'),
 });
@@ -131,6 +155,37 @@ export const listingAiAssessmentSchema = z.object({
   }),
   model: z.string().min(1).max(120),
   assessedAt: z.string().datetime(),
+});
+
+export const listingCopilotAttributeSchema = z.object({
+  attributeId: z.string().uuid(),
+  key: z.string(),
+  labelRu: z.string(),
+  value: z.string(),
+});
+
+export const listingCopilotResponseSchema = z.object({
+  title: z.string(),
+  description: z.string(),
+  categoryId: z.string().uuid(),
+  categorySlug: z.string(),
+  condition: listingConditionSchema,
+  attributes: z.array(listingCopilotAttributeSchema),
+  suggestedPrice: z.number().nullable(),
+  assessment: listingAiAssessmentSchema,
+  aiEnabled: z.boolean(),
+});
+
+export const listingReassessResponseSchema = z.object({
+  assessment: listingAiAssessmentSchema,
+});
+
+export const listingPriceInsightResponseSchema = z.object({
+  min: z.number().nullable(),
+  max: z.number().nullable(),
+  median: z.number().nullable(),
+  sampleSize: z.number().int(),
+  currency: currencyCodeSchema,
 });
 
 export const publishListingSchema = z.object({
@@ -271,6 +326,9 @@ export const recordSearchHistorySchema = z.object({
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
+export type AuthUser = z.infer<typeof authUserSchema>;
+export type AuthResponse = z.infer<typeof authResponseSchema>;
+export type ListingCopilotResponse = z.infer<typeof listingCopilotResponseSchema>;
 export type CreateListingInput = z.infer<typeof createListingSchema>;
 export type ListingFilterInput = z.infer<typeof listingFilterSchema>;
 export type CreateReportInput = z.infer<typeof createReportSchema>;

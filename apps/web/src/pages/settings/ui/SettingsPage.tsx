@@ -5,7 +5,8 @@ import { changePasswordSchema, updateProfileSchema, type CountryCode } from '@ma
 import { Lock, Monitor, Palette, User } from 'lucide-react';
 import { apiRequest, apiUpload } from '@/shared/api/client';
 import { logoutSession } from '@/shared/api/session';
-import { useAuthStore, type AuthUser, useUiStore, type ThemeMode } from '@/shared/model/stores';
+import type { AuthUser } from '@markethub/shared';
+import { useAuthStore, type ThemeMode, useUiStore } from '@/shared/model/stores';
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/avatar';
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent } from '@/shared/ui/card';

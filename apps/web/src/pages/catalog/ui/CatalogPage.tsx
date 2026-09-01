@@ -19,6 +19,8 @@ import { Input } from '@/shared/ui/input';
 import { Label } from '@/shared/ui/label';
 import { Combobox } from '@/shared/ui/combobox';
 import { ProductCard, type ProductCardData } from '@/entities/listing/ui/ProductCard';
+import type { ListingCard, Paginated } from '@/entities/listing/model/types';
+import type { CategoriesResponse } from '@/entities/category/model/api';
 import { deliveryModeLabels, listingConditionLabels } from '@/entities/listing/model/labels';
 import { CitySelect } from '@/entities/geo/ui/CitySelect';
 import { CountrySelect } from '@/entities/geo/ui/CountrySelect';
@@ -32,16 +34,8 @@ import { AiPagePitch } from '@/features/ai/ui/AiPagePitch';
 import { AuthGuestBanner } from '@/features/auth/ui/AuthGuestBanner';
 import { normalizeSearchQuery } from '@markethub/shared';
 
-type ListingsResponse = {
-  items: Array<ProductCardData>;
-  page: number;
-  pageSize: number;
-  total: number;
-};
-
-type CategoriesResponse = {
-  items: Array<{ id: string; slug: string; nameRu: string; parentId: string | null }>;
-};
+type ListingsResponse = Paginated<ProductCardData> &
+  Required<Pick<Paginated<ListingCard>, 'page' | 'pageSize' | 'total'>>;
 
 type AttributesResponse = { items: AttributeDef[] };
 

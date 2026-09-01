@@ -1,7 +1,7 @@
 import type { MouseEvent } from 'react';
 import { Link } from '@tanstack/react-router';
 import { Heart } from 'lucide-react';
-import type { ConvertedAmounts, CurrencyCode, PriceVerdict } from '@markethub/shared';
+import type { ListingCard } from '@/entities/listing/model/types';
 import { Card } from '@/shared/ui/card';
 import { Button } from '@/shared/ui/button';
 import { PriceDisplay } from '@/shared/ui/price-display';
@@ -13,27 +13,13 @@ import { ListingTrustBadge } from '@/entities/listing/ui/ListingTrustBadge';
 import { PriceVerdictBadge } from '@/entities/listing/ui/PriceVerdictBadge';
 import { useUiStore } from '@/shared/model/stores';
 
-export type ProductCardData = {
-  id: string;
-  title: string;
-  price: number;
-  currency: CurrencyCode;
-  converted?: ConvertedAmounts;
-  city: string;
-  country: string;
-  imageUrl: string | null;
-  publishedAt: string | null;
-  listingTrustScore?: number | null;
-  aiRiskLevel?: string | null;
-  priceVerdict?: PriceVerdict | null;
-  isFavorite?: boolean;
-};
+export type ProductCardData = ListingCard;
 
 export function ProductCard({
   item,
   layout = 'grid',
 }: {
-  item: ProductCardData;
+  item: ListingCard;
   layout?: 'grid' | 'list';
 }) {
   const toggle = useFavoriteToggle();

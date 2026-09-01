@@ -1,10 +1,16 @@
 import { useState } from 'react';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { useForm } from '@tanstack/react-form';
-import { loginSchema, registerSchema, type CountryCode } from '@markethub/shared';
+import {
+  loginSchema,
+  registerSchema,
+  type AuthResponse,
+  type CountryCode,
+} from '@markethub/shared';
 import { CountrySelect } from '@/entities/geo/ui/CountrySelect';
 import { apiRequest } from '@/shared/api/client';
-import { useAuthStore, type AuthUser } from '@/shared/model/stores';
+import type { AuthUser } from '@markethub/shared';
+import { useAuthStore } from '@/shared/model/stores';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
@@ -12,13 +18,6 @@ import { Label } from '@/shared/ui/label';
 import { BrandMark } from '@/shared/ui/brand-mark';
 import { AiPagePitch } from '@/features/ai/ui/AiPagePitch';
 import { mapAuthError } from '../model/map-auth-error';
-
-type AuthResponse = {
-  accessToken: string;
-  user: AuthUser;
-  expiresIn?: number;
-  devVerificationCode?: string;
-};
 
 function authDestination(user: AuthUser) {
   return user.emailVerified ? '/' : '/verify-email';

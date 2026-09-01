@@ -1,50 +1,15 @@
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 import {
   listingCopilotRequestSchema,
+  listingCopilotResponseSchema,
   listingPriceInsightQuerySchema,
+  listingPriceInsightResponseSchema,
   listingReassessSchema,
+  listingReassessResponseSchema,
   searchIntentRequestSchema,
   searchIntentResponseSchema,
 } from '@markethub/shared';
 import { z } from 'zod';
-
-const assessmentSchema = z.object({
-  riskScore: z.number().int(),
-  riskLevel: z.enum(['low', 'medium', 'high']),
-  baseRiskScore: z.number().int(),
-  reasons: z.array(z.string()),
-  sellerTrustScore: z.number().int(),
-  listingTrustScore: z.number().int(),
-  price: z.object({
-    min: z.number().nullable(),
-    max: z.number().nullable(),
-    median: z.number().nullable(),
-    sampleSize: z.number().int(),
-    verdict: z.enum(['low', 'fair', 'high', 'unknown']),
-    currency: z.string(),
-  }),
-  model: z.string(),
-  assessedAt: z.string(),
-});
-
-const copilotResponseSchema = z.object({
-  title: z.string(),
-  description: z.string(),
-  categoryId: z.string().uuid(),
-  categorySlug: z.string(),
-  condition: z.enum(['new', 'used', 'for_parts']),
-  attributes: z.array(
-    z.object({
-      attributeId: z.string().uuid(),
-      key: z.string(),
-      labelRu: z.string(),
-      value: z.string(),
-    }),
-  ),
-  suggestedPrice: z.number().nullable(),
-  assessment: assessmentSchema,
-  aiEnabled: z.boolean(),
-});
 
 export const listingCopilotRoutes: FastifyPluginAsyncZod = async (app) => {
   app.post(
@@ -53,7 +18,7 @@ export const listingCopilotRoutes: FastifyPluginAsyncZod = async (app) => {
       schema: {
         tags: ['ai'],
         body: listingCopilotRequestSchema,
-        response: { 200: copilotResponseSchema },
+        response: { 200: listingCopilotResponseSchema },
       },
       preHandler: [app.authenticate, app.requireVerifiedEmail],
       config: {
@@ -69,7 +34,7 @@ export const listingCopilotRoutes: FastifyPluginAsyncZod = async (app) => {
       schema: {
         tags: ['ai'],
         body: listingReassessSchema,
-        response: { 200: z.object({ assessment: assessmentSchema }) },
+        response: { 200: listingReassessResponseSchema },
       },
       preHandler: [app.authenticate, app.requireVerifiedEmail],
       config: {
@@ -101,15 +66,7 @@ export const listingCopilotRoutes: FastifyPluginAsyncZod = async (app) => {
       schema: {
         tags: ['ai'],
         querystring: listingPriceInsightQuerySchema,
-        response: {
-          200: z.object({
-            min: z.number().nullable(),
-            max: z.number().nullable(),
-            median: z.number().nullable(),
-            sampleSize: z.number().int(),
-            currency: z.string(),
-          }),
-        },
+        response: { 200: listingPriceInsightResponseSchema },
       },
       preHandler: [app.authenticate],
     },

@@ -1,4 +1,5 @@
-import { useAuthStore, type AuthUser } from '@/shared/model/stores';
+import type { AuthUser } from '@markethub/shared';
+import { useAuthStore } from '@/shared/model/stores';
 import { ACCESS_TOKEN_REFRESH_SKEW_MS, resolveApiUrl } from './config';
 
 type AuthPayload = {

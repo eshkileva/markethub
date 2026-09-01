@@ -1,4 +1,4 @@
-import type { ListingAiAssessment } from '@markethub/shared';
+import type { ListingAiAssessment, ListingCopilotResponse } from '@markethub/shared';
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 
@@ -15,16 +15,7 @@ const priceLabels = {
   unknown: 'Недостаточно данных',
 } as const;
 
-export type ListingCopilotResult = {
-  title: string;
-  description: string;
-  categoryId: string;
-  categorySlug: string;
-  condition: 'new' | 'used' | 'for_parts';
-  attributes: Array<{ attributeId: string; key: string; labelRu: string; value: string }>;
-  suggestedPrice: number | null;
-  assessment: ListingAiAssessment;
-};
+export type ListingCopilotResult = Omit<ListingCopilotResponse, 'aiEnabled'>;
 
 export function ListingCopilotPanel({
   assessment,

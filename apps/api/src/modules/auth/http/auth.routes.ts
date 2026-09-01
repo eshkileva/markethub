@@ -7,30 +7,10 @@ import {
   verifyEmailSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
+  authResponseSchema,
+  authUserSchema,
 } from '@markethub/shared';
 import { z } from 'zod';
-
-const authUserSchema = z.object({
-  id: z.string().uuid(),
-  email: z.string().email(),
-  username: z.string(),
-  displayName: z.string().nullable(),
-  avatarUrl: z.string().nullable(),
-  bio: z.string().nullable(),
-  country: z.string(),
-  city: z.string().nullable(),
-  trustScore: z.number(),
-  isVerified: z.boolean(),
-  role: z.string(),
-  emailVerified: z.boolean(),
-});
-
-const authResponseSchema = z.object({
-  accessToken: z.string(),
-  expiresIn: z.number().int(),
-  user: authUserSchema,
-  devVerificationCode: z.string().optional(),
-});
 
 export const authRoutes: FastifyPluginAsyncZod = async (app) => {
   app.post(
@@ -168,6 +148,7 @@ export const authRoutes: FastifyPluginAsyncZod = async (app) => {
       schema: {
         tags: ['auth'],
         body: updateProfileSchema,
+        response: { 200: authUserSchema },
       },
       preHandler: [app.authenticate],
     },

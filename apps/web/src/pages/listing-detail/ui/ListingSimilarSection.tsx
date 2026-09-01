@@ -2,12 +2,11 @@ import { Link } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/shared/api/client';
 import { ProductCard, type ProductCardData } from '@/entities/listing/ui/ProductCard';
+import type { Paginated } from '@/entities/listing/model/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { useAuthStore } from '@/shared/model/stores';
 
-type ListingsResponse = {
-  items: ProductCardData[];
-};
+type ListingsResponse = Paginated<ProductCardData>;
 
 export function ListingSimilarSection({
   listingId,

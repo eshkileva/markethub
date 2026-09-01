@@ -1,21 +1,9 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { CountryCode, CurrencyCode } from '@markethub/shared';
+import type { AuthUser, CountryCode, CurrencyCode } from '@markethub/shared';
+import { AUTH_STORAGE_KEY } from '@/shared/constants/auth';
 
-export type AuthUser = {
-  id: string;
-  email: string;
-  username: string;
-  displayName: string | null;
-  avatarUrl: string | null;
-  bio?: string | null;
-  country: string;
-  city: string | null;
-  trustScore: number;
-  isVerified: boolean;
-  role: string;
-  emailVerified: boolean;
-};
+export type { AuthUser };
 
 type AuthState = {
   accessToken: string | null;
@@ -43,7 +31,7 @@ export const useAuthStore = create<AuthState>()(
       setUser: (user) => set({ user }),
       clearSession: () => set({ accessToken: null, user: null, expiresAt: null }),
     }),
-    { name: 'markethub-auth' },
+    { name: AUTH_STORAGE_KEY },
   ),
 );
 
