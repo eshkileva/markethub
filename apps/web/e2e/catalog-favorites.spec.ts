@@ -83,7 +83,8 @@ test('catalog loads and favorite toggles for signed-in user', async ({ page }) =
   await assertOk(addImageRes, 'add image');
 
   const publishRes = await page.request.post(`${E2E_API_BASE}/v1/listings/${listingId}/publish`, {
-    headers: { Authorization: `Bearer ${token}` },
+    headers: { Authorization: `Bearer ${token}`, 'content-type': 'application/json' },
+    data: {},
   });
   await assertOk(publishRes, 'publish listing');
 

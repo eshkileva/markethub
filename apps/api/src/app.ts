@@ -98,7 +98,12 @@ export async function buildApp(deps: {
       files: 1,
     },
   });
-  await app.register(rateLimit, { max: 200, timeWindow: '1 minute' });
+  if (deps.config.RATE_LIMIT_ENABLED) {
+    await app.register(rateLimit, {
+      max: deps.config.RATE_LIMIT_MAX,
+      timeWindow: '1 minute',
+    });
+  }
   await app.register(websocket);
 
   await app.register(swagger, {

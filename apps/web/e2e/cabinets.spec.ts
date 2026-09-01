@@ -42,5 +42,5 @@ test('signed-in cabinets are real pages not stubs', async ({ page }) => {
 
   await page.goto(`/profile/${username}`);
   await expect(page.getByRole('heading', { name: 'Walker' })).toBeVisible();
-  await expect(page.getByText('Trust Score')).toBeVisible();
+  await expect(page.getByRole('main').getByText('Trust Score')).toBeVisible();
 });

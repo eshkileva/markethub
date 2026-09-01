@@ -84,6 +84,14 @@ const envSchema = z.object({
     (value) => (value === '' || value == null ? undefined : value),
     z.coerce.number().int().min(0).default(20),
   ),
+  RATE_LIMIT_ENABLED: z
+    .string()
+    .optional()
+    .transform((v) => v !== 'false'),
+  RATE_LIMIT_MAX: z.preprocess(
+    (value) => (value === '' || value == null ? undefined : value),
+    z.coerce.number().int().min(1).default(200),
+  ),
 });
 
 export type AppConfig = z.infer<typeof envSchema> & {
