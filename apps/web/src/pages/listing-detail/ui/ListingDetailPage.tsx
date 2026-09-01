@@ -19,6 +19,9 @@ import { ReportForm } from '@/features/reports/ui/ReportForm';
 import type { ListingDetail } from '@/pages/listing-detail/model/types';
 import { ListingAttributes } from '@/pages/listing-detail/ui/ListingAttributes';
 import { ListingGallery } from '@/pages/listing-detail/ui/ListingGallery';
+import { ListingBuyerBrief } from '@/features/buyer/ui/ListingBuyerBrief';
+import { ListingSimilarSection } from '@/pages/listing-detail/ui/ListingSimilarSection';
+import { AiPagePitch } from '@/features/ai/ui/AiPagePitch';
 
 export function ListingDetailPage({ listingId }: { listingId: string }) {
   const token = useAuthStore((s) => s.accessToken);
@@ -68,9 +71,22 @@ export function ListingDetailPage({ listingId }: { listingId: string }) {
 
   return (
     <div className={cn('grid gap-6 lg:grid-cols-[1.6fr_1fr]', !isOwner && 'pb-20 lg:pb-0')}>
+      {!isOwner ? (
+        <div className="lg:col-span-2">
+          <AiPagePitch page="listing-detail" compact />
+        </div>
+      ) : null}
       <div className="space-y-4">
         <ListingGallery key={listing.id} title={listing.title} images={listing.images} />
         <ListingAttributes items={listing.attributes ?? []} />
+        {!isOwner ? (
+          <ListingBuyerBrief
+            categorySlug={listing.categorySlug}
+            listingTrustScore={listing.listingTrustScore}
+            aiRiskLevel={listing.aiRiskLevel}
+            assessment={listing.aiAssessment}
+          />
+        ) : null}
         <Card>
           <CardHeader>
             <CardTitle>Описание</CardTitle>
@@ -79,6 +95,14 @@ export function ListingDetailPage({ listingId }: { listingId: string }) {
             {listing.description}
           </CardContent>
         </Card>
+        {!isOwner ? (
+          <ListingSimilarSection
+            listingId={listing.id}
+            categoryId={listing.categoryId}
+            price={listing.price}
+            currency={listing.currency}
+          />
+        ) : null}
       </div>
 
       <div className="space-y-4">
@@ -186,9 +210,15 @@ export function ListingDetailPage({ listingId }: { listingId: string }) {
                   {listing.seller.displayName ?? listing.seller.username}
                 </Link>
                 <div className="text-muted">
-                  Trust Score {listing.seller.trustScore}
+                  Trust Score продавца {listing.seller.trustScore}
                   {listing.seller.isVerified ? ' · проверен' : ''}
                 </div>
+                {listing.listingTrustScore != null ? (
+                  <div className="text-muted">
+                    Trust Score объявления {listing.listingTrustScore}
+                    {listing.aiRiskLevel ? ` · риск ${listing.aiRiskLevel}` : ''}
+                  </div>
+                ) : null}
               </CardContent>
             </Card>
             <LeaveReviewCard listingId={listing.id} sellerId={listing.seller.id} />

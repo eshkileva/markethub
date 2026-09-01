@@ -32,11 +32,14 @@ export class SearchHistoryRepository {
   }
 
   async insert(userId: string, query: string) {
-    const [row] = await this.db.insert(searchHistory).values({ userId, query }).returning({
-      id: searchHistory.id,
-      query: searchHistory.query,
-      createdAt: searchHistory.createdAt,
-    });
+    const [row] = await this.db
+      .insert(searchHistory)
+      .values({ userId, query })
+      .returning({
+        id: searchHistory.id,
+        query: searchHistory.query,
+        createdAt: searchHistory.createdAt,
+      });
     return row ?? null;
   }
 

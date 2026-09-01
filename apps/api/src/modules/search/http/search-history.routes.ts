@@ -22,7 +22,10 @@ export const searchHistoryRoutes: FastifyPluginAsyncZod = async (app) => {
       preHandler: [app.authenticate],
     },
     async (request, reply) => {
-      const result = await app.services.searchHistory.record(request.user!.id, request.body.query);
+      const result = await app.services.searchHistory.record(
+        request.user!.id,
+        request.body.query,
+      );
       return reply.status(201).send(result);
     },
   );

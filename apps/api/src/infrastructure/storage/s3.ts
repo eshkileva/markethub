@@ -1,5 +1,6 @@
 import {
   CreateBucketCommand,
+  GetObjectCommand,
   HeadBucketCommand,
   PutObjectCommand,
   S3Client,
@@ -9,6 +10,7 @@ import type { AppConfig } from '../../config/env.js';
 export interface ObjectStorage {
   ensureBucket(): Promise<void>;
   putObject(key: string, body: Buffer, contentType: string): Promise<{ url: string; key: string }>;
+  getObject(key: string): Promise<{ body: Buffer; contentType: string }>;
 }
 
 export function createObjectStorage(config: AppConfig): ObjectStorage {
@@ -42,6 +44,22 @@ export function createObjectStorage(config: AppConfig): ObjectStorage {
       return {
         key,
         url: `${config.S3_PUBLIC_URL}/${key}`,
+      };
+    },
+    async getObject(key) {
+      const result = await client.send(
+        new GetObjectCommand({
+          Bucket: config.S3_BUCKET,
+          Key: key,
+        }),
+      );
+      if (!result.Body) {
+        throw new Error(`Object not found: ${key}`);
+      }
+      const body = Buffer.from(await result.Body.transformToByteArray());
+      return {
+        body,
+        contentType: result.ContentType ?? 'image/jpeg',
       };
     },
   };

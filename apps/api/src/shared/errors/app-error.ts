@@ -38,3 +38,15 @@ export class ValidationError extends AppError {
     super(422, message, 'VALIDATION_ERROR');
   }
 }
+
+export class EmailNotVerifiedError extends AppError {
+  constructor(message = 'Подтвердите email, чтобы продолжить') {
+    super(403, message, 'EMAIL_NOT_VERIFIED');
+  }
+}
+
+export class RateLimitError extends AppError {
+  constructor(message: string) {
+    super(429, message, 'RATE_LIMIT');
+  }
+}

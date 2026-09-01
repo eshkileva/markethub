@@ -14,6 +14,7 @@ export type AuthUser = {
   trustScore: number;
   isVerified: boolean;
   role: string;
+  emailVerified: boolean;
 };
 
 type AuthState = {

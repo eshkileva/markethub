@@ -1,7 +1,6 @@
-import { test, expect } from '@playwright/test';
+import { test } from '@playwright/test';
+import { expectAuthRedirect } from './helpers/auth';
 
-test('moderation page without auth asks to log in', async ({ page }) => {
-  await page.goto('/moderation');
-  await expect(page.getByRole('heading', { name: 'Модерация' })).toBeVisible();
-  await expect(page.getByText('Войдите под модератором, чтобы разбирать жалобы.')).toBeVisible();
+test('moderation redirects to auth when signed out', async ({ page }) => {
+  await expectAuthRedirect(page, '/moderation');
 });

@@ -48,7 +48,10 @@ export function Combobox({
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [active, setActive] = useState(0);
-  const selected = useMemo(() => options.find((item) => item.value === value), [options, value]);
+  const selected = useMemo(
+    () => options.find((item) => item.value === value),
+    [options, value],
+  );
   const filtered = useMemo(() => filterComboboxOptions(options, query), [options, query]);
   const visible = useMemo(() => {
     if (!maxVisibleOptions || query.trim()) return filtered;
@@ -152,7 +155,7 @@ export function Combobox({
         <ul
           id={listId}
           role="listbox"
-          className="border-border bg-card absolute z-50 mt-1 max-h-64 w-max min-w-full overflow-auto rounded-xl border py-1 shadow-md"
+          className="border-border bg-card absolute z-50 mt-1 max-h-64 min-w-full w-max overflow-auto rounded-xl border py-1 shadow-md"
         >
           {allowEmpty ? (
             <li>

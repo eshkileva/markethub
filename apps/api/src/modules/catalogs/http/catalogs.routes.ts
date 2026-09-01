@@ -1,9 +1,5 @@
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
-import {
-  catalogBrandsQuerySchema,
-  catalogKindSchema,
-  catalogModelsQuerySchema,
-} from '@markethub/shared';
+import { catalogBrandsQuerySchema, catalogKindSchema, catalogModelsQuerySchema } from '@markethub/shared';
 import { z } from 'zod';
 import { parseKind } from '../application/catalogs.service.js';
 

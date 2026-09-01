@@ -8,3 +8,4 @@ export function filterComboboxOptions(options: ComboboxOption[], query: string) 
   if (!needle) return options;
   return options.filter((item) => item.label.toLocaleLowerCase('ru-RU').includes(needle));
 }
+

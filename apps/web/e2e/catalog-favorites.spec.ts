@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
+import { expectAuthRedirect, registerVerifiedUser, seedBrowserSession } from './helpers/auth';
 
-test('catalog loads and favorite opens auth', async ({ page }) => {
+test('catalog loads and favorite toggles for signed-in user', async ({ page }) => {
   const apiBase = 'http://localhost:3000';
   const email = `seller_${Date.now()}@example.com`;
   const username = `seller_${Date.now()}`;
@@ -14,18 +15,13 @@ test('catalog loads and favorite opens auth', async ({ page }) => {
   }
 
   // 1) Create user (email/password)
-  const registerRes = await page.request.post(`${apiBase}/v1/auth/register`, {
-    headers: { 'content-type': 'application/json' },
-    data: {
-      email,
-      password,
-      username,
-      country: 'RU',
-    },
+  const registerJson = await registerVerifiedUser(page.request, apiBase, {
+    email,
+    password,
+    username,
+    country: 'RU',
   });
-  await assertOk(registerRes, 'register');
-  const registerJson = await registerRes.json();
-  const token = registerJson.accessToken as string;
+  const token = registerJson.accessToken;
 
   // 2) Get laptops leaf + attributes
   const catsRes = await page.request.get(`${apiBase}/v1/categories`);
@@ -110,7 +106,8 @@ test('catalog loads and favorite opens auth', async ({ page }) => {
     throw new Error(`Listing title not found in feed after 15s: ${title}`);
   }
 
-  // Now open catalog and verify UI
+  // Now open catalog with an authenticated browser session
+  await seedBrowserSession(page, registerJson);
   await page.goto('/catalog?country=RU');
   await expect(page.getByRole('heading', { name: 'Каталог' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Фильтры' })).toBeVisible();
@@ -123,22 +120,13 @@ test('catalog loads and favorite opens auth', async ({ page }) => {
     .first();
   await expect(heartButton).toBeVisible();
   await heartButton.click();
-
-  await expect(page.getByRole('heading', { name: /Вход в Купилко/i })).toBeVisible();
+  await expect(heartButton).toHaveAttribute('aria-label', 'Убрать из избранного');
 });
 
-test('favorites page without auth shows login prompt', async ({ page }) => {
-  await page.goto('/favorites');
-
-  await expect(
-    page.getByText('Войдите, чтобы сохранять объявления и открывать их с любого устройства.'),
-  ).toBeVisible();
+test('favorites redirects to auth when signed out', async ({ page }) => {
+  await expectAuthRedirect(page, '/favorites');
 });
 
-test('messages page without auth shows login prompt', async ({ page }) => {
-  await page.goto('/messages');
-
-  await expect(
-    page.getByText('Войдите, чтобы писать продавцам и отвечать покупателям.'),
-  ).toBeVisible();
+test('messages redirects to auth when signed out', async ({ page }) => {
+  await expectAuthRedirect(page, '/messages');
 });

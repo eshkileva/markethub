@@ -4,25 +4,30 @@ import {
   registerSchema,
   updateProfileSchema,
   changePasswordSchema,
+  verifyEmailSchema,
 } from '@markethub/shared';
 import { z } from 'zod';
+
+const authUserSchema = z.object({
+  id: z.string().uuid(),
+  email: z.string().email(),
+  username: z.string(),
+  displayName: z.string().nullable(),
+  avatarUrl: z.string().nullable(),
+  bio: z.string().nullable(),
+  country: z.string(),
+  city: z.string().nullable(),
+  trustScore: z.number(),
+  isVerified: z.boolean(),
+  role: z.string(),
+  emailVerified: z.boolean(),
+});
 
 const authResponseSchema = z.object({
   accessToken: z.string(),
   expiresIn: z.number().int(),
-  user: z.object({
-    id: z.string().uuid(),
-    email: z.string().email(),
-    username: z.string(),
-    displayName: z.string().nullable(),
-    avatarUrl: z.string().nullable(),
-    bio: z.string().nullable(),
-    country: z.string(),
-    city: z.string().nullable(),
-    trustScore: z.number(),
-    isVerified: z.boolean(),
-    role: z.string(),
-  }),
+  user: authUserSchema,
+  devVerificationCode: z.string().optional(),
 });
 
 export const authRoutes: FastifyPluginAsyncZod = async (app) => {
@@ -54,6 +59,7 @@ export const authRoutes: FastifyPluginAsyncZod = async (app) => {
         accessToken: result.accessToken,
         expiresIn: result.expiresIn,
         user: result.user,
+        devVerificationCode: result.devVerificationCode,
       });
     },
   );
@@ -189,5 +195,41 @@ export const authRoutes: FastifyPluginAsyncZod = async (app) => {
         request.user!.id,
         request.cookies[app.config.REFRESH_COOKIE_NAME],
       ),
+  );
+
+  app.post(
+    '/verify-email',
+    {
+      schema: {
+        tags: ['auth'],
+        body: verifyEmailSchema,
+        response: { 200: authUserSchema },
+      },
+      preHandler: [app.authenticate],
+      config: {
+        rateLimit: { max: 10, timeWindow: '1 minute' },
+      },
+    },
+    async (request) => app.services.auth.verifyEmail(request.user!.id, request.body),
+  );
+
+  app.post(
+    '/resend-verification',
+    {
+      schema: {
+        tags: ['auth'],
+        response: {
+          200: z.object({
+            ok: z.literal(true),
+            devVerificationCode: z.string().optional(),
+          }),
+        },
+      },
+      preHandler: [app.authenticate],
+      config: {
+        rateLimit: { max: 3, timeWindow: '1 minute' },
+      },
+    },
+    async (request) => app.services.auth.resendVerification(request.user!.id),
   );
 };

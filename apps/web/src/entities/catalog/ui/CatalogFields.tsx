@@ -103,13 +103,7 @@ export function CatalogModelField({
       disabled={!brand || loading}
       allowEmpty
       placeholder={
-        !brand
-          ? 'Сначала выберите марку'
-          : loading
-            ? 'Загрузка…'
-            : errored
-              ? 'Ошибка загрузки'
-              : 'Модель'
+        !brand ? 'Сначала выберите марку' : loading ? 'Загрузка…' : errored ? 'Ошибка загрузки' : 'Модель'
       }
       emptyLabel={errored ? 'Не удалось загрузить модели' : 'Модель не найдена'}
     />

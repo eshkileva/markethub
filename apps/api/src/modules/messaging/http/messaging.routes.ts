@@ -32,7 +32,7 @@ export const messagingRoutes: FastifyPluginAsyncZod = async (app) => {
         tags: ['messaging'],
         body: createConversationSchema,
       },
-      preHandler: [app.authenticate],
+      preHandler: [app.authenticate, app.requireVerifiedEmail],
     },
     async (request, reply) => {
       const conversation = await app.services.messaging.open(
@@ -55,6 +55,27 @@ export const messagingRoutes: FastifyPluginAsyncZod = async (app) => {
     async (request) => app.services.messaging.get(request.user!.id, request.params.id),
   );
 
+  app.get(
+    '/:id/assist',
+    {
+      schema: {
+        tags: ['messaging'],
+        params: idParams,
+        response: {
+          200: z.object({
+            role: z.enum(['buyer', 'seller']),
+            categorySlug: z.string().nullable(),
+            listingTitle: z.string(),
+            questions: z.array(z.string()),
+            safeDealTips: z.array(z.string()),
+          }),
+        },
+      },
+      preHandler: [app.authenticate],
+    },
+    async (request) => app.services.messaging.buyerAssist(request.user!.id, request.params.id),
+  );
+
   app.post(
     '/:id/messages',
     {
@@ -62,8 +83,17 @@ export const messagingRoutes: FastifyPluginAsyncZod = async (app) => {
         tags: ['messaging'],
         params: idParams,
         body: sendMessageSchema,
+        response: {
+          201: z.object({
+            id: z.string().uuid(),
+            senderId: z.string().uuid(),
+            body: z.string(),
+            createdAt: z.string(),
+            warnings: z.array(z.string()).optional(),
+          }),
+        },
       },
-      preHandler: [app.authenticate],
+      preHandler: [app.authenticate, app.requireVerifiedEmail],
     },
     async (request, reply) => {
       const message = await app.services.messaging.send(

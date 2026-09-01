@@ -1,4 +1,4 @@
-import { MAX_LISTING_IMAGES, type CountryCode, type createListingSchema } from '@markethub/shared';
+import { MAX_LISTING_IMAGES, resolvePublishStatus, type CountryCode, type createListingSchema } from '@markethub/shared';
 import type { z } from 'zod';
 import type { EventBus } from '../../../shared/events/event-bus.js';
 import {
@@ -7,6 +7,7 @@ import {
   NotFoundError,
   ValidationError,
 } from '../../../shared/errors/app-error.js';
+import type { ListingCopilotService } from '../../ai/application/listing-copilot.service.js';
 import type { ListingsRepository } from '../infrastructure/listings.repository.js';
 import type { GeoService } from '../../geo/application/geo.service.js';
 
@@ -17,6 +18,7 @@ export class ListingsService {
     private readonly repo: ListingsRepository,
     private readonly events: EventBus,
     private readonly geo: GeoService,
+    private readonly listingCopilot: ListingCopilotService,
   ) {}
 
   async createDraft(sellerId: string, input: CreateListingInput) {
@@ -53,16 +55,43 @@ export class ListingsService {
       throw new ConflictError('Объявление нельзя опубликовать из текущего статуса');
     }
 
-    const listing = await this.repo.publishIfReady(listingId, ['draft', 'rejected', 'archived']);
+    const aiAssessment = await this.listingCopilot.assessForPublish(sellerId, listingId);
+
+    const targetStatus = resolvePublishStatus({
+      hasAssessment: Boolean(aiAssessment),
+      aiRiskLevel: aiAssessment?.riskLevel ?? null,
+    });
+
+    const listing = await this.repo.publishIfReady(
+      listingId,
+      ['draft', 'rejected', 'archived'],
+      targetStatus,
+      aiAssessment
+        ? {
+            listingTrustScore: aiAssessment.listingTrustScore,
+            aiRiskLevel: aiAssessment.riskLevel,
+            aiAssessment,
+            aiAssessedAt: new Date(aiAssessment.assessedAt),
+          }
+        : undefined,
+    );
     if (!listing) {
       throw new ConflictError('Объявление нельзя опубликовать из текущего статуса');
     }
 
-    await this.events.publish('ListingPublished', {
-      listingId: listing.id,
-      sellerId,
-      country: listing.country,
-    });
+    if (listing.status === 'published') {
+      await this.events.publish('ListingPublished', {
+        listingId: listing.id,
+        sellerId,
+        country: listing.country,
+      });
+    } else {
+      await this.events.publish('ListingQueued', {
+        listingId: listing.id,
+        sellerId,
+        aiRiskLevel: listing.aiRiskLevel,
+      });
+    }
 
     return listing;
   }

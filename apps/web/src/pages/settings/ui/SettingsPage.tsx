@@ -1,7 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { changePasswordSchema, updateProfileSchema, type CountryCode } from '@markethub/shared';
+import {
+  changePasswordSchema,
+  updateProfileSchema,
+  type CountryCode,
+} from '@markethub/shared';
 import { apiRequest, apiUpload } from '@/shared/api/client';
 import { logoutSession } from '@/shared/api/session';
 import { useAuthStore, type AuthUser, useUiStore, type ThemeMode } from '@/shared/model/stores';

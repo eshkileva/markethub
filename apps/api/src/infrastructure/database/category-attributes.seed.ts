@@ -5,16 +5,7 @@ export type SeedAttributeDef = {
   options?: string[];
   required: boolean;
   sortOrder: number;
-  dictionary?:
-    | 'cars'
-    | 'moto'
-    | 'smartphones'
-    | 'tablets'
-    | 'laptops'
-    | 'desktops'
-    | 'pc-parts'
-    | 'auto-parts'
-    | 'tires';
+  dictionary?: 'cars' | 'moto' | 'smartphones' | 'tablets' | 'laptops' | 'desktops' | 'pc-parts' | 'auto-parts' | 'tires';
   parentKey?: string;
 };
 

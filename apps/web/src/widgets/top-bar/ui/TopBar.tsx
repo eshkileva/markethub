@@ -9,6 +9,9 @@ import { useUnreadNotifications } from '@/features/notifications/model/use-unrea
 import { Combobox } from '@/shared/ui/combobox';
 import { ThemeSwitch } from '@/widgets/top-bar/ui/ThemeSwitch';
 import { SearchBox } from '@/widgets/top-bar/ui/SearchBox';
+import { AiPlatformBadge } from '@/features/ai/ui/AiPlatformBadge';
+import { useAiStatus } from '@/features/ai/model/use-ai-status';
+import { resolveSmartSearch } from '@/features/search/model/resolve-smart-search';
 
 export function TopBar() {
   const user = useAuthStore((s) => s.user);
@@ -19,8 +22,10 @@ export function TopBar() {
   const displayCurrency = useUiStore((s) => s.displayCurrency);
   const setDisplayCurrency = useUiStore((s) => s.setDisplayCurrency);
   const setSidebarOpen = useUiStore((s) => s.setSidebarOpen);
+  const token = useAuthStore((s) => s.accessToken);
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
+  const aiStatus = useAiStatus();
 
   return (
     <header className="border-border bg-card/90 z-20 shrink-0 border-b backdrop-blur">
@@ -38,14 +43,22 @@ export function TopBar() {
         <SearchBox
           value={query}
           onChange={setQuery}
+          placeholder="AI-поиск: iPhone до 50000..."
           onSubmit={(queryOverride) => {
             const term = (queryOverride ?? query).trim();
-            void navigate({
-              to: '/catalog',
-              search: { q: term || undefined },
-            });
+            if (!term) {
+              void navigate({ to: '/catalog' });
+              return;
+            }
+            void resolveSmartSearch(
+              term,
+              { country: countryFilter === 'ALL' ? undefined : countryFilter },
+              token,
+            ).then((search) => navigate({ to: '/catalog', search }));
           }}
         />
+
+        <AiPlatformBadge live={aiStatus.data?.enabled} size="sm" className="hidden md:inline-flex" />
 
         <div className="border-border bg-background flex shrink-0 items-center gap-1 overflow-visible rounded-2xl border px-2 py-1.5 sm:gap-2 sm:px-3 sm:py-2">
           <MapPin className="text-primary h-4 w-4 shrink-0" />

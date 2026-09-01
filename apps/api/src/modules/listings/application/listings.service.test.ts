@@ -10,6 +10,10 @@ function events() {
   return { publish: vi.fn(async () => undefined), subscribe: vi.fn() };
 }
 
+function listingCopilot() {
+  return { assessForPublish: vi.fn(async () => null) };
+}
+
 describe('ListingsService status transitions', () => {
   it('reserves a published listing', async () => {
     const repo = {
@@ -24,7 +28,12 @@ describe('ListingsService status transitions', () => {
         status: 'reserved',
       })),
     };
-    const service = new ListingsService(repo as never, events() as never, geo() as never);
+    const service = new ListingsService(
+      repo as never,
+      events() as never,
+      geo() as never,
+      listingCopilot() as never,
+    );
     const listing = await service.reserve('seller-1', 'listing-1');
     expect(listing.status).toBe('reserved');
     expect(repo.setStatusIf).toHaveBeenCalledWith('listing-1', ['published'], 'reserved');
@@ -39,7 +48,12 @@ describe('ListingsService status transitions', () => {
       })),
       setStatusIf: vi.fn(async () => null),
     };
-    const service = new ListingsService(repo as never, events() as never, geo() as never);
+    const service = new ListingsService(
+      repo as never,
+      events() as never,
+      geo() as never,
+      listingCopilot() as never,
+    );
     await expect(service.reserve('seller-1', 'listing-1')).rejects.toBeInstanceOf(ConflictError);
     expect(repo.setStatusIf).toHaveBeenCalledWith('listing-1', ['published'], 'reserved');
   });
@@ -64,7 +78,12 @@ describe('ListingsService createDraft category leaf', () => {
       isLeafCategory: vi.fn(async () => false),
       create: vi.fn(),
     };
-    const service = new ListingsService(repo as never, events() as never, geo() as never);
+    const service = new ListingsService(
+      repo as never,
+      events() as never,
+      geo() as never,
+      listingCopilot() as never,
+    );
     await expect(service.createDraft('seller-1', input)).rejects.toBeInstanceOf(ValidationError);
     await expect(service.createDraft('seller-1', input)).rejects.toThrow('Выберите подкатегорию');
     expect(repo.create).not.toHaveBeenCalled();

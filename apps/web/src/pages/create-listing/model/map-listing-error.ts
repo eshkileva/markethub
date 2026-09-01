@@ -17,5 +17,14 @@ export function mapListingError(message: string) {
   if (message === 'File must be 5 MB or smaller') {
     return 'Файл больше 5 МБ';
   }
+  if (message.includes('String must contain at least 1 character')) {
+    return 'Заполните обязательное поле';
+  }
+  if (message.includes('Invalid uuid')) {
+    return 'Выберите категорию';
+  }
+  if (message.includes('Достигнут дневной лимит AI')) {
+    return message;
+  }
   return message;
 }

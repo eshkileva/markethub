@@ -1,6 +1,7 @@
 import type {
   CurrencyCode,
   DeliveryMode,
+  ListingAiAssessment,
   ListingCondition,
   ListingStatus,
 } from '@markethub/shared';
@@ -17,6 +18,8 @@ export type ListingDetail = {
   condition: ListingCondition;
   deliveryModes: DeliveryMode[];
   status: ListingStatus;
+  categoryId: string;
+  categorySlug?: string | null;
   images: Array<{ id: string; url: string }>;
   attributes: Array<{ attributeId: string; value: string; labelRu: string }>;
   isFavorite?: boolean;
@@ -27,4 +30,7 @@ export type ListingDetail = {
     trustScore: number;
     isVerified: boolean;
   } | null;
+  listingTrustScore?: number | null;
+  aiRiskLevel?: 'low' | 'medium' | 'high' | null;
+  aiAssessment?: ListingAiAssessment | null;
 };

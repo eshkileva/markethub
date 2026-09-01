@@ -111,7 +111,17 @@ export class ListingsRepository {
     });
   }
 
-  async publishIfReady(listingId: string, from: string[]) {
+  async publishIfReady(
+    listingId: string,
+    from: string[],
+    targetStatus: 'published' | 'pending_moderation',
+    ai?: {
+      listingTrustScore: number;
+      aiRiskLevel: string;
+      aiAssessment: Record<string, unknown>;
+      aiAssessedAt: Date;
+    },
+  ) {
     return this.db.transaction(async (tx) => {
       await tx.execute(sql`SELECT 1 FROM listings WHERE id = ${listingId}::uuid FOR UPDATE`);
       const [row] = await tx.select().from(listings).where(eq(listings.id, listingId));
@@ -149,9 +159,14 @@ export class ListingsRepository {
       const [listing] = await tx
         .update(listings)
         .set({
-          status: 'published',
-          publishedAt: new Date(),
+          status: targetStatus,
+          publishedAt: targetStatus === 'published' ? new Date() : null,
+          moderationNote: null,
           updatedAt: new Date(),
+          listingTrustScore: ai?.listingTrustScore,
+          aiRiskLevel: ai?.aiRiskLevel,
+          aiAssessment: ai?.aiAssessment,
+          aiAssessedAt: ai?.aiAssessedAt,
         })
         .where(and(eq(listings.id, listingId), inArray(listings.status, from)))
         .returning();

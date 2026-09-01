@@ -3,6 +3,7 @@ import type { Database } from '../../../infrastructure/database/client.js';
 import {
   conversationParticipants,
   conversations,
+  categories,
   listingImages,
   listings,
   messages,
@@ -12,9 +13,9 @@ import {
 function isUniqueViolation(error: unknown) {
   return Boolean(
     error &&
-    typeof error === 'object' &&
-    'code' in error &&
-    (error as { code?: string }).code === '23505',
+      typeof error === 'object' &&
+      'code' in error &&
+      (error as { code?: string }).code === '23505',
   );
 }
 
@@ -25,6 +26,26 @@ export class MessagingRepository {
     return this.db.query.listings.findFirst({
       where: eq(listings.id, listingId),
     });
+  }
+
+  async findListingContext(listingId: string) {
+    const listing = await this.findListing(listingId);
+    if (!listing) return null;
+    const category = await this.db.query.categories.findFirst({
+      where: eq(categories.id, listing.categoryId),
+    });
+    const parent = category?.parentId
+      ? await this.db.query.categories.findFirst({
+          where: eq(categories.id, category.parentId),
+        })
+      : null;
+    return {
+      id: listing.id,
+      sellerId: listing.sellerId,
+      title: listing.title,
+      categorySlug: category?.slug ?? null,
+      parentCategorySlug: parent?.slug ?? null,
+    };
   }
 
   async findBetween(listingId: string, buyerId: string) {

@@ -77,6 +77,9 @@ importers:
       jose:
         specifier: ^6.0.12
         version: 6.2.10
+      nodemailer:
+        specifier: ^9.0.6
+        version: 9.0.6
       postgres:
         specifier: ^3.4.7
         version: 3.4.9
@@ -90,6 +93,9 @@ importers:
       '@types/node':
         specifier: ^22.17.0
         version: 22.20.1
+      '@types/nodemailer':
+        specifier: ^8.0.1
+        version: 8.0.1
       drizzle-kit:
         specifier: ^0.31.4
         version: 0.31.10
@@ -1738,6 +1744,9 @@ packages:
   '@types/node@22.20.1':
     resolution: {integrity: sha512-EANqOCF9QFyra+4pfxUcX9STKJpCLjMbObVzljIJomAWSnuSIEAvyzEU53GaajbXJEgdh0iEcPL+DGvpUd4k1Q==}
 
+  '@types/nodemailer@8.0.1':
+    resolution: {integrity: sha512-PxpaInm8V1JQDd4j0ds5HfvWQk8JupS1C0Picb96QJsrrRDjBH+DlK7L4ZdNSqNULhiZRQHc40nLVShaGxXAMw==}
+
   '@types/react-dom@19.2.5':
     resolution: {integrity: sha512-fMPwH9v7r/pp43yUd2/Mbiex5KouJwwR3dzHkhLREUC6764VyDsqxhAxv6OFEYR1RhjOyD1naqba8ECDBe7ZQg==}
     peerDependencies:
@@ -2498,6 +2507,10 @@ packages:
   node-releases@2.0.53:
     resolution: {integrity: sha512-D9UOmYG3UH1V+ENW56t5QXBwJw1YEY18ruVeus89Rw+SyIgjPkCO84bRzO3uNIYosJbNwiabWVn48o3uJLjxFQ==}
     engines: {node: '>=18'}
+
+  nodemailer@9.0.6:
+    resolution: {integrity: sha512-IQUGFdhdGwI9+AWX+FpUt4DLmvFaOjTMEoneTIWX/RXxuy1TdenPwWrvFMSfLkPKl+HQEXWuSAxEMMbPYXtBmg==}
+    engines: {node: '>=6.0.0'}
 
   nwsapi@2.2.24:
     resolution: {integrity: sha512-7YRhZ3jS45LwmSCT4b2sVFHt/WuovaktDU07QrtOBY2PXskss5a9jfmR9jptyumwXST+rFjrmppMY1KT/yn35A==}
@@ -4576,6 +4589,10 @@ snapshots:
     dependencies:
       undici-types: 6.21.0
 
+  '@types/nodemailer@8.0.1':
+    dependencies:
+      '@types/node': 22.20.1
+
   '@types/react-dom@19.2.5(@types/react@19.2.18)':
     dependencies:
       '@types/react': 19.2.18
@@ -5260,6 +5277,8 @@ snapshots:
   node-gyp-build@4.8.4: {}
 
   node-releases@2.0.53: {}
+
+  nodemailer@9.0.6: {}
 
   nwsapi@2.2.24: {}
 

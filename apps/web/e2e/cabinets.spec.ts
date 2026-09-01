@@ -1,20 +1,18 @@
 import { test, expect } from '@playwright/test';
+import { registerVerifiedUser } from './helpers/auth';
 
 test('signed-in cabinets are real pages not stubs', async ({ page }) => {
   const apiBase = 'http://localhost:3000';
   const stamp = Date.now();
   const email = `walk_${stamp}@example.com`;
   const username = `walk_${stamp}`;
-  const register = await page.request.post(`${apiBase}/v1/auth/register`, {
-    headers: { 'content-type': 'application/json' },
-    data: { email, password: 'password12', username, country: 'RU', displayName: 'Walker' },
+  const { accessToken, user, expiresIn } = await registerVerifiedUser(page.request, apiBase, {
+    email,
+    password: 'password12',
+    username,
+    country: 'RU',
+    displayName: 'Walker',
   });
-  expect(register.ok(), await register.text()).toBeTruthy();
-  const { accessToken, user, expiresIn } = (await register.json()) as {
-    accessToken: string;
-    expiresIn: number;
-    user: Record<string, unknown>;
-  };
 
   await page.addInitScript(
     ({ token, profile, ttl }) => {

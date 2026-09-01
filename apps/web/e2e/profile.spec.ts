@@ -1,6 +1,14 @@
 import { test, expect } from '@playwright/test';
+import { expectAuthRedirect, loginDemoInBrowser } from './helpers/auth';
 
-test('unknown profile shows not found', async ({ page }) => {
+const apiBase = 'http://localhost:3000';
+
+test('unknown profile redirects to auth when signed out', async ({ page }) => {
+  await expectAuthRedirect(page, '/profile/no_such_user_zzz');
+});
+
+test('unknown profile shows not found for signed-in user', async ({ page }) => {
+  await loginDemoInBrowser(page, apiBase);
   await page.goto('/profile/no_such_user_zzz');
   await expect(page.getByRole('heading', { name: 'Пользователь не найден' })).toBeVisible();
 });

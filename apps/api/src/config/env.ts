@@ -47,11 +47,50 @@ const envSchema = z.object({
     (value) => (value === '' || value == null ? undefined : value),
     z.coerce.number().int().min(60).default(3600),
   ),
+  SMTP_HOST: z
+    .string()
+    .optional()
+    .transform((v) => v || undefined),
+  SMTP_PORT: z.preprocess(
+    (value) => (value === '' || value == null ? undefined : value),
+    z.coerce.number().int().min(1).max(65535).default(587),
+  ),
+  SMTP_USER: z
+    .string()
+    .optional()
+    .transform((v) => v || undefined),
+  SMTP_PASS: z
+    .string()
+    .optional()
+    .transform((v) => v || undefined),
+  SMTP_SECURE: z
+    .string()
+    .optional()
+    .transform((v) => v === 'true'),
+  EMAIL_FROM: z.string().email().default('noreply@kupilko.store'),
+  OPENROUTER_API_KEY: z
+    .string()
+    .optional()
+    .transform((v) => v || undefined),
+  OPENROUTER_MODEL: z
+    .string()
+    .optional()
+    .transform((v) => v || undefined),
+  OPENROUTER_VISION_MODEL: z
+    .string()
+    .optional()
+    .transform((v) => v || undefined),
+  AI_COPILOT_DAILY_LIMIT: z.preprocess(
+    (value) => (value === '' || value == null ? undefined : value),
+    z.coerce.number().int().min(0).default(20),
+  ),
 });
 
 export type AppConfig = z.infer<typeof envSchema> & {
   isDev: boolean;
   webOrigins: string[];
+  aiEnabled: boolean;
+  aiVisionEnabled: boolean;
 };
 
 export function parseWebOrigins(webOrigin: string): string[] {
@@ -78,9 +117,14 @@ export function parseWebOrigins(webOrigin: string): string[] {
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
   const parsed = envSchema.parse(env);
+  const hasKey = Boolean(parsed.OPENROUTER_API_KEY);
+  const hasTextModel = Boolean(parsed.OPENROUTER_MODEL);
+  const hasVisionModel = Boolean(parsed.OPENROUTER_VISION_MODEL);
   return {
     ...parsed,
     isDev: parsed.NODE_ENV !== 'production',
     webOrigins: parseWebOrigins(parsed.WEB_ORIGIN),
+    aiEnabled: hasKey && (hasTextModel || hasVisionModel),
+    aiVisionEnabled: hasKey && hasVisionModel,
   };
 }

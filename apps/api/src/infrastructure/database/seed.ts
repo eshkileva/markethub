@@ -159,9 +159,7 @@ async function remapListingsToLeaves(db: ReturnType<typeof createDatabase>['db']
 
   if (moved > 0) console.log(`Remapped ${moved} listings to leaf categories`);
 
-  const rootIds = cats
-    .filter((item) => cats.some((child) => child.parentId === item.id))
-    .map((item) => item.id);
+  const rootIds = cats.filter((item) => cats.some((child) => child.parentId === item.id)).map((item) => item.id);
   if (rootIds.length > 0) {
     const stale = await db
       .select({ id: categoryAttributes.id })
@@ -275,6 +273,12 @@ async function ensureModerator(db: ReturnType<typeof createDatabase>['db']) {
     } else {
       console.log('Moderator account already exists');
     }
+    if (!existing.emailVerifiedAt) {
+      await db
+        .update(users)
+        .set({ emailVerifiedAt: new Date(), updatedAt: new Date() })
+        .where(eq(users.id, existing.id));
+    }
     return;
   }
 
@@ -292,6 +296,7 @@ async function ensureModerator(db: ReturnType<typeof createDatabase>['db']) {
       displayName: 'Модератор',
       country: 'RU',
       role: 'moderator',
+      emailVerifiedAt: new Date(),
     })
     .returning();
   if (!user) {
@@ -314,7 +319,15 @@ async function ensureDemoSeller(db: ReturnType<typeof createDatabase>['db']) {
   const existing = await db.query.users.findFirst({
     where: eq(users.email, DEMO_EMAIL),
   });
-  if (existing) return existing;
+  if (existing) {
+    if (!existing.emailVerifiedAt) {
+      await db
+        .update(users)
+        .set({ emailVerifiedAt: new Date(), updatedAt: new Date() })
+        .where(eq(users.id, existing.id));
+    }
+    return existing;
+  }
 
   const takenUsername = await db.query.users.findFirst({
     where: eq(users.username, DEMO_USERNAME),
@@ -330,6 +343,7 @@ async function ensureDemoSeller(db: ReturnType<typeof createDatabase>['db']) {
       country: 'RU',
       city: 'Москва',
       bio: 'Тестовый продавец для наполнения каталога.',
+      emailVerifiedAt: new Date(),
     })
     .returning();
   if (!user) {

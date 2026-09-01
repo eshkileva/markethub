@@ -20,6 +20,9 @@ import { useUnreadMessages } from '@/features/messaging/model/use-unread-count';
 import { BrandMark } from '@/shared/ui/brand-mark';
 import { categoryIcons } from '@/entities/category/model/icons';
 import { categoryRoots } from '@/entities/category/model/tree';
+import { AiPlatformBadge } from '@/features/ai/ui/AiPlatformBadge';
+import { AI_PLATFORM_TAGLINE } from '@/features/ai/model/ai-messaging';
+import { useAiStatus } from '@/features/ai/model/use-ai-status';
 
 const mainNav = [
   { to: '/', label: 'Главная', icon: Home },
@@ -63,6 +66,7 @@ export function AppSidebar() {
   const unreadCount = unread.data?.count ?? 0;
   const unreadMessages = useUnreadMessages();
   const unreadMessageCount = unreadMessages.data?.count ?? 0;
+  const aiStatus = useAiStatus();
 
   const categoriesQuery = useQuery({
     queryKey: ['categories'],
@@ -100,6 +104,8 @@ export function AppSidebar() {
       >
         <div className="px-5 py-5">
           <BrandMark />
+          <p className="text-sidebar-muted mt-2 text-xs leading-relaxed">{AI_PLATFORM_TAGLINE}</p>
+          <AiPlatformBadge live={aiStatus.data?.enabled} size="sm" className="mt-2" />
         </div>
 
         <nav className="min-h-0 flex-1 space-y-6 overflow-y-auto px-3 pb-6">
@@ -155,7 +161,7 @@ export function AppSidebar() {
               Категории
             </div>
             <div className="space-y-1">
-              {categoryRoots(categoriesQuery.data?.items ?? []).map((item) => {
+              {(categoryRoots(categoriesQuery.data?.items ?? [])).map((item) => {
                 const Icon = categoryIcons[item.slug] ?? Package;
                 const active = activeCategory === item.slug;
                 return (

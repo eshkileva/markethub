@@ -1,5 +1,10 @@
 import type { EventBus } from '../../../shared/events/event-bus.js';
 import {
+  SAFE_DEAL_TIPS,
+  buyerQuestionsForCategory,
+  scanMessageForScam,
+} from '@markethub/shared';
+import {
   ForbiddenError,
   NotFoundError,
   ValidationError,
@@ -221,6 +226,31 @@ export class MessagingService {
     };
   }
 
+  async buyerAssist(userId: string, conversationId: string) {
+    const conversation = await this.repo.findConversation(conversationId);
+    if (!conversation) {
+      throw new NotFoundError('Conversation not found');
+    }
+    if (!(await this.repo.isParticipant(conversationId, userId))) {
+      throw new ForbiddenError();
+    }
+
+    const listing = await this.repo.findListingContext(conversation.listingId);
+    if (!listing) {
+      throw new NotFoundError('Listing not found');
+    }
+
+    const role = listing.sellerId === userId ? 'seller' : 'buyer';
+
+    return {
+      role,
+      categorySlug: listing.categorySlug,
+      listingTitle: listing.title,
+      questions: role === 'buyer' ? buyerQuestionsForCategory(listing.categorySlug, listing.parentCategorySlug) : [],
+      safeDealTips: SAFE_DEAL_TIPS,
+    };
+  }
+
   async send(userId: string, conversationId: string, body: string) {
     if (!(await this.repo.isParticipant(conversationId, userId))) {
       throw new ForbiddenError();
@@ -242,6 +272,11 @@ export class MessagingService {
       message: serialized,
     });
 
-    return serialized;
+    const warnings = scanMessageForScam(body).map((flag) => flag.message);
+
+    return {
+      ...serialized,
+      warnings: warnings.length > 0 ? warnings : undefined,
+    };
   }
 }

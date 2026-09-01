@@ -6,6 +6,7 @@ import { useAuthStore } from '@/shared/model/stores';
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { ProductCard } from '@/entities/listing/ui/ProductCard';
+import { AiPagePitch } from '@/features/ai/ui/AiPagePitch';
 
 type FavoritesResponse = {
   items: Array<{
@@ -49,6 +50,7 @@ export function FavoritesPage() {
 
   return (
     <div className="space-y-4">
+      <AiPagePitch page="favorites" compact />
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Избранное</h1>
         <p className="text-muted text-sm">{query.data?.items.length ?? 0} сохранённых объявлений</p>

@@ -1,4 +1,8 @@
-import { DEMO_RATES_TO_RUB, type CurrencyCode, type RatesToRub } from '@markethub/shared';
+import {
+  DEMO_RATES_TO_RUB,
+  type CurrencyCode,
+  type RatesToRub,
+} from '@markethub/shared';
 import type { AppConfig } from '../../../config/env.js';
 import type { RedisClient } from '../../../infrastructure/redis/client.js';
 
