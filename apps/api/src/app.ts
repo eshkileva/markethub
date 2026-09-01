@@ -37,6 +37,8 @@ import { usersRoutes } from './modules/users/http/users.routes.js';
 import { geoRoutes } from './modules/geo/http/geo.routes.js';
 import { catalogsRoutes } from './modules/catalogs/http/catalogs.routes.js';
 import { searchHistoryRoutes } from './modules/search/http/search-history.routes.js';
+import { listingCopilotRoutes } from './modules/ai/http/listing-copilot.routes.js';
+import { moderationRoutes } from './modules/moderation/http/moderation.routes.js';
 
 function isLocalDevOrigin(origin: string): boolean {
   try {
@@ -96,7 +98,12 @@ export async function buildApp(deps: {
       files: 1,
     },
   });
-  await app.register(rateLimit, { max: 200, timeWindow: '1 minute' });
+  if (deps.config.RATE_LIMIT_ENABLED) {
+    await app.register(rateLimit, {
+      max: deps.config.RATE_LIMIT_MAX,
+      timeWindow: '1 minute',
+    });
+  }
   await app.register(websocket);
 
   await app.register(swagger, {
@@ -165,6 +172,7 @@ export async function buildApp(deps: {
   await app.register(geoRoutes, { prefix: '/v1/geo' });
   await app.register(catalogsRoutes, { prefix: '/v1/catalogs' });
   await app.register(searchHistoryRoutes, { prefix: '/v1/search/history' });
+  await app.register(listingCopilotRoutes, { prefix: '/v1/ai' });
   await app.register(categoriesRoutes, { prefix: '/v1/categories' });
   await app.register(listingsRoutes, { prefix: '/v1/listings' });
   await app.register(favoritesRoutes, { prefix: '/v1/favorites' });
@@ -172,6 +180,7 @@ export async function buildApp(deps: {
   await app.register(purchasesRoutes, { prefix: '/v1/purchases' });
   await app.register(reviewsRoutes, { prefix: '/v1/reviews' });
   await app.register(reportsRoutes, { prefix: '/v1/reports' });
+  await app.register(moderationRoutes, { prefix: '/v1/moderation' });
   await app.register(notificationsRoutes, { prefix: '/v1/notifications' });
   await app.register(mediaRoutes, { prefix: '/v1/media' });
   await app.register(chatSocketRoutes);

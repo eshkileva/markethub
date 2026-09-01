@@ -13,6 +13,11 @@ export function serializeListing(listing: {
   publishedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
+  listingTrustScore?: number | null;
+  aiRiskLevel?: string | null;
+  aiAssessment?: Record<string, unknown> | null;
+  aiAssessedAt?: Date | null;
+  moderationNote?: string | null;
 }) {
   return {
     id: listing.id,
@@ -29,5 +34,10 @@ export function serializeListing(listing: {
     publishedAt: listing.publishedAt?.toISOString() ?? null,
     createdAt: listing.createdAt.toISOString(),
     updatedAt: listing.updatedAt.toISOString(),
+    listingTrustScore: listing.listingTrustScore ?? null,
+    aiRiskLevel: listing.aiRiskLevel ?? null,
+    aiAssessment: listing.aiAssessment ?? null,
+    aiAssessedAt: listing.aiAssessedAt?.toISOString() ?? null,
+    moderationNote: listing.moderationNote ?? null,
   };
 }

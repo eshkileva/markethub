@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/avatar';
 import { Badge } from '@/shared/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { ProductCard, type ProductCardData } from '@/entities/listing/ui/ProductCard';
+import type { Paginated } from '@/entities/listing/model/types';
 import { ReviewList, type ReviewItem } from '@/entities/review/ui/ReviewList';
 import { StarRating } from '@/entities/review/ui/StarRating';
 import { ReportForm } from '@/features/reports/ui/ReportForm';
@@ -33,9 +34,7 @@ type ReviewsResponse = {
   items: ReviewItem[];
 };
 
-type ListingsResponse = {
-  items: ProductCardData[];
-};
+type ListingsResponse = Paginated<ProductCardData>;
 
 function countryName(code: string) {
   return COUNTRIES.find((item) => item.code === (code as CountryCode))?.nameRu ?? code;

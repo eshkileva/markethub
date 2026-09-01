@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { loginDemoInBrowser } from './helpers/auth';
 
 test('auth page is email/password only', async ({ page }) => {
   await page.goto('/auth');
@@ -12,4 +13,10 @@ test('auth page is email/password only', async ({ page }) => {
   await page.getByRole('button', { name: 'Нет аккаунта? Зарегистрируйтесь' }).click();
   await expect(page.getByRole('heading', { name: 'Регистрация' })).toBeVisible();
   await expect(page.getByLabel('Ник')).toBeVisible();
+});
+
+test('auth redirects signed-in user to home', async ({ page }) => {
+  await loginDemoInBrowser(page);
+  await page.goto('/auth');
+  await expect(page).toHaveURL('/');
 });

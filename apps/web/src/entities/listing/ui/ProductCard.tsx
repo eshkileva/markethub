@@ -1,7 +1,7 @@
 import type { MouseEvent } from 'react';
 import { Link } from '@tanstack/react-router';
 import { Heart } from 'lucide-react';
-import type { ConvertedAmounts, CurrencyCode } from '@markethub/shared';
+import type { ListingCard } from '@/entities/listing/model/types';
 import { Card } from '@/shared/ui/card';
 import { Button } from '@/shared/ui/button';
 import { PriceDisplay } from '@/shared/ui/price-display';
@@ -9,26 +9,17 @@ import { CountryBadge } from '@/shared/ui/country-badge';
 import { cn } from '@/shared/lib/cn';
 import { useFavoriteToggle } from '@/features/favorites/model/use-favorite-toggle';
 import { ListingImage } from '@/entities/listing/ui/ListingImage';
+import { ListingTrustBadge } from '@/entities/listing/ui/ListingTrustBadge';
+import { PriceVerdictBadge } from '@/entities/listing/ui/PriceVerdictBadge';
 import { useUiStore } from '@/shared/model/stores';
 
-export type ProductCardData = {
-  id: string;
-  title: string;
-  price: number;
-  currency: CurrencyCode;
-  converted?: ConvertedAmounts;
-  city: string;
-  country: string;
-  imageUrl: string | null;
-  publishedAt: string | null;
-  isFavorite?: boolean;
-};
+export type ProductCardData = ListingCard;
 
 export function ProductCard({
   item,
   layout = 'grid',
 }: {
-  item: ProductCardData;
+  item: ListingCard;
   layout?: 'grid' | 'list';
 }) {
   const toggle = useFavoriteToggle();
@@ -70,7 +61,11 @@ export function ProductCard({
           </div>
           <div className="flex min-w-0 flex-1 items-start justify-between gap-3 p-4">
             <div className="min-w-0 space-y-1">
-              <div className="text-foreground truncate font-medium">{item.title}</div>
+              <div className="flex items-start gap-2">
+                <div className="text-foreground truncate font-medium">{item.title}</div>
+                <ListingTrustBadge score={item.listingTrustScore} riskLevel={item.aiRiskLevel} />
+                <PriceVerdictBadge verdict={item.priceVerdict} />
+              </div>
               <CountryBadge country={item.country} city={item.city} />
               {price}
             </div>
@@ -115,6 +110,15 @@ export function ProductCard({
           >
             <Heart className={cn('h-4 w-4', favorited && 'fill-primary text-primary')} />
           </Button>
+          <ListingTrustBadge
+            score={item.listingTrustScore}
+            riskLevel={item.aiRiskLevel}
+            className="absolute left-3 top-3 shadow-sm"
+          />
+          <PriceVerdictBadge
+            verdict={item.priceVerdict}
+            className="absolute left-3 top-11 shadow-sm"
+          />
         </div>
         <div className="space-y-1.5 p-4">
           <div className="text-foreground line-clamp-2 text-sm font-medium">{item.title}</div>

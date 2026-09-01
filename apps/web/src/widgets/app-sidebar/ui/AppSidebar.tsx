@@ -18,8 +18,13 @@ import { useAuthStore, useUiStore } from '@/shared/model/stores';
 import { useUnreadNotifications } from '@/features/notifications/model/use-unread-count';
 import { useUnreadMessages } from '@/features/messaging/model/use-unread-count';
 import { BrandMark } from '@/shared/ui/brand-mark';
+import type { CategoriesResponse } from '@/entities/category/model/api';
+import { Button } from '@/shared/ui/button';
 import { categoryIcons } from '@/entities/category/model/icons';
 import { categoryRoots } from '@/entities/category/model/tree';
+import { AiPlatformBadge } from '@/features/ai/ui/AiPlatformBadge';
+import { AI_PLATFORM_TAGLINE } from '@/features/ai/model/ai-messaging';
+import { useAiStatus } from '@/features/ai/model/use-ai-status';
 
 const mainNav = [
   { to: '/', label: 'Главная', icon: Home },
@@ -32,10 +37,6 @@ const mainNav = [
   { to: '/notifications', label: 'Уведомления', icon: Bell },
   { to: '/settings', label: 'Настройки', icon: Settings },
 ] as const;
-
-type CategoriesResponse = {
-  items: Array<{ id: string; slug: string; nameRu: string; parentId: string | null }>;
-};
 
 function NavCount({ count, active }: { count: number; active: boolean }) {
   if (count <= 0) return null;
@@ -57,12 +58,14 @@ export function AppSidebar() {
   const search = useRouterState({ select: (s) => s.location.search });
   const sidebarOpen = useUiStore((s) => s.sidebarOpen);
   const setSidebarOpen = useUiStore((s) => s.setSidebarOpen);
+  const token = useAuthStore((s) => s.accessToken);
   const role = useAuthStore((s) => s.user?.role);
   const isModerator = role === 'moderator' || role === 'admin';
   const unread = useUnreadNotifications();
   const unreadCount = unread.data?.count ?? 0;
   const unreadMessages = useUnreadMessages();
   const unreadMessageCount = unreadMessages.data?.count ?? 0;
+  const aiStatus = useAiStatus();
 
   const categoriesQuery = useQuery({
     queryKey: ['categories'],
@@ -100,6 +103,8 @@ export function AppSidebar() {
       >
         <div className="px-5 py-5">
           <BrandMark />
+          <p className="text-sidebar-muted mt-2 text-xs leading-relaxed">{AI_PLATFORM_TAGLINE}</p>
+          <AiPlatformBadge live={aiStatus.data?.enabled} size="sm" className="mt-2" />
         </div>
 
         <nav className="min-h-0 flex-1 space-y-6 overflow-y-auto px-3 pb-6">
@@ -177,6 +182,14 @@ export function AppSidebar() {
               })}
             </div>
           </div>
+
+          {!token ? (
+            <div className="px-1 pt-2">
+              <Button asChild className="w-full">
+                <Link to="/auth">Войти или зарегистрироваться</Link>
+              </Button>
+            </div>
+          ) : null}
         </nav>
       </aside>
     </>

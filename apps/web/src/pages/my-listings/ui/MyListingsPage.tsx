@@ -10,6 +10,7 @@ import { useAuthStore } from '@/shared/model/stores';
 import { Badge } from '@/shared/ui/badge';
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
+import { AiPagePitch } from '@/features/ai/ui/AiPagePitch';
 
 type MineItem = {
   id: string;
@@ -22,6 +23,7 @@ type MineItem = {
   imageUrl: string | null;
   imageCount: number;
   updatedAt: string;
+  moderationNote?: string | null;
 };
 
 type MineResponse = { items: MineItem[] };
@@ -29,6 +31,7 @@ type MineResponse = { items: MineItem[] };
 const filters: Array<{ id: 'all' | ListingStatus; label: string }> = [
   { id: 'all', label: 'Все' },
   { id: 'published', label: 'Активные' },
+  { id: 'pending_moderation', label: 'На модерации' },
   { id: 'draft', label: 'Черновики' },
   { id: 'archived', label: 'Снятые' },
   { id: 'rejected', label: 'Отклонённые' },
@@ -105,6 +108,7 @@ export function MyListingsPage() {
 
   return (
     <div className="space-y-4">
+      <AiPagePitch page="my-listings" compact />
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Мои объявления</h1>
@@ -191,6 +195,14 @@ export function MyListingsPage() {
                       ? ' · нужно фото'
                       : ''}
                   </div>
+                  {item.status === 'pending_moderation' ? (
+                    <p className="text-xs text-amber-700 dark:text-amber-300">
+                      Объявление на проверке — появится в каталоге после одобрения модератором.
+                    </p>
+                  ) : null}
+                  {item.status === 'rejected' && item.moderationNote ? (
+                    <p className="text-danger text-xs">Причина: {item.moderationNote}</p>
+                  ) : null}
                 </div>
                 <div className="flex flex-wrap gap-2 sm:flex-col sm:items-stretch">
                   <Button asChild variant="secondary" size="sm">

@@ -1,26 +1,14 @@
 import { Link } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
-import type { ConvertedAmounts, CurrencyCode } from '@markethub/shared';
+import type { ListingCard, Paginated } from '@/entities/listing/model/types';
 import { apiRequest } from '@/shared/api/client';
 import { useAuthStore } from '@/shared/model/stores';
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { ProductCard } from '@/entities/listing/ui/ProductCard';
+import { AiPagePitch } from '@/features/ai/ui/AiPagePitch';
 
-type FavoritesResponse = {
-  items: Array<{
-    id: string;
-    title: string;
-    price: number;
-    currency: CurrencyCode;
-    converted?: ConvertedAmounts;
-    city: string;
-    country: string;
-    imageUrl: string | null;
-    publishedAt: string | null;
-    isFavorite: boolean;
-  }>;
-};
+type FavoritesResponse = Paginated<ListingCard>;
 
 export function FavoritesPage() {
   const token = useAuthStore((s) => s.accessToken);
@@ -49,6 +37,7 @@ export function FavoritesPage() {
 
   return (
     <div className="space-y-4">
+      <AiPagePitch page="favorites" compact />
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Избранное</h1>
         <p className="text-muted text-sm">{query.data?.items.length ?? 0} сохранённых объявлений</p>

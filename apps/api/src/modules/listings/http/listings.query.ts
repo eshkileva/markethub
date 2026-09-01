@@ -3,6 +3,7 @@ import {
   convertedAmounts,
   type CurrencyCode,
   type ListingStatus,
+  type PriceVerdict,
   type RatesToRub,
   listingFilterSchema,
 } from '@markethub/shared';
@@ -21,6 +22,18 @@ import { listingCategoryIds } from '../../categories/application/category-tree.j
 import { serializeListing } from './listings.serialize.js';
 
 type CatalogQuery = z.infer<typeof listingFilterSchema>;
+
+function priceVerdictFromAssessment(
+  assessment: Record<string, unknown> | null | undefined,
+): PriceVerdict | null {
+  const price = assessment?.price;
+  if (!price || typeof price !== 'object') return null;
+  const verdict = (price as { verdict?: unknown }).verdict;
+  if (verdict === 'low' || verdict === 'fair' || verdict === 'high' || verdict === 'unknown') {
+    return verdict;
+  }
+  return null;
+}
 
 function parseAttrFilters(raw: string[] | undefined): Array<{ key: string; value: string }> {
   if (!raw?.length) return [];
@@ -146,6 +159,9 @@ export async function listCatalog(
         condition: listing.condition,
         publishedAt: listing.publishedAt?.toISOString() ?? null,
         imageUrl: imagesByListing.get(listing.id)?.[0]?.url ?? null,
+        listingTrustScore: listing.listingTrustScore ?? null,
+        aiRiskLevel: listing.aiRiskLevel ?? null,
+        priceVerdict: priceVerdictFromAssessment(listing.aiAssessment),
         isFavorite: favoriteIds.has(listing.id),
         seller: {
           username: sellerUsername,
@@ -218,6 +234,9 @@ export async function getListingDetail(
   const seller = await db.query.users.findFirst({
     where: eq(users.id, listing.sellerId),
   });
+  const category = await db.query.categories.findFirst({
+    where: eq(categories.id, listing.categoryId),
+  });
   const images = await db.query.listingImages.findMany({
     where: eq(listingImages.listingId, id),
     orderBy: (table, { asc }) => [asc(table.sortOrder)],
@@ -247,6 +266,7 @@ export async function getListingDetail(
       labelRu: attr.labelRu ?? 'Характеристика',
     })),
     isFavorite,
+    categorySlug: category?.slug ?? null,
     seller: seller
       ? {
           id: seller.id,

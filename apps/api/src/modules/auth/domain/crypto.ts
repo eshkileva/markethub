@@ -1,4 +1,4 @@
-import { createHash, randomBytes } from 'node:crypto';
+import { createHash, randomBytes, randomInt } from 'node:crypto';
 import * as argon2 from 'argon2';
 import { SignJWT, jwtVerify } from 'jose';
 import type { AppConfig } from '../../../config/env.js';
@@ -10,6 +10,14 @@ export function hashToken(token: string): string {
 export function generateRefreshToken(): string {
   return randomBytes(48).toString('base64url');
 }
+
+export function generateVerificationCode(): string {
+  return randomInt(0, 1_000_000).toString().padStart(6, '0');
+}
+
+export const VERIFICATION_CODE_TTL_MS = 15 * 60 * 1000;
+export const VERIFICATION_RESEND_COOLDOWN_MS = 60 * 1000;
+export const VERIFICATION_MAX_ATTEMPTS = 5;
 
 export async function hashPassword(password: string): Promise<string> {
   return argon2.hash(password);

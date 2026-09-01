@@ -11,11 +11,13 @@ import {
   NOTIFICATION_TYPES,
   REPORT_REASONS,
   REPORT_STATUSES,
+  USER_ROLES,
 } from '../enums.js';
 
 export const countryCodeSchema = z.enum(COUNTRY_CODES);
 export const currencyCodeSchema = z.enum(CURRENCY_CODES);
 export const authProviderSchema = z.enum(AUTH_PROVIDERS);
+export const userRoleSchema = z.enum(USER_ROLES);
 export const listingStatusSchema = z.enum(LISTING_STATUSES);
 export const listingConditionSchema = z.enum(LISTING_CONDITIONS);
 export const attributeTypeSchema = z.enum(ATTRIBUTE_TYPES);
@@ -67,6 +69,152 @@ export const updateProfileSchema = z.object({
 export const changePasswordSchema = z.object({
   currentPassword: z.string().min(1),
   newPassword: z.string().min(8).max(128),
+});
+
+export const verifyEmailSchema = z.object({
+  code: z
+    .string()
+    .trim()
+    .regex(/^\d{6}$/, 'Код должен состоять из 6 цифр'),
+});
+
+export const authUserSchema = z.object({
+  id: z.string().uuid(),
+  email: z.string().email(),
+  username: z.string(),
+  displayName: z.string().nullable(),
+  avatarUrl: z.string().nullable(),
+  bio: z.string().nullable().optional(),
+  country: countryCodeSchema,
+  city: z.string().nullable(),
+  trustScore: z.number(),
+  isVerified: z.boolean(),
+  role: userRoleSchema,
+  emailVerified: z.boolean(),
+});
+
+export const authResponseSchema = z.object({
+  accessToken: z.string(),
+  expiresIn: z.number().int(),
+  user: authUserSchema,
+  devVerificationCode: z.string().optional(),
+});
+
+export const forgotPasswordSchema = z.object({
+  email: z.string().email('Введите корректный email'),
+});
+
+export const resetPasswordSchema = z.object({
+  email: z.string().email('Введите корректный email'),
+  code: z
+    .string()
+    .trim()
+    .regex(/^\d{6}$/, 'Код должен состоять из 6 цифр'),
+  newPassword: z.string().min(8, 'Пароль не короче 8 символов').max(128, 'Пароль слишком длинный'),
+});
+
+export const listingCopilotRequestSchema = z.object({
+  imageUrl: z.string().url(),
+  hint: z.string().trim().max(500).optional(),
+  country: countryCodeSchema,
+  city: z.string().trim().max(80).optional(),
+  price: z.coerce.number().positive().optional(),
+  currency: currencyCodeSchema.optional(),
+});
+
+export const listingReassessSchema = z.object({
+  categoryId: z.string().uuid(),
+  country: countryCodeSchema,
+  currency: currencyCodeSchema,
+  price: z.coerce.number().positive().optional(),
+  baseRiskScore: z.number().int().min(0).max(100),
+  sellerTrustScore: z.number().int().min(0).max(100),
+  reasons: z.array(z.string().trim().min(1).max(200)).max(8).default([]),
+});
+
+export const listingPriceInsightQuerySchema = z.object({
+  categoryId: z.string().uuid(),
+  country: countryCodeSchema,
+  currency: currencyCodeSchema,
+});
+
+export const listingAiAssessmentSchema = z.object({
+  riskScore: z.number().int().min(0).max(100),
+  riskLevel: z.enum(['low', 'medium', 'high']),
+  baseRiskScore: z.number().int().min(0).max(100),
+  reasons: z.array(z.string().trim().min(1).max(200)).max(8),
+  sellerTrustScore: z.number().int().min(0).max(100),
+  listingTrustScore: z.number().int().min(0).max(100),
+  price: z.object({
+    min: z.number().nullable(),
+    max: z.number().nullable(),
+    median: z.number().nullable(),
+    sampleSize: z.number().int().min(0),
+    verdict: z.enum(['low', 'fair', 'high', 'unknown']),
+    currency: currencyCodeSchema,
+  }),
+  model: z.string().min(1).max(120),
+  assessedAt: z.string().datetime(),
+});
+
+export const listingCopilotAttributeSchema = z.object({
+  attributeId: z.string().uuid(),
+  key: z.string(),
+  labelRu: z.string(),
+  value: z.string(),
+});
+
+export const listingCopilotResponseSchema = z.object({
+  title: z.string(),
+  description: z.string(),
+  categoryId: z.string().uuid(),
+  categorySlug: z.string(),
+  condition: listingConditionSchema,
+  attributes: z.array(listingCopilotAttributeSchema),
+  suggestedPrice: z.number().nullable(),
+  assessment: listingAiAssessmentSchema,
+  aiEnabled: z.boolean(),
+});
+
+export const listingReassessResponseSchema = z.object({
+  assessment: listingAiAssessmentSchema,
+});
+
+export const listingPriceInsightResponseSchema = z.object({
+  min: z.number().nullable(),
+  max: z.number().nullable(),
+  median: z.number().nullable(),
+  sampleSize: z.number().int(),
+  currency: currencyCodeSchema,
+});
+
+export const publishListingSchema = z.object({
+  aiAssessment: listingAiAssessmentSchema.optional(),
+});
+
+export const moderationQueueQuerySchema = paginationQuerySchema.extend({
+  riskLevel: z.enum(['low', 'medium', 'high']).optional(),
+});
+
+export const moderationRejectSchema = z.object({
+  note: z.string().trim().min(3, 'Укажите причину отклонения').max(500),
+});
+
+export const searchIntentRequestSchema = z.object({
+  q: z.string().trim().min(2, 'Введите запрос').max(200),
+  country: countryCodeSchema.optional(),
+});
+
+export const searchIntentResponseSchema = z.object({
+  q: z.string().trim().max(200).optional(),
+  categorySlug: z.string().trim().max(80).optional(),
+  country: countryCodeSchema.optional(),
+  city: z.string().trim().max(80).optional(),
+  minPrice: z.coerce.number().nonnegative().optional(),
+  maxPrice: z.coerce.number().positive().optional(),
+  currency: currencyCodeSchema.optional(),
+  condition: listingConditionSchema.optional(),
+  aiEnabled: z.boolean(),
 });
 
 const attrQuerySchema = z.preprocess(
@@ -133,19 +281,29 @@ export const reportListQuerySchema = paginationQuerySchema.extend({
 export const notificationListQuerySchema = paginationQuerySchema;
 
 export const createListingSchema = z.object({
-  title: z.string().min(4).max(120),
-  description: z.string().min(10).max(10_000),
-  categoryId: z.string().uuid(),
-  price: z.number().positive(),
+  title: z
+    .string()
+    .trim()
+    .min(4, 'Заголовок не короче 4 символов')
+    .max(120, 'Заголовок не длиннее 120 символов'),
+  description: z
+    .string()
+    .trim()
+    .min(10, 'Описание не короче 10 символов')
+    .max(10_000, 'Описание слишком длинное'),
+  categoryId: z.string().uuid('Выберите подкатегорию'),
+  price: z.coerce
+    .number({ message: 'Укажите цену' })
+    .refine((value) => Number.isFinite(value) && value > 0, 'Цена должна быть больше 0'),
   currency: currencyCodeSchema,
   country: countryCodeSchema,
-  city: z.string().min(1).max(80),
+  city: z.string().trim().min(1, 'Укажите город').max(80, 'Название города слишком длинное'),
   condition: listingConditionSchema,
-  deliveryModes: z.array(deliveryModeSchema).min(1),
+  deliveryModes: z.array(deliveryModeSchema).min(1, 'Выберите хотя бы один способ передачи'),
   attributes: z.array(
     z.object({
       attributeId: z.string().uuid(),
-      value: z.string().max(500),
+      value: z.string().max(500, 'Слишком длинное значение'),
     }),
   ),
 });
@@ -168,6 +326,9 @@ export const recordSearchHistorySchema = z.object({
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
+export type AuthUser = z.infer<typeof authUserSchema>;
+export type AuthResponse = z.infer<typeof authResponseSchema>;
+export type ListingCopilotResponse = z.infer<typeof listingCopilotResponseSchema>;
 export type CreateListingInput = z.infer<typeof createListingSchema>;
 export type ListingFilterInput = z.infer<typeof listingFilterSchema>;
 export type CreateReportInput = z.infer<typeof createReportSchema>;

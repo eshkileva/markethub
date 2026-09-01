@@ -30,6 +30,15 @@ import { CatalogsRepository } from '../modules/catalogs/infrastructure/catalogs.
 import { CatalogsService } from '../modules/catalogs/application/catalogs.service.js';
 import { SearchHistoryRepository } from '../modules/search/infrastructure/search-history.repository.js';
 import { SearchHistoryService } from '../modules/search/application/search-history.service.js';
+import { createEmailSender } from '../infrastructure/email/email-sender.js';
+import { AiCallLogger } from '../infrastructure/ai/ai-call-logger.js';
+import { AiUsageLimiter } from '../infrastructure/ai/ai-usage-limiter.js';
+import { OpenRouterClient } from '../infrastructure/ai/openrouter.client.js';
+import { ListingCopilotRepository } from '../modules/ai/infrastructure/listing-copilot.repository.js';
+import { ListingCopilotService } from '../modules/ai/application/listing-copilot.service.js';
+import { SearchIntentService } from '../modules/ai/application/search-intent.service.js';
+import { ModerationRepository } from '../modules/moderation/infrastructure/moderation.repository.js';
+import { ModerationService } from '../modules/moderation/application/moderation.service.js';
 
 export type AppServices = {
   auth: AuthService;
@@ -44,6 +53,9 @@ export type AppServices = {
   rates: RatesService;
   catalogs: CatalogsService;
   searchHistory: SearchHistoryService;
+  listingCopilot: ListingCopilotService;
+  searchIntent: SearchIntentService;
+  moderation: ModerationService;
 };
 
 declare module 'fastify' {
@@ -72,9 +84,24 @@ const containerPlugin: FastifyPluginAsync<Container> = async (app, opts) => {
   const catalogs = new CatalogsService(new CatalogsRepository(opts.db));
   const searchHistory = new SearchHistoryService(new SearchHistoryRepository(opts.db));
   const authRepo = new AuthRepository(opts.db);
-  const auth = new AuthService(authRepo, opts.config, opts.events, geo);
+  const emailSender = createEmailSender(opts.config, (payload, message) => {
+    app.log.info(payload, message);
+  });
+  const auth = new AuthService(authRepo, opts.config, opts.events, geo, emailSender);
   const listingsRepo = new ListingsRepository(opts.db);
-  const listings = new ListingsService(listingsRepo, opts.events, geo);
+  const aiLogger = new AiCallLogger(app.log);
+  const aiUsageLimiter = new AiUsageLimiter(opts.redis, opts.config.AI_COPILOT_DAILY_LIMIT);
+  const openRouter = new OpenRouterClient(opts.config);
+  const listingCopilotRepo = new ListingCopilotRepository(opts.db);
+  const listingCopilot = new ListingCopilotService(
+    listingCopilotRepo,
+    openRouter,
+    opts.config,
+    opts.storage,
+    aiUsageLimiter,
+    aiLogger,
+  );
+  const listings = new ListingsService(listingsRepo, opts.events, geo, listingCopilot);
   const favoritesRepo = new FavoritesRepository(opts.db);
   const favorites = new FavoritesService(favoritesRepo, opts.db, rates);
   const chatHub = new ChatHub();
@@ -89,6 +116,13 @@ const containerPlugin: FastifyPluginAsync<Container> = async (app, opts) => {
   registerNotificationHandlers(opts.events, notifications);
   const usersRepo = new UsersRepository(opts.db);
   const users = new UsersService(usersRepo, opts.events);
+  const searchIntent = new SearchIntentService(
+    listingCopilotRepo,
+    openRouter,
+    opts.config,
+    aiLogger,
+  );
+  const moderation = new ModerationService(new ModerationRepository(opts.db), opts.events);
 
   app.decorate('config', opts.config);
   app.decorate('db', opts.db);
@@ -109,6 +143,9 @@ const containerPlugin: FastifyPluginAsync<Container> = async (app, opts) => {
     rates,
     catalogs,
     searchHistory,
+    listingCopilot,
+    searchIntent,
+    moderation,
   });
 };
 

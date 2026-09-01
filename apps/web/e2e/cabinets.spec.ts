@@ -1,37 +1,19 @@
 import { test, expect } from '@playwright/test';
+import { registerVerifiedUser, seedBrowserSession } from './helpers/auth';
 
 test('signed-in cabinets are real pages not stubs', async ({ page }) => {
-  const apiBase = 'http://localhost:3000';
   const stamp = Date.now();
   const email = `walk_${stamp}@example.com`;
   const username = `walk_${stamp}`;
-  const register = await page.request.post(`${apiBase}/v1/auth/register`, {
-    headers: { 'content-type': 'application/json' },
-    data: { email, password: 'password12', username, country: 'RU', displayName: 'Walker' },
+  const session = await registerVerifiedUser(page.request, {
+    email,
+    password: 'password12',
+    username,
+    country: 'RU',
+    displayName: 'Walker',
   });
-  expect(register.ok(), await register.text()).toBeTruthy();
-  const { accessToken, user, expiresIn } = (await register.json()) as {
-    accessToken: string;
-    expiresIn: number;
-    user: Record<string, unknown>;
-  };
 
-  await page.addInitScript(
-    ({ token, profile, ttl }) => {
-      localStorage.setItem(
-        'markethub-auth',
-        JSON.stringify({
-          state: {
-            accessToken: token,
-            user: profile,
-            expiresAt: Date.now() + ttl * 1000,
-          },
-          version: 0,
-        }),
-      );
-    },
-    { token: accessToken, profile: user, ttl: expiresIn ?? 900 },
-  );
+  await seedBrowserSession(page, session);
 
   await page.goto('/');
   await expect(page.getByText('Foundation')).toHaveCount(0);
@@ -60,5 +42,5 @@ test('signed-in cabinets are real pages not stubs', async ({ page }) => {
 
   await page.goto(`/profile/${username}`);
   await expect(page.getByRole('heading', { name: 'Walker' })).toBeVisible();
-  await expect(page.getByText('Trust Score')).toBeVisible();
+  await expect(page.getByRole('main').getByText('Trust Score')).toBeVisible();
 });

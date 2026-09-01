@@ -4,26 +4,13 @@ import {
   registerSchema,
   updateProfileSchema,
   changePasswordSchema,
+  verifyEmailSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
+  authResponseSchema,
+  authUserSchema,
 } from '@markethub/shared';
 import { z } from 'zod';
-
-const authResponseSchema = z.object({
-  accessToken: z.string(),
-  expiresIn: z.number().int(),
-  user: z.object({
-    id: z.string().uuid(),
-    email: z.string().email(),
-    username: z.string(),
-    displayName: z.string().nullable(),
-    avatarUrl: z.string().nullable(),
-    bio: z.string().nullable(),
-    country: z.string(),
-    city: z.string().nullable(),
-    trustScore: z.number(),
-    isVerified: z.boolean(),
-    role: z.string(),
-  }),
-});
 
 export const authRoutes: FastifyPluginAsyncZod = async (app) => {
   app.post(
@@ -54,6 +41,7 @@ export const authRoutes: FastifyPluginAsyncZod = async (app) => {
         accessToken: result.accessToken,
         expiresIn: result.expiresIn,
         user: result.user,
+        devVerificationCode: result.devVerificationCode,
       });
     },
   );
@@ -160,6 +148,7 @@ export const authRoutes: FastifyPluginAsyncZod = async (app) => {
       schema: {
         tags: ['auth'],
         body: updateProfileSchema,
+        response: { 200: authUserSchema },
       },
       preHandler: [app.authenticate],
     },
@@ -189,5 +178,78 @@ export const authRoutes: FastifyPluginAsyncZod = async (app) => {
         request.user!.id,
         request.cookies[app.config.REFRESH_COOKIE_NAME],
       ),
+  );
+
+  app.post(
+    '/verify-email',
+    {
+      schema: {
+        tags: ['auth'],
+        body: verifyEmailSchema,
+        response: { 200: authUserSchema },
+      },
+      preHandler: [app.authenticate],
+      config: {
+        rateLimit: { max: 10, timeWindow: '1 minute' },
+      },
+    },
+    async (request) => app.services.auth.verifyEmail(request.user!.id, request.body),
+  );
+
+  app.post(
+    '/resend-verification',
+    {
+      schema: {
+        tags: ['auth'],
+        response: {
+          200: z.object({
+            ok: z.literal(true),
+            devVerificationCode: z.string().optional(),
+          }),
+        },
+      },
+      preHandler: [app.authenticate],
+      config: {
+        rateLimit: { max: 3, timeWindow: '1 minute' },
+      },
+    },
+    async (request) => app.services.auth.resendVerification(request.user!.id),
+  );
+
+  app.post(
+    '/forgot-password',
+    {
+      schema: {
+        tags: ['auth'],
+        body: forgotPasswordSchema,
+        response: {
+          200: z.object({
+            ok: z.literal(true),
+            devResetCode: z.string().optional(),
+          }),
+        },
+      },
+      config: {
+        rateLimit: { max: 5, timeWindow: '1 minute' },
+      },
+    },
+    async (request) => app.services.auth.requestPasswordReset(request.body),
+  );
+
+  app.post(
+    '/reset-password',
+    {
+      schema: {
+        tags: ['auth'],
+        body: resetPasswordSchema,
+        response: {
+          200: z.object({ ok: z.literal(true) }),
+        },
+      },
+      config: {
+        rateLimit: { max: 10, timeWindow: '1 minute' },
+      },
+    },
+    async (request) => app.services.auth.resetPassword(request.body),
   );
 };

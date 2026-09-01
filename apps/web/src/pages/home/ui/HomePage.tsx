@@ -2,47 +2,32 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { ArrowRight, Search } from 'lucide-react';
-import type { ConvertedAmounts, CurrencyCode } from '@markethub/shared';
 import { apiRequest } from '@/shared/api/client';
 import { useAuthStore, useUiStore } from '@/shared/model/stores';
 import { ProductCard } from '@/entities/listing/ui/ProductCard';
+import type { ListingCard, Paginated } from '@/entities/listing/model/types';
+import type { CategoriesResponse } from '@/entities/category/model/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Badge } from '@/shared/ui/badge';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 import { categoryIcons } from '@/entities/category/model/icons';
 import { categoryRoots } from '@/entities/category/model/tree';
+import { resolveSmartSearch } from '@/features/search/model/resolve-smart-search';
+import { AiFeaturesShowcase } from '@/features/ai/ui/AiPagePitch';
+import { AiPlatformBadge } from '@/features/ai/ui/AiPlatformBadge';
+import { useAiStatus } from '@/features/ai/model/use-ai-status';
+import { AI_HERO_HEADLINE, AI_PLATFORM_TAGLINE } from '@/features/ai/model/ai-messaging';
+import { AuthGuestBanner } from '@/features/auth/ui/AuthGuestBanner';
 
-type ListingsResponse = {
-  items: Array<{
-    id: string;
-    title: string;
-    price: number;
-    currency: CurrencyCode;
-    converted?: ConvertedAmounts;
-    city: string;
-    country: string;
-    imageUrl: string | null;
-    publishedAt: string | null;
-    isFavorite?: boolean;
-  }>;
-};
-
-type CategoriesResponse = {
-  items: Array<{
-    id: string;
-    slug: string;
-    nameRu: string;
-    icon: string | null;
-    parentId: string | null;
-  }>;
-};
+type ListingsResponse = Paginated<ListingCard>;
 
 export function HomePage() {
   const countryFilter = useUiStore((s) => s.countryFilter);
   const token = useAuthStore((s) => s.accessToken);
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
+  const aiStatus = useAiStatus();
 
   const listingsQuery = useQuery({
     queryKey: ['listings', countryFilter, token],
@@ -60,43 +45,60 @@ export function HomePage() {
 
   return (
     <div className="space-y-8">
+      <AuthGuestBanner />
       <section className="border-border bg-card relative overflow-hidden rounded-[1.25rem] border shadow-sm">
+        <div className="from-primary/15 pointer-events-none absolute inset-0 bg-gradient-to-br via-transparent to-transparent" />
         <div className="relative space-y-4 p-5 md:p-7">
-          <Badge className="bg-primary/10 text-primary">BY · RU · KZ</Badge>
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge className="bg-primary/10 text-primary">BY · RU · KZ</Badge>
+            <AiPlatformBadge live={aiStatus.data?.enabled} />
+          </div>
           <h1 className="font-display text-2xl font-semibold leading-tight tracking-tight sm:text-3xl md:text-4xl">
-            Купилко — вещи рядом
-            <span className="text-primary"> и через границу</span>
+            {AI_HERO_HEADLINE}
+            <span className="text-primary block text-xl sm:text-2xl md:text-3xl">
+              {AI_PLATFORM_TAGLINE}
+            </span>
           </h1>
-          <p className="text-muted max-w-xl text-sm sm:text-base">
-            Один аккаунт для Беларуси, России и Казахстана. Цены с конвертацией и доверие к продавцу
-            на виду.
+          <p className="text-muted max-w-2xl text-sm sm:text-base">
+            Умный поиск, copilot для продавцов, Trust Score на карточках и AI-подсказки в чате — всё
+            уже работает на платформе, а не «где-то сбоку».
           </p>
           <form
             className="flex max-w-xl flex-col gap-2 sm:flex-row"
             onSubmit={(event) => {
               event.preventDefault();
-              void navigate({
-                to: '/catalog',
-                search: { q: query.trim() || undefined },
-              });
+              const trimmed = query.trim();
+              if (!trimmed) {
+                void navigate({ to: '/catalog' });
+                return;
+              }
+              void resolveSmartSearch(
+                trimmed,
+                {
+                  country: countryFilter === 'ALL' ? undefined : countryFilter,
+                },
+                token,
+              ).then((search) => navigate({ to: '/catalog', search }));
             }}
           >
             <div className="relative min-w-0 flex-1">
               <Search className="text-muted pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
               <Input
                 className="h-12 rounded-2xl pl-10"
-                placeholder="iPhone, диван, велосипед..."
+                placeholder="AI-поиск: ноутбук до 50000 в Минске..."
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
               />
             </div>
             <Button type="submit" size="lg" className="h-12">
-              Найти
+              AI-поиск
               <ArrowRight className="h-4 w-4" />
             </Button>
           </form>
         </div>
       </section>
+
+      <AiFeaturesShowcase />
 
       <section className="space-y-3">
         <div className="flex items-end justify-between gap-3">
@@ -132,7 +134,9 @@ export function HomePage() {
         <div className="flex items-end justify-between gap-3">
           <div>
             <h2 className="font-display text-lg font-semibold">Свежие объявления</h2>
-            <p className="text-muted text-sm">По выбранному региону в шапке</p>
+            <p className="text-muted text-sm">
+              Trust Score и вердикт цены — на карточках с AI-оценкой
+            </p>
           </div>
           <Link to="/catalog" className="text-primary text-sm">
             Каталог

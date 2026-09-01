@@ -1,6 +1,12 @@
-import { and, eq, isNull } from 'drizzle-orm';
+import { and, desc, eq, isNull, sql } from 'drizzle-orm';
 import type { Database } from '../../../infrastructure/database/client.js';
-import { authIdentities, sessions, users } from '../../../infrastructure/database/schema/index.js';
+import {
+  authIdentities,
+  emailVerificationCodes,
+  passwordResetCodes,
+  sessions,
+  users,
+} from '../../../infrastructure/database/schema/index.js';
 
 export class AuthRepository {
   constructor(private readonly db: Database) {}
@@ -130,5 +136,91 @@ export class AuthRepository {
     return this.db.query.authIdentities.findMany({
       where: eq(authIdentities.userId, userId),
     });
+  }
+
+  markEmailVerified(userId: string) {
+    return this.db
+      .update(users)
+      .set({ emailVerifiedAt: new Date(), updatedAt: new Date() })
+      .where(eq(users.id, userId))
+      .returning()
+      .then((rows) => rows[0] ?? null);
+  }
+
+  async invalidateVerificationCodes(userId: string) {
+    await this.db
+      .update(emailVerificationCodes)
+      .set({ consumedAt: new Date() })
+      .where(
+        and(eq(emailVerificationCodes.userId, userId), isNull(emailVerificationCodes.consumedAt)),
+      );
+  }
+
+  createVerificationCode(input: { userId: string; codeHash: string; expiresAt: Date }) {
+    return this.db
+      .insert(emailVerificationCodes)
+      .values(input)
+      .returning()
+      .then((rows) => rows[0]!);
+  }
+
+  findLatestActiveVerificationCode(userId: string) {
+    return this.db.query.emailVerificationCodes.findFirst({
+      where: and(
+        eq(emailVerificationCodes.userId, userId),
+        isNull(emailVerificationCodes.consumedAt),
+      ),
+      orderBy: [desc(emailVerificationCodes.createdAt)],
+    });
+  }
+
+  consumeVerificationCode(id: string) {
+    return this.db
+      .update(emailVerificationCodes)
+      .set({ consumedAt: new Date() })
+      .where(eq(emailVerificationCodes.id, id));
+  }
+
+  incrementVerificationAttempts(id: string) {
+    return this.db
+      .update(emailVerificationCodes)
+      .set({ attempts: sql`${emailVerificationCodes.attempts} + 1` })
+      .where(eq(emailVerificationCodes.id, id));
+  }
+
+  async invalidatePasswordResetCodes(userId: string) {
+    await this.db
+      .update(passwordResetCodes)
+      .set({ consumedAt: new Date() })
+      .where(and(eq(passwordResetCodes.userId, userId), isNull(passwordResetCodes.consumedAt)));
+  }
+
+  createPasswordResetCode(input: { userId: string; codeHash: string; expiresAt: Date }) {
+    return this.db
+      .insert(passwordResetCodes)
+      .values(input)
+      .returning()
+      .then((rows) => rows[0]!);
+  }
+
+  findLatestActivePasswordResetCode(userId: string) {
+    return this.db.query.passwordResetCodes.findFirst({
+      where: and(eq(passwordResetCodes.userId, userId), isNull(passwordResetCodes.consumedAt)),
+      orderBy: [desc(passwordResetCodes.createdAt)],
+    });
+  }
+
+  consumePasswordResetCode(id: string) {
+    return this.db
+      .update(passwordResetCodes)
+      .set({ consumedAt: new Date() })
+      .where(eq(passwordResetCodes.id, id));
+  }
+
+  incrementPasswordResetAttempts(id: string) {
+    return this.db
+      .update(passwordResetCodes)
+      .set({ attempts: sql`${passwordResetCodes.attempts} + 1` })
+      .where(eq(passwordResetCodes.id, id));
   }
 }

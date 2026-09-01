@@ -1,9 +1,6 @@
-import { test, expect } from '@playwright/test';
+import { test } from '@playwright/test';
+import { expectAuthRedirect } from './helpers/auth';
 
-test('sales page without auth asks to log in', async ({ page }) => {
-  await page.goto('/sales');
-  await expect(page.getByRole('heading', { name: 'Продажи' })).toBeVisible();
-  await expect(
-    page.getByText('Войдите, чтобы бронировать объявления и отмечать продажи.'),
-  ).toBeVisible();
+test('sales redirects to auth when signed out', async ({ page }) => {
+  await expectAuthRedirect(page, '/sales');
 });

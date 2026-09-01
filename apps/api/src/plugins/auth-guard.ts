@@ -12,6 +12,7 @@ declare module 'fastify' {
     authenticate: (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
     tryAuthenticate: (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
     requireModerator: (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
+    requireVerifiedEmail: (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
   }
 }
 
@@ -46,6 +47,10 @@ const authPlugin: FastifyPluginAsync = async (app) => {
     if (role !== 'moderator' && role !== 'admin') {
       throw new ForbiddenError('Moderator access required');
     }
+  });
+
+  app.decorate('requireVerifiedEmail', async (request) => {
+    await app.services.auth.assertEmailVerified(request.user!.id);
   });
 };
 

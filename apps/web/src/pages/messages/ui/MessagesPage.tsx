@@ -5,6 +5,8 @@ import { Send } from 'lucide-react';
 import { apiRequest } from '@/shared/api/client';
 import { useAuthStore } from '@/shared/model/stores';
 import { useChatSocket } from '@/features/messaging/model/use-chat-socket';
+import { ChatAssistPanel } from '@/features/messaging/ui/ChatAssistPanel';
+import { AiPagePitch } from '@/features/ai/ui/AiPagePitch';
 import { ListingImage } from '@/entities/listing/ui/ListingImage';
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
@@ -16,6 +18,7 @@ type Message = {
   senderId: string;
   body: string;
   createdAt: string;
+  warnings?: string[];
 };
 
 type ConversationSummary = {
@@ -51,6 +54,7 @@ export function MessagesPage() {
   const { conversation: conversationId } = useSearch({ from: '/messages' });
   const queryClient = useQueryClient();
   const [draft, setDraft] = useState('');
+  const [sendWarnings, setSendWarnings] = useState<string[]>([]);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useChatSocket(token);
@@ -82,6 +86,7 @@ export function MessagesPage() {
       }),
     onSuccess: async (message) => {
       setDraft('');
+      setSendWarnings(message.warnings ?? []);
       queryClient.setQueryData<ConversationDetail>(
         ['conversation', conversationId, token],
         (current) => {
@@ -123,6 +128,9 @@ export function MessagesPage() {
         <div className="border-border border-b px-4 py-4">
           <h1 className="text-lg font-semibold">Сообщения</h1>
           <p className="text-muted text-xs">{items.length} диалогов</p>
+        </div>
+        <div className="p-3">
+          <AiPagePitch page="messages" compact />
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto">
           {listQuery.isLoading ? <div className="text-muted p-4 text-sm">Загрузка…</div> : null}
@@ -193,6 +201,20 @@ export function MessagesPage() {
                 ) : null}
               </div>
             </div>
+            {conversationId && token ? (
+              <ChatAssistPanel
+                conversationId={conversationId}
+                token={token}
+                onInsertQuestion={(text) => setDraft(text)}
+              />
+            ) : null}
+            {sendWarnings.length > 0 ? (
+              <div className="mx-5 space-y-1 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-100">
+                {sendWarnings.map((warning) => (
+                  <p key={warning}>{warning}</p>
+                ))}
+              </div>
+            ) : null}
             <div className="bg-background min-h-0 flex-1 space-y-3 overflow-y-auto px-5 py-4">
               {thread.messages.map((message) => {
                 const mine = message.senderId === user?.id;

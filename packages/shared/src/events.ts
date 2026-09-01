@@ -1,6 +1,8 @@
 export const DOMAIN_EVENTS = {
   UserRegistered: 'UserRegistered',
   ListingPublished: 'ListingPublished',
+  ListingQueued: 'ListingQueued',
+  ListingRejected: 'ListingRejected',
   ListingUpdated: 'ListingUpdated',
   ListingSold: 'ListingSold',
   MessageSent: 'MessageSent',

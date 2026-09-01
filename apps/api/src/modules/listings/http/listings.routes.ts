@@ -3,6 +3,7 @@ import {
   createListingSchema,
   listingFilterSchema,
   listingMineQuerySchema,
+  publishListingSchema,
 } from '@markethub/shared';
 import { z } from 'zod';
 import { NotFoundError } from '../../../shared/errors/app-error.js';
@@ -53,7 +54,7 @@ export const listingsRoutes: FastifyPluginAsyncZod = async (app) => {
         tags: ['listings'],
         body: createListingSchema,
       },
-      preHandler: [app.authenticate],
+      preHandler: [app.authenticate, app.requireVerifiedEmail],
     },
     async (request, reply) => {
       const listing = await app.services.listings.createDraft(request.user!.id, request.body);
@@ -84,8 +85,12 @@ export const listingsRoutes: FastifyPluginAsyncZod = async (app) => {
   app.post(
     '/:id/publish',
     {
-      schema: { tags: ['listings'], params: listingIdParams },
-      preHandler: [app.authenticate],
+      schema: {
+        tags: ['listings'],
+        params: listingIdParams,
+        body: publishListingSchema.default({}),
+      },
+      preHandler: [app.authenticate, app.requireVerifiedEmail],
     },
     async (request) => {
       const listing = await app.services.listings.publish(request.user!.id, request.params.id);
@@ -201,10 +206,11 @@ export const listingsRoutes: FastifyPluginAsyncZod = async (app) => {
 
       const viewerId = request.user?.id ?? null;
       const isOwner = viewerId === listing.sellerId;
+      const isModerator = request.user?.role === 'moderator' || request.user?.role === 'admin';
       const isPeer =
         Boolean(viewerId) &&
         (await app.services.messaging.isParticipantOnListing(request.params.id, viewerId!));
-      if (listing.status !== 'published' && !isOwner && !isPeer) {
+      if (listing.status !== 'published' && !isOwner && !isPeer && !isModerator) {
         throw new NotFoundError('Listing not found');
       }
 

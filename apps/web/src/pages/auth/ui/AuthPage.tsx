@@ -1,18 +1,27 @@
 import { useState } from 'react';
-import { useNavigate } from '@tanstack/react-router';
+import { Link, useNavigate } from '@tanstack/react-router';
 import { useForm } from '@tanstack/react-form';
-import { loginSchema, registerSchema, type CountryCode } from '@markethub/shared';
+import {
+  loginSchema,
+  registerSchema,
+  type AuthResponse,
+  type CountryCode,
+} from '@markethub/shared';
 import { CountrySelect } from '@/entities/geo/ui/CountrySelect';
 import { apiRequest } from '@/shared/api/client';
-import { useAuthStore, type AuthUser } from '@/shared/model/stores';
+import type { AuthUser } from '@markethub/shared';
+import { useAuthStore } from '@/shared/model/stores';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 import { Label } from '@/shared/ui/label';
 import { BrandMark } from '@/shared/ui/brand-mark';
+import { AiPagePitch } from '@/features/ai/ui/AiPagePitch';
 import { mapAuthError } from '../model/map-auth-error';
 
-type AuthResponse = { accessToken: string; user: AuthUser; expiresIn?: number };
+function authDestination(user: AuthUser) {
+  return user.emailVerified ? '/' : '/verify-email';
+}
 
 export function AuthPage() {
   const [mode, setMode] = useState<'login' | 'register'>('login');
@@ -36,7 +45,7 @@ export function AuthPage() {
           skipAuth: true,
         });
         setSession(data.accessToken, data.user, data.expiresIn);
-        await navigate({ to: '/' });
+        await navigate({ to: authDestination(data.user) });
       } catch (err) {
         setError(err instanceof Error ? mapAuthError(err.message) : 'Не удалось войти');
       }
@@ -64,7 +73,7 @@ export function AuthPage() {
           skipAuth: true,
         });
         setSession(data.accessToken, data.user, data.expiresIn);
-        await navigate({ to: '/' });
+        await navigate({ to: authDestination(data.user) });
       } catch (err) {
         setError(
           err instanceof Error ? mapAuthError(err.message) : 'Не удалось зарегистрироваться',
@@ -74,7 +83,8 @@ export function AuthPage() {
   });
 
   return (
-    <div className="relative mx-auto flex min-h-[70vh] max-w-md items-center px-4">
+    <div className="relative mx-auto flex min-h-[70vh] max-w-md flex-col justify-center gap-4 px-4 py-8">
+      <AiPagePitch page="auth" compact />
       <div
         className="bg-primary/15 pointer-events-none absolute -left-16 top-8 h-40 w-40 rounded-full blur-3xl"
         aria-hidden
@@ -90,7 +100,7 @@ export function AuthPage() {
           <p className="text-muted text-sm">
             {mode === 'login'
               ? 'Войдите по email и паролю, чтобы писать продавцам и размещать объявления.'
-              : 'Один аккаунт для BY, RU и KZ. После регистрации можно сразу публиковать и писать в чат.'}
+              : 'Один аккаунт для BY, RU и KZ. После регистрации подтвердите email кодом из письма.'}
           </p>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -118,7 +128,15 @@ export function AuthPage() {
               <loginForm.Field name="password">
                 {(field) => (
                   <div className="space-y-1.5">
-                    <Label htmlFor="password">Пароль</Label>
+                    <div className="flex items-center justify-between gap-2">
+                      <Label htmlFor="password">Пароль</Label>
+                      <Link
+                        to="/forgot-password"
+                        className="text-primary text-xs font-medium hover:underline"
+                      >
+                        Забыли пароль?
+                      </Link>
+                    </div>
                     <Input
                       id="password"
                       type="password"

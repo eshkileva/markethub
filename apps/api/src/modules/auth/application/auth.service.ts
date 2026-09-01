@@ -3,31 +3,43 @@ import type {
   loginSchema,
   updateProfileSchema,
   changePasswordSchema,
+  verifyEmailSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
 } from '@markethub/shared';
 import type { z } from 'zod';
 import type { AppConfig } from '../../../config/env.js';
 import type { EventBus } from '../../../shared/events/event-bus.js';
+import type { EmailSender } from '../../../infrastructure/email/email-sender.js';
 import {
   ConflictError,
+  EmailNotVerifiedError,
   UnauthorizedError,
   ValidationError,
 } from '../../../shared/errors/app-error.js';
 import {
   ACCESS_TOKEN_TTL_SECONDS,
   generateRefreshToken,
+  generateVerificationCode,
   hashPassword,
   hashToken,
   signAccessToken,
+  VERIFICATION_CODE_TTL_MS,
+  VERIFICATION_MAX_ATTEMPTS,
+  VERIFICATION_RESEND_COOLDOWN_MS,
   verifyPassword,
 } from '../domain/crypto.js';
 import type { AuthRepository } from '../infrastructure/auth.repository.js';
-import type { CountryCode } from '@markethub/shared';
+import type { CountryCode, UserRole, AuthUser } from '@markethub/shared';
 import type { GeoService } from '../../geo/application/geo.service.js';
 
 type RegisterInput = z.infer<typeof registerSchema>;
 type LoginInput = z.infer<typeof loginSchema>;
 type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
 type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
+type VerifyEmailInput = z.infer<typeof verifyEmailSchema>;
+type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
+type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
 
 function publicUser(user: {
   id: string;
@@ -41,7 +53,8 @@ function publicUser(user: {
   trustScore: number;
   isVerified: boolean;
   role: string;
-}) {
+  emailVerifiedAt: Date | null;
+}): AuthUser {
   return {
     id: user.id,
     email: user.email,
@@ -49,13 +62,16 @@ function publicUser(user: {
     displayName: user.displayName,
     avatarUrl: user.avatarUrl,
     bio: user.bio,
-    country: user.country,
+    country: user.country as CountryCode,
     city: user.city,
     trustScore: user.trustScore,
     isVerified: user.isVerified,
-    role: user.role,
+    role: user.role as UserRole,
+    emailVerified: Boolean(user.emailVerifiedAt),
   };
 }
+
+type SessionUser = Parameters<typeof publicUser>[0];
 
 export class AuthService {
   constructor(
@@ -63,6 +79,7 @@ export class AuthService {
     private readonly config: AppConfig,
     private readonly events: EventBus,
     private readonly geo: GeoService,
+    private readonly email: EmailSender,
   ) {}
 
   async register(input: RegisterInput, meta: { userAgent?: string; ip?: string }) {
@@ -86,7 +103,13 @@ export class AuthService {
 
     await this.events.publish('UserRegistered', { userId: user.id, email: user.email });
 
-    return this.issueSession(user, meta);
+    const verificationCode = await this.issueVerificationCode(user.id, user.email);
+    const session = await this.issueSession(user, meta);
+
+    return {
+      ...session,
+      devVerificationCode: this.config.isDev ? verificationCode : undefined,
+    };
   }
 
   async login(input: LoginInput, meta: { userAgent?: string; ip?: string }) {
@@ -200,22 +223,155 @@ export class AuthService {
     };
   }
 
-  private async issueSession(
-    user: {
-      id: string;
-      email: string;
-      username: string;
-      displayName: string | null;
-      avatarUrl: string | null;
-      bio: string | null;
-      country: string;
-      city: string | null;
-      trustScore: number;
-      isVerified: boolean;
-      role: string;
-    },
-    meta: { userAgent?: string; ip?: string },
-  ) {
+  async verifyEmail(userId: string, input: VerifyEmailInput) {
+    const user = await this.repo.findUserById(userId);
+    if (!user) {
+      throw new UnauthorizedError();
+    }
+    if (user.emailVerifiedAt) {
+      throw new ValidationError('Email уже подтверждён');
+    }
+
+    const active = await this.repo.findLatestActiveVerificationCode(userId);
+    if (!active) {
+      throw new ValidationError('Код не найден. Запросите новый.');
+    }
+    if (active.expiresAt.getTime() < Date.now()) {
+      throw new ValidationError('Срок действия кода истёк. Запросите новый.');
+    }
+    if (active.attempts >= VERIFICATION_MAX_ATTEMPTS) {
+      throw new ValidationError('Слишком много попыток. Запросите новый код.');
+    }
+
+    const codeHash = hashToken(input.code);
+    if (codeHash !== active.codeHash) {
+      await this.repo.incrementVerificationAttempts(active.id);
+      throw new ValidationError('Неверный код');
+    }
+
+    await this.repo.consumeVerificationCode(active.id);
+    const updated = await this.repo.markEmailVerified(userId);
+    if (!updated) {
+      throw new UnauthorizedError();
+    }
+
+    return publicUser(updated);
+  }
+
+  async resendVerification(userId: string) {
+    const user = await this.repo.findUserById(userId);
+    if (!user) {
+      throw new UnauthorizedError();
+    }
+    if (user.emailVerifiedAt) {
+      throw new ValidationError('Email уже подтверждён');
+    }
+
+    const active = await this.repo.findLatestActiveVerificationCode(userId);
+    if (active && Date.now() - active.createdAt.getTime() < VERIFICATION_RESEND_COOLDOWN_MS) {
+      throw new ValidationError('Подождите минуту перед повторной отправкой');
+    }
+
+    const code = await this.issueVerificationCode(userId, user.email);
+    return {
+      ok: true as const,
+      devVerificationCode: this.config.isDev ? code : undefined,
+    };
+  }
+
+  async requestPasswordReset(input: ForgotPasswordInput) {
+    const user = await this.repo.findUserByEmail(input.email);
+    if (!user) {
+      return { ok: true as const };
+    }
+
+    const identity = await this.repo.findEmailIdentity(user.id);
+    if (!identity?.passwordHash) {
+      return { ok: true as const };
+    }
+
+    const active = await this.repo.findLatestActivePasswordResetCode(user.id);
+    if (active && Date.now() - active.createdAt.getTime() < VERIFICATION_RESEND_COOLDOWN_MS) {
+      throw new ValidationError('Подождите минуту перед повторной отправкой');
+    }
+
+    const code = await this.issuePasswordResetCode(user.id, user.email);
+    return {
+      ok: true as const,
+      devResetCode: this.config.isDev ? code : undefined,
+    };
+  }
+
+  async resetPassword(input: ResetPasswordInput) {
+    const user = await this.repo.findUserByEmail(input.email);
+    if (!user) {
+      throw new ValidationError('Неверный код');
+    }
+
+    const identity = await this.repo.findEmailIdentity(user.id);
+    if (!identity?.passwordHash) {
+      throw new ValidationError('Password login is not available for this account');
+    }
+
+    const active = await this.repo.findLatestActivePasswordResetCode(user.id);
+    if (!active) {
+      throw new ValidationError('Код не найден. Запросите новый.');
+    }
+    if (active.expiresAt.getTime() < Date.now()) {
+      throw new ValidationError('Срок действия кода истёк. Запросите новый.');
+    }
+    if (active.attempts >= VERIFICATION_MAX_ATTEMPTS) {
+      throw new ValidationError('Слишком много попыток. Запросите новый код.');
+    }
+
+    const codeHash = hashToken(input.code);
+    if (codeHash !== active.codeHash) {
+      await this.repo.incrementPasswordResetAttempts(active.id);
+      throw new ValidationError('Неверный код');
+    }
+
+    await this.repo.consumePasswordResetCode(active.id);
+    await this.repo.updatePasswordHash(identity.id, await hashPassword(input.newPassword));
+    await this.repo.revokeAllUserSessions(user.id);
+
+    return { ok: true as const };
+  }
+
+  async assertEmailVerified(userId: string) {
+    const user = await this.repo.findUserById(userId);
+    if (!user) {
+      throw new UnauthorizedError();
+    }
+    if (!user.emailVerifiedAt) {
+      throw new EmailNotVerifiedError();
+    }
+  }
+
+  private async issueVerificationCode(userId: string, email: string) {
+    const code = generateVerificationCode();
+    await this.repo.invalidateVerificationCodes(userId);
+    await this.repo.createVerificationCode({
+      userId,
+      codeHash: hashToken(code),
+      expiresAt: new Date(Date.now() + VERIFICATION_CODE_TTL_MS),
+    });
+    await this.email.sendVerificationCode({ to: email, code });
+    return code;
+  }
+
+  private async issuePasswordResetCode(userId: string, email: string) {
+    const code = generateVerificationCode();
+    await this.repo.invalidatePasswordResetCodes(userId);
+    await this.repo.createPasswordResetCode({
+      userId,
+      codeHash: hashToken(code),
+      expiresAt: new Date(Date.now() + VERIFICATION_CODE_TTL_MS),
+    });
+    await this.email.sendPasswordResetCode({ to: email, code });
+    return code;
+  }
+
+  private async issueSession(user: SessionUser, meta: { userAgent?: string; ip?: string }) {
     const refreshToken = generateRefreshToken();
     const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 30);
     await this.repo.createSession({

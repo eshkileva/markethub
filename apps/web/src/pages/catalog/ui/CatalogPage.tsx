@@ -19,6 +19,8 @@ import { Input } from '@/shared/ui/input';
 import { Label } from '@/shared/ui/label';
 import { Combobox } from '@/shared/ui/combobox';
 import { ProductCard, type ProductCardData } from '@/entities/listing/ui/ProductCard';
+import type { ListingCard, Paginated } from '@/entities/listing/model/types';
+import type { CategoriesResponse } from '@/entities/category/model/api';
 import { deliveryModeLabels, listingConditionLabels } from '@/entities/listing/model/labels';
 import { CitySelect } from '@/entities/geo/ui/CitySelect';
 import { CountrySelect } from '@/entities/geo/ui/CountrySelect';
@@ -27,18 +29,13 @@ import { categoryChildren, categoryRoots, findCategory } from '@/entities/catego
 import type { AttributeDef } from '@/pages/create-listing/ui/ListingAttributesFields';
 import type { CatalogSearch } from '@/pages/catalog/model/search';
 import { useSearchHistory } from '@/features/search/model/use-search-history';
+import { resolveSmartSearch } from '@/features/search/model/resolve-smart-search';
+import { AiPagePitch } from '@/features/ai/ui/AiPagePitch';
+import { AuthGuestBanner } from '@/features/auth/ui/AuthGuestBanner';
 import { normalizeSearchQuery } from '@markethub/shared';
 
-type ListingsResponse = {
-  items: Array<ProductCardData>;
-  page: number;
-  pageSize: number;
-  total: number;
-};
-
-type CategoriesResponse = {
-  items: Array<{ id: string; slug: string; nameRu: string; parentId: string | null }>;
-};
+type ListingsResponse = Paginated<ProductCardData> &
+  Required<Pick<Paginated<ListingCard>, 'page' | 'pageSize' | 'total'>>;
 
 type AttributesResponse = { items: AttributeDef[] };
 
@@ -124,6 +121,16 @@ export function CatalogPage() {
     });
   }
 
+  async function submitSmartSearch(rawQuery: string) {
+    const trimmed = rawQuery.trim();
+    if (!trimmed) {
+      patchSearch({ q: undefined });
+      return;
+    }
+    const resolved = await resolveSmartSearch(trimmed, { country: country ?? undefined }, token);
+    patchSearch(resolved);
+  }
+
   function patchAttr(key: string, value: string) {
     const current = (search.attr ?? []).filter((item) => !item.startsWith(`${key}:`));
     if (value) current.push(`${key}:${value}`);
@@ -146,7 +153,13 @@ export function CatalogPage() {
             id="catalog-q"
             value={search.q ?? ''}
             onChange={(e) => patchSearch({ q: e.target.value || undefined })}
-            placeholder="iPhone, RTX, диван..."
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') {
+                event.preventDefault();
+                void submitSmartSearch(event.currentTarget.value);
+              }
+            }}
+            placeholder="iPhone до 50000, ноутбук Минск..."
           />
         </div>
         <div className="space-y-1.5">
@@ -322,129 +335,133 @@ export function CatalogPage() {
   );
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[260px_1fr]">
-      <div className="hidden lg:block">{filters}</div>
-      {filtersOpen ? (
-        <div className="lg:hidden">
-          <button
-            type="button"
-            className="fixed inset-0 z-40 bg-black/40"
-            aria-label="Закрыть фильтры"
-            onClick={() => setFiltersOpen(false)}
-          />
-          <div className="fixed inset-x-0 bottom-16 z-50 max-h-[70dvh] overflow-y-auto p-3 pb-4">
-            {filters}
-          </div>
-        </div>
-      ) : null}
-
-      <div className="space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h1 className="font-display text-2xl font-semibold tracking-tight">Каталог</h1>
-            <p className="text-muted text-sm">{total} объявлений</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
+    <div className="space-y-4">
+      <AuthGuestBanner />
+      <div className="grid gap-6 lg:grid-cols-[260px_1fr]">
+        <div className="hidden lg:block">{filters}</div>
+        {filtersOpen ? (
+          <div className="lg:hidden">
+            <button
               type="button"
-              variant="secondary"
-              className="lg:hidden"
-              onClick={() => setFiltersOpen(true)}
-            >
-              <SlidersHorizontal className="h-4 w-4" />
-              Фильтры
-            </Button>
-            <Combobox
-              className="w-44"
-              value={search.sort ?? 'newest'}
-              onChange={(value) =>
-                patchSearch({
-                  sort: value as 'newest' | 'price_asc' | 'price_desc',
-                })
-              }
-              aria-label="Сортировка"
-              options={[
-                { value: 'newest', label: 'Сначала новые' },
-                { value: 'price_asc', label: 'Дешевле' },
-                { value: 'price_desc', label: 'Дороже' },
-              ]}
+              className="fixed inset-0 z-40 bg-black/40"
+              aria-label="Закрыть фильтры"
+              onClick={() => setFiltersOpen(false)}
             />
-            <Button
-              type="button"
-              size="icon"
-              variant={view === 'grid' ? 'default' : 'secondary'}
-              onClick={() => patchSearch({ view: 'grid' })}
-              aria-label="Сетка"
-            >
-              <LayoutGrid className="h-4 w-4" />
-            </Button>
-            <Button
-              type="button"
-              size="icon"
-              variant={view === 'list' ? 'default' : 'secondary'}
-              onClick={() => patchSearch({ view: 'list' })}
-              aria-label="Список"
-            >
-              <List className="h-4 w-4" />
-            </Button>
+            <div className="fixed inset-x-0 bottom-16 z-50 max-h-[70dvh] overflow-y-auto p-3 pb-4">
+              {filters}
+            </div>
           </div>
+        ) : null}
+
+        <div className="space-y-4">
+          <AiPagePitch page="catalog" compact />
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h1 className="font-display text-2xl font-semibold tracking-tight">Каталог</h1>
+              <p className="text-muted text-sm">{total} объявлений</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="secondary"
+                className="lg:hidden"
+                onClick={() => setFiltersOpen(true)}
+              >
+                <SlidersHorizontal className="h-4 w-4" />
+                Фильтры
+              </Button>
+              <Combobox
+                className="w-44"
+                value={search.sort ?? 'newest'}
+                onChange={(value) =>
+                  patchSearch({
+                    sort: value as 'newest' | 'price_asc' | 'price_desc',
+                  })
+                }
+                aria-label="Сортировка"
+                options={[
+                  { value: 'newest', label: 'Сначала новые' },
+                  { value: 'price_asc', label: 'Дешевле' },
+                  { value: 'price_desc', label: 'Дороже' },
+                ]}
+              />
+              <Button
+                type="button"
+                size="icon"
+                variant={view === 'grid' ? 'default' : 'secondary'}
+                onClick={() => patchSearch({ view: 'grid' })}
+                aria-label="Сетка"
+              >
+                <LayoutGrid className="h-4 w-4" />
+              </Button>
+              <Button
+                type="button"
+                size="icon"
+                variant={view === 'list' ? 'default' : 'secondary'}
+                onClick={() => patchSearch({ view: 'list' })}
+                aria-label="Список"
+              >
+                <List className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+
+          {listingsQuery.isLoading ? (
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <Card key={i} className="bg-surface-secondary h-72 animate-pulse" />
+              ))}
+            </div>
+          ) : null}
+
+          {listingsQuery.data?.items.length === 0 ? (
+            <Card>
+              <CardContent className="text-muted p-6 text-sm">
+                Ничего не нашлось. Снимите часть фильтров или{' '}
+                <Link to="/listings/create" className="text-primary">
+                  разместите объявление
+                </Link>
+                .
+              </CardContent>
+            </Card>
+          ) : view === 'list' ? (
+            <div className="space-y-3">
+              {listingsQuery.data?.items.map((item) => (
+                <ProductCard key={item.id} item={item} layout="list" />
+              ))}
+            </div>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              {listingsQuery.data?.items.map((item) => (
+                <ProductCard key={item.id} item={item} />
+              ))}
+            </div>
+          )}
+
+          {pageCount > 1 ? (
+            <div className="flex items-center justify-center gap-2">
+              <Button
+                type="button"
+                variant="secondary"
+                disabled={page <= 1}
+                onClick={() => patchSearch({ page: page - 1 })}
+              >
+                Назад
+              </Button>
+              <span className="text-muted text-sm">
+                {page} / {pageCount}
+              </span>
+              <Button
+                type="button"
+                variant="secondary"
+                disabled={page >= pageCount}
+                onClick={() => patchSearch({ page: page + 1 })}
+              >
+                Вперёд
+              </Button>
+            </div>
+          ) : null}
         </div>
-
-        {listingsQuery.isLoading ? (
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <Card key={i} className="bg-surface-secondary h-72 animate-pulse" />
-            ))}
-          </div>
-        ) : null}
-
-        {listingsQuery.data?.items.length === 0 ? (
-          <Card>
-            <CardContent className="text-muted p-6 text-sm">
-              Ничего не нашлось. Снимите часть фильтров или{' '}
-              <Link to="/listings/create" className="text-primary">
-                разместите объявление
-              </Link>
-              .
-            </CardContent>
-          </Card>
-        ) : view === 'list' ? (
-          <div className="space-y-3">
-            {listingsQuery.data?.items.map((item) => (
-              <ProductCard key={item.id} item={item} layout="list" />
-            ))}
-          </div>
-        ) : (
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {listingsQuery.data?.items.map((item) => (
-              <ProductCard key={item.id} item={item} />
-            ))}
-          </div>
-        )}
-
-        {pageCount > 1 ? (
-          <div className="flex items-center justify-center gap-2">
-            <Button
-              type="button"
-              variant="secondary"
-              disabled={page <= 1}
-              onClick={() => patchSearch({ page: page - 1 })}
-            >
-              Назад
-            </Button>
-            <span className="text-muted text-sm">
-              {page} / {pageCount}
-            </span>
-            <Button
-              type="button"
-              variant="secondary"
-              disabled={page >= pageCount}
-              onClick={() => patchSearch({ page: page + 1 })}
-            >
-              Вперёд
-            </Button>
-          </div>
-        ) : null}
       </div>
     </div>
   );

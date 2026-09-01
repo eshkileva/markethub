@@ -3,6 +3,7 @@ import { Label } from '@/shared/ui/label';
 import { Input } from '@/shared/ui/input';
 import { Combobox } from '@/shared/ui/combobox';
 import { CatalogBrandField, CatalogModelField } from '@/entities/catalog/ui/CatalogFields';
+import { FieldError, fieldControlClass } from '@/shared/ui/field-error';
 
 export type CategoryAttributeDef = {
   id: string;
@@ -33,6 +34,7 @@ export function CategoryAttributeFields({
   enumClearLabel = 'Любое',
   showRequired = false,
   onBrandChange,
+  errorOf,
 }: {
   defs: CategoryAttributeDef[];
   valueOf: (def: CategoryAttributeDef) => string;
@@ -41,6 +43,7 @@ export function CategoryAttributeFields({
   enumClearLabel?: string;
   showRequired?: boolean;
   onBrandChange?: (def: CategoryAttributeDef, value: string) => void;
+  errorOf?: (def: CategoryAttributeDef) => string | undefined;
 }) {
   return (
     <>
@@ -48,8 +51,10 @@ export function CategoryAttributeFields({
         const kind = attr.dictionary && isCatalogKind(attr.dictionary) ? attr.dictionary : null;
         const brand = parentValue(defs, valueOf, attr.parentKey);
         const fieldId = `${idPrefix}-${attr.key}`;
+        const fieldAnchorId = `field-attributes.${attr.id}`;
+        const error = errorOf?.(attr);
         return (
-          <div key={attr.id} className="space-y-1.5">
+          <div key={attr.id} id={fieldAnchorId} className="scroll-mt-24 space-y-1.5">
             <Label htmlFor={fieldId}>
               {attr.labelRu}
               {showRequired && attr.required ? ' *' : ''}
@@ -84,6 +89,7 @@ export function CategoryAttributeFields({
                 onChange={(value) => onChange(attr, value)}
                 allowEmpty
                 clearLabel={enumClearLabel}
+                className={fieldControlClass(Boolean(error))}
                 options={attr.options.map((option) => ({
                   value: option,
                   label: option,
@@ -95,8 +101,11 @@ export function CategoryAttributeFields({
                 value={valueOf(attr)}
                 onChange={(e) => onChange(attr, e.target.value)}
                 placeholder={attr.type === 'number' ? 'Число' : undefined}
+                aria-invalid={Boolean(error)}
+                className={fieldControlClass(Boolean(error))}
               />
             )}
+            <FieldError message={error} />
           </div>
         );
       })}

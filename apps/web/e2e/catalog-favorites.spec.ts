@@ -1,7 +1,13 @@
 import { test, expect } from '@playwright/test';
+import {
+  expectAuthRedirect,
+  registerVerifiedUser,
+  seedBrowserSession,
+  ensureListingPublished,
+} from './helpers/auth';
+import { E2E_API_BASE } from './helpers/config';
 
-test('catalog loads and favorite opens auth', async ({ page }) => {
-  const apiBase = 'http://localhost:3000';
+test('catalog loads and favorite toggles for signed-in user', async ({ page }) => {
   const email = `seller_${Date.now()}@example.com`;
   const username = `seller_${Date.now()}`;
   const password = 'password12';
@@ -14,27 +20,22 @@ test('catalog loads and favorite opens auth', async ({ page }) => {
   }
 
   // 1) Create user (email/password)
-  const registerRes = await page.request.post(`${apiBase}/v1/auth/register`, {
-    headers: { 'content-type': 'application/json' },
-    data: {
-      email,
-      password,
-      username,
-      country: 'RU',
-    },
+  const registerJson = await registerVerifiedUser(page.request, {
+    email,
+    password,
+    username,
+    country: 'RU',
   });
-  await assertOk(registerRes, 'register');
-  const registerJson = await registerRes.json();
-  const token = registerJson.accessToken as string;
+  const token = registerJson.accessToken;
 
   // 2) Get laptops leaf + attributes
-  const catsRes = await page.request.get(`${apiBase}/v1/categories`);
+  const catsRes = await page.request.get(`${E2E_API_BASE}/v1/categories`);
   await assertOk(catsRes, 'categories');
   const catsJson = await catsRes.json();
   const laptops = catsJson.items.find((c: { slug: string }) => c.slug === 'laptops');
   if (!laptops) throw new Error('Missing laptops category seed');
 
-  const attrsRes = await page.request.get(`${apiBase}/v1/categories/${laptops.id}/attributes`);
+  const attrsRes = await page.request.get(`${E2E_API_BASE}/v1/categories/${laptops.id}/attributes`);
   await assertOk(attrsRes, 'category attributes');
   const attrsJson = await attrsRes.json();
   const manufacturer =
@@ -43,7 +44,7 @@ test('catalog loads and favorite opens auth', async ({ page }) => {
   const title = `E2E Listing ${Date.now()}`;
 
   // 3) Create listing as draft
-  const createRes = await page.request.post(`${apiBase}/v1/listings`, {
+  const createRes = await page.request.post(`${E2E_API_BASE}/v1/listings`, {
     headers: { Authorization: `Bearer ${token}`, 'content-type': 'application/json' },
     data: {
       title,
@@ -67,7 +68,7 @@ test('catalog loads and favorite opens auth', async ({ page }) => {
     'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
   const pngBuffer = Buffer.from(pngBase64, 'base64');
 
-  const uploadRes = await page.request.post(`${apiBase}/v1/media/upload`, {
+  const uploadRes = await page.request.post(`${E2E_API_BASE}/v1/media/upload`, {
     headers: { Authorization: `Bearer ${token}` },
     multipart: {
       file: {
@@ -80,23 +81,26 @@ test('catalog loads and favorite opens auth', async ({ page }) => {
   await assertOk(uploadRes, 'upload image');
   const uploadJson = await uploadRes.json();
 
-  const addImageRes = await page.request.post(`${apiBase}/v1/listings/${listingId}/images`, {
+  const addImageRes = await page.request.post(`${E2E_API_BASE}/v1/listings/${listingId}/images`, {
     headers: { Authorization: `Bearer ${token}`, 'content-type': 'application/json' },
     data: { url: uploadJson.url },
   });
   await assertOk(addImageRes, 'add image');
 
-  const publishRes = await page.request.post(`${apiBase}/v1/listings/${listingId}/publish`, {
-    headers: { Authorization: `Bearer ${token}` },
+  const publishRes = await page.request.post(`${E2E_API_BASE}/v1/listings/${listingId}/publish`, {
+    headers: { Authorization: `Bearer ${token}`, 'content-type': 'application/json' },
+    data: {},
   });
   await assertOk(publishRes, 'publish listing');
+  const publishJson = await publishRes.json();
+  await ensureListingPublished(page.request, listingId, publishJson.status as string);
 
   // Wait until the listing is visible in the public feed (publish -> DB -> query).
   const start = Date.now();
   let foundInFeed = false;
   while (Date.now() - start < 15000) {
     const feedRes = await page.request.get(
-      `${apiBase}/v1/listings?page=1&pageSize=12&sort=newest&country=RU`,
+      `${E2E_API_BASE}/v1/listings?page=1&pageSize=12&sort=newest&country=RU`,
     );
     await assertOk(feedRes, 'feed check');
     const feedJson = await feedRes.json();
@@ -110,7 +114,8 @@ test('catalog loads and favorite opens auth', async ({ page }) => {
     throw new Error(`Listing title not found in feed after 15s: ${title}`);
   }
 
-  // Now open catalog and verify UI
+  // Now open catalog with an authenticated browser session
+  await seedBrowserSession(page, registerJson);
   await page.goto('/catalog?country=RU');
   await expect(page.getByRole('heading', { name: 'Каталог' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Фильтры' })).toBeVisible();
@@ -123,22 +128,13 @@ test('catalog loads and favorite opens auth', async ({ page }) => {
     .first();
   await expect(heartButton).toBeVisible();
   await heartButton.click();
-
-  await expect(page.getByRole('heading', { name: /Вход в Купилко/i })).toBeVisible();
+  await expect(heartButton).toHaveAttribute('aria-label', 'Убрать из избранного');
 });
 
-test('favorites page without auth shows login prompt', async ({ page }) => {
-  await page.goto('/favorites');
-
-  await expect(
-    page.getByText('Войдите, чтобы сохранять объявления и открывать их с любого устройства.'),
-  ).toBeVisible();
+test('favorites redirects to auth when signed out', async ({ page }) => {
+  await expectAuthRedirect(page, '/favorites');
 });
 
-test('messages page without auth shows login prompt', async ({ page }) => {
-  await page.goto('/messages');
-
-  await expect(
-    page.getByText('Войдите, чтобы писать продавцам и отвечать покупателям.'),
-  ).toBeVisible();
+test('messages redirects to auth when signed out', async ({ page }) => {
+  await expectAuthRedirect(page, '/messages');
 });

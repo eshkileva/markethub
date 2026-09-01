@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Outlet, useRouterState } from '@tanstack/react-router';
 import { AppSidebar } from '@/widgets/app-sidebar/ui/AppSidebar';
 import { TopBar } from '@/widgets/top-bar/ui/TopBar';
+import { AiGlobalStrip } from '@/features/ai/ui/AiGlobalStrip';
 import { BottomNav } from '@/widgets/bottom-nav/ui/BottomNav';
 import { restoreSession } from '@/shared/api/session';
 import { applyTheme, useUiStore } from '@/shared/model/stores';
@@ -10,7 +11,8 @@ import { cn } from '@/shared/lib/cn';
 export function AppShell() {
   const [sessionReady, setSessionReady] = useState(false);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const isAuth = pathname === '/auth';
+  const isAuthFlow =
+    pathname === '/auth' || pathname === '/verify-email' || pathname === '/forgot-password';
   const isChat = pathname === '/messages';
   const theme = useUiStore((s) => s.theme);
 
@@ -31,7 +33,7 @@ export function AppShell() {
     return <div className="bg-background h-dvh" />;
   }
 
-  if (isAuth) {
+  if (isAuthFlow) {
     return (
       <div className="bg-background h-dvh overflow-y-auto">
         <Outlet />
@@ -44,6 +46,7 @@ export function AppShell() {
       <AppSidebar />
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
         <TopBar />
+        {!isChat ? <AiGlobalStrip /> : null}
         <main
           className={cn(
             'min-h-0 flex-1',
