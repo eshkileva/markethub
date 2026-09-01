@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useSearch } from '@tanstack/react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Send } from 'lucide-react';
+import { Send, ArrowLeft } from 'lucide-react';
 import { apiRequest } from '@/shared/api/client';
 import { useAuthStore } from '@/shared/model/stores';
 import { useChatSocket } from '@/features/messaging/model/use-chat-socket';
@@ -46,6 +46,14 @@ type ConversationDetail = {
   } | null;
   messages: Message[];
 };
+
+function dialogCountLabel(count: number) {
+  const n10 = count % 10;
+  const n100 = count % 100;
+  if (n10 === 1 && n100 !== 11) return `${count} диалог`;
+  if (n10 >= 2 && n10 <= 4 && (n100 < 10 || n100 >= 20)) return `${count} диалога`;
+  return `${count} диалогов`;
+}
 
 export function MessagesPage() {
   const token = useAuthStore((s) => s.accessToken);
@@ -121,15 +129,22 @@ export function MessagesPage() {
 
   const items = listQuery.data?.items ?? [];
   const thread = threadQuery.data;
+  const showList = !conversationId;
+  const showThread = Boolean(conversationId);
 
   return (
-    <div className="border-border bg-card flex h-full min-h-0 overflow-hidden rounded-2xl border shadow-sm">
-      <aside className="border-border flex w-80 shrink-0 flex-col border-r">
+    <div className="border-border bg-card flex h-full min-h-0 overflow-hidden lg:rounded-2xl lg:border lg:shadow-sm">
+      <aside
+        className={cn(
+          'border-border flex w-full flex-col border-r lg:w-80 lg:shrink-0',
+          showList ? 'flex' : 'hidden lg:flex',
+        )}
+      >
         <div className="border-border border-b px-4 py-4">
           <h1 className="text-lg font-semibold">Сообщения</h1>
-          <p className="text-muted text-xs">{items.length} диалогов</p>
+          <p className="text-muted text-xs">{dialogCountLabel(items.length)}</p>
         </div>
-        <div className="p-3">
+        <div className="hidden p-3 sm:block">
           <AiPagePitch page="messages" compact />
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto">
@@ -182,19 +197,35 @@ export function MessagesPage() {
         </div>
       </aside>
 
-      <section className="flex min-w-0 flex-1 flex-col">
-        {conversationId && thread ? (
+      <section
+        className={cn('flex min-w-0 flex-1 flex-col', showThread ? 'flex' : 'hidden lg:flex')}
+      >
+        {conversationId && threadQuery.isLoading ? (
+          <div className="text-muted flex flex-1 items-center justify-center text-sm">
+            Загрузка…
+          </div>
+        ) : conversationId && thread ? (
           <>
-            <div className="border-border flex items-center justify-between gap-3 border-b px-5 py-4">
-              <div>
-                <div className="font-medium">
+            <div className="border-border flex items-center gap-2 border-b px-4 py-3 lg:px-5 lg:py-4">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="shrink-0 lg:hidden"
+                aria-label="Назад к списку диалогов"
+                onClick={() => void navigate({ search: { conversation: undefined } })}
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+              <div className="min-w-0 flex-1">
+                <div className="truncate font-medium">
                   {thread.peer?.displayName ?? thread.peer?.username ?? 'Собеседник'}
                 </div>
                 {thread.listing ? (
                   <Link
                     to="/listings/$id"
                     params={{ id: thread.listing.id }}
-                    className="text-primary text-xs"
+                    className="text-primary block truncate text-xs"
                   >
                     {thread.listing.title}
                   </Link>
@@ -245,7 +276,7 @@ export function MessagesPage() {
               <div ref={bottomRef} />
             </div>
             <form
-              className="border-border flex gap-2 border-t p-4"
+              className="border-border flex gap-2 border-t p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] lg:p-4 lg:pb-4"
               onSubmit={(event) => {
                 event.preventDefault();
                 const body = draft.trim();
@@ -269,7 +300,7 @@ export function MessagesPage() {
             </form>
           </>
         ) : (
-          <div className="text-muted flex flex-1 items-center justify-center text-sm">
+          <div className="text-muted hidden flex-1 items-center justify-center text-sm lg:flex">
             Выберите диалог слева
           </div>
         )}
