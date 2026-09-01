@@ -4,6 +4,8 @@ import type {
   updateProfileSchema,
   changePasswordSchema,
   verifyEmailSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
 } from '@markethub/shared';
 import type { z } from 'zod';
 import type { AppConfig } from '../../../config/env.js';
@@ -36,6 +38,8 @@ type LoginInput = z.infer<typeof loginSchema>;
 type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
 type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
 type VerifyEmailInput = z.infer<typeof verifyEmailSchema>;
+type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
+type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
 
 function publicUser(user: {
   id: string;
@@ -278,6 +282,64 @@ export class AuthService {
     };
   }
 
+  async requestPasswordReset(input: ForgotPasswordInput) {
+    const user = await this.repo.findUserByEmail(input.email);
+    if (!user) {
+      return { ok: true as const };
+    }
+
+    const identity = await this.repo.findEmailIdentity(user.id);
+    if (!identity?.passwordHash) {
+      return { ok: true as const };
+    }
+
+    const active = await this.repo.findLatestActivePasswordResetCode(user.id);
+    if (active && Date.now() - active.createdAt.getTime() < VERIFICATION_RESEND_COOLDOWN_MS) {
+      throw new ValidationError('Подождите минуту перед повторной отправкой');
+    }
+
+    const code = await this.issuePasswordResetCode(user.id, user.email);
+    return {
+      ok: true as const,
+      devResetCode: this.config.isDev ? code : undefined,
+    };
+  }
+
+  async resetPassword(input: ResetPasswordInput) {
+    const user = await this.repo.findUserByEmail(input.email);
+    if (!user) {
+      throw new ValidationError('Неверный код');
+    }
+
+    const identity = await this.repo.findEmailIdentity(user.id);
+    if (!identity?.passwordHash) {
+      throw new ValidationError('Password login is not available for this account');
+    }
+
+    const active = await this.repo.findLatestActivePasswordResetCode(user.id);
+    if (!active) {
+      throw new ValidationError('Код не найден. Запросите новый.');
+    }
+    if (active.expiresAt.getTime() < Date.now()) {
+      throw new ValidationError('Срок действия кода истёк. Запросите новый.');
+    }
+    if (active.attempts >= VERIFICATION_MAX_ATTEMPTS) {
+      throw new ValidationError('Слишком много попыток. Запросите новый код.');
+    }
+
+    const codeHash = hashToken(input.code);
+    if (codeHash !== active.codeHash) {
+      await this.repo.incrementPasswordResetAttempts(active.id);
+      throw new ValidationError('Неверный код');
+    }
+
+    await this.repo.consumePasswordResetCode(active.id);
+    await this.repo.updatePasswordHash(identity.id, await hashPassword(input.newPassword));
+    await this.repo.revokeAllUserSessions(user.id);
+
+    return { ok: true as const };
+  }
+
   async assertEmailVerified(userId: string) {
     const user = await this.repo.findUserById(userId);
     if (!user) {
@@ -297,6 +359,18 @@ export class AuthService {
       expiresAt: new Date(Date.now() + VERIFICATION_CODE_TTL_MS),
     });
     await this.email.sendVerificationCode({ to: email, code });
+    return code;
+  }
+
+  private async issuePasswordResetCode(userId: string, email: string) {
+    const code = generateVerificationCode();
+    await this.repo.invalidatePasswordResetCodes(userId);
+    await this.repo.createPasswordResetCode({
+      userId,
+      codeHash: hashToken(code),
+      expiresAt: new Date(Date.now() + VERIFICATION_CODE_TTL_MS),
+    });
+    await this.email.sendPasswordResetCode({ to: email, code });
     return code;
   }
 

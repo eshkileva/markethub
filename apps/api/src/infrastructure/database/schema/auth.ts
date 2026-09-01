@@ -72,3 +72,22 @@ export const emailVerificationCodes = pgTable(
     index('email_verification_codes_expires_idx').on(table.expiresAt),
   ],
 );
+
+export const passwordResetCodes = pgTable(
+  'password_reset_codes',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    codeHash: text('code_hash').notNull(),
+    attempts: integer('attempts').notNull().default(0),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    consumedAt: timestamp('consumed_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index('password_reset_codes_user_idx').on(table.userId),
+    index('password_reset_codes_expires_idx').on(table.expiresAt),
+  ],
+);

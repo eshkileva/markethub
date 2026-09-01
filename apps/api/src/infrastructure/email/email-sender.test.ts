@@ -11,6 +11,16 @@ describe('ConsoleEmailSender', () => {
       'email verification code sent',
     );
   });
+
+  it('logs password reset code payload', async () => {
+    const log = vi.fn();
+    const sender = new ConsoleEmailSender(log);
+    await sender.sendPasswordResetCode({ to: 'user@example.com', code: '654321' });
+    expect(log).toHaveBeenCalledWith(
+      { to: 'user@example.com', code: '654321' },
+      'password reset code sent',
+    );
+  });
 });
 
 describe('SmtpEmailSender', () => {

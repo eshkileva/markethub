@@ -16,7 +16,10 @@ function geo() {
 }
 
 function email() {
-  return { sendVerificationCode: vi.fn(async () => undefined) };
+  return {
+    sendVerificationCode: vi.fn(async () => undefined),
+    sendPasswordResetCode: vi.fn(async () => undefined),
+  };
 }
 
 const baseUser = {
@@ -135,5 +138,50 @@ describe('AuthService register', () => {
     expect(mail.sendVerificationCode).toHaveBeenCalled();
     expect(result.user.emailVerified).toBe(false);
     expect(result.devVerificationCode).toMatch(/^\d{6}$/);
+  });
+});
+
+describe('AuthService password reset', () => {
+  it('sends reset code for existing email account', async () => {
+    const repo = {
+      findUserByEmail: vi.fn(async () => baseUser),
+      findEmailIdentity: vi.fn(async () => ({ id: 'identity-1', passwordHash: 'hash' })),
+      findLatestActivePasswordResetCode: vi.fn(async () => null),
+      invalidatePasswordResetCodes: vi.fn(async () => undefined),
+      createPasswordResetCode: vi.fn(async () => ({ id: 'reset-1' })),
+    };
+    const mail = email();
+
+    const service = new AuthService(
+      repo as never,
+      config(true),
+      events() as never,
+      geo() as never,
+      mail as never,
+    );
+
+    const result = await service.requestPasswordReset({ email: 'user@example.com' });
+    expect(result.ok).toBe(true);
+    expect(mail.sendPasswordResetCode).toHaveBeenCalled();
+    expect(result.devResetCode).toMatch(/^\d{6}$/);
+  });
+
+  it('returns ok without leaking unknown email', async () => {
+    const repo = {
+      findUserByEmail: vi.fn(async () => null),
+    };
+    const mail = email();
+
+    const service = new AuthService(
+      repo as never,
+      config(true),
+      events() as never,
+      geo() as never,
+      mail as never,
+    );
+
+    const result = await service.requestPasswordReset({ email: 'missing@example.com' });
+    expect(result.ok).toBe(true);
+    expect(mail.sendPasswordResetCode).not.toHaveBeenCalled();
   });
 });

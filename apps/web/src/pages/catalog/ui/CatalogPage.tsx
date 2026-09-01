@@ -33,6 +33,7 @@ import type { CatalogSearch } from '@/pages/catalog/model/search';
 import { useSearchHistory } from '@/features/search/model/use-search-history';
 import { resolveSmartSearch } from '@/features/search/model/resolve-smart-search';
 import { AiPagePitch } from '@/features/ai/ui/AiPagePitch';
+import { AuthGuestBanner } from '@/features/auth/ui/AuthGuestBanner';
 import { normalizeSearchQuery } from '@markethub/shared';
 
 type ListingsResponse = {
@@ -348,7 +349,9 @@ export function CatalogPage() {
   );
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[260px_1fr]">
+    <div className="space-y-4">
+      <AuthGuestBanner />
+      <div className="grid gap-6 lg:grid-cols-[260px_1fr]">
       <div className="hidden lg:block">{filters}</div>
       {filtersOpen ? (
         <div className="lg:hidden">
@@ -473,6 +476,7 @@ export function CatalogPage() {
           </div>
         ) : null}
       </div>
+    </div>
     </div>
   );
 }

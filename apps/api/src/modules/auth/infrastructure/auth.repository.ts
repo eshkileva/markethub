@@ -3,6 +3,7 @@ import type { Database } from '../../../infrastructure/database/client.js';
 import {
   authIdentities,
   emailVerificationCodes,
+  passwordResetCodes,
   sessions,
   users,
 } from '../../../infrastructure/database/schema/index.js';
@@ -187,5 +188,45 @@ export class AuthRepository {
       .update(emailVerificationCodes)
       .set({ attempts: sql`${emailVerificationCodes.attempts} + 1` })
       .where(eq(emailVerificationCodes.id, id));
+  }
+
+  async invalidatePasswordResetCodes(userId: string) {
+    await this.db
+      .update(passwordResetCodes)
+      .set({ consumedAt: new Date() })
+      .where(and(eq(passwordResetCodes.userId, userId), isNull(passwordResetCodes.consumedAt)));
+  }
+
+  createPasswordResetCode(input: {
+    userId: string;
+    codeHash: string;
+    expiresAt: Date;
+  }) {
+    return this.db
+      .insert(passwordResetCodes)
+      .values(input)
+      .returning()
+      .then((rows) => rows[0]!);
+  }
+
+  findLatestActivePasswordResetCode(userId: string) {
+    return this.db.query.passwordResetCodes.findFirst({
+      where: and(eq(passwordResetCodes.userId, userId), isNull(passwordResetCodes.consumedAt)),
+      orderBy: [desc(passwordResetCodes.createdAt)],
+    });
+  }
+
+  consumePasswordResetCode(id: string) {
+    return this.db
+      .update(passwordResetCodes)
+      .set({ consumedAt: new Date() })
+      .where(eq(passwordResetCodes.id, id));
+  }
+
+  incrementPasswordResetAttempts(id: string) {
+    return this.db
+      .update(passwordResetCodes)
+      .set({ attempts: sql`${passwordResetCodes.attempts} + 1` })
+      .where(eq(passwordResetCodes.id, id));
   }
 }

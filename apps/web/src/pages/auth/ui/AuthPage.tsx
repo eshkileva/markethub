@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from '@tanstack/react-router';
+import { Link, useNavigate } from '@tanstack/react-router';
 import { useForm } from '@tanstack/react-form';
 import { loginSchema, registerSchema, type CountryCode } from '@markethub/shared';
 import { CountrySelect } from '@/entities/geo/ui/CountrySelect';
@@ -129,7 +129,15 @@ export function AuthPage() {
               <loginForm.Field name="password">
                 {(field) => (
                   <div className="space-y-1.5">
-                    <Label htmlFor="password">Пароль</Label>
+                    <div className="flex items-center justify-between gap-2">
+                      <Label htmlFor="password">Пароль</Label>
+                      <Link
+                        to="/forgot-password"
+                        className="text-primary text-xs font-medium hover:underline"
+                      >
+                        Забыли пароль?
+                      </Link>
+                    </div>
                     <Input
                       id="password"
                       type="password"

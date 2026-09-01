@@ -17,6 +17,7 @@ import { AiFeaturesShowcase } from '@/features/ai/ui/AiPagePitch';
 import { AiPlatformBadge } from '@/features/ai/ui/AiPlatformBadge';
 import { useAiStatus } from '@/features/ai/model/use-ai-status';
 import { AI_HERO_HEADLINE, AI_PLATFORM_TAGLINE } from '@/features/ai/model/ai-messaging';
+import { AuthGuestBanner } from '@/features/auth/ui/AuthGuestBanner';
 
 type ListingsResponse = {
   items: Array<{
@@ -66,6 +67,7 @@ export function HomePage() {
 
   return (
     <div className="space-y-8">
+      <AuthGuestBanner />
       <section className="border-border bg-card relative overflow-hidden rounded-[1.25rem] border shadow-sm">
         <div className="from-primary/15 pointer-events-none absolute inset-0 bg-gradient-to-br via-transparent to-transparent" />
         <div className="relative space-y-4 p-5 md:p-7">

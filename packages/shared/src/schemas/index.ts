@@ -76,6 +76,19 @@ export const verifyEmailSchema = z.object({
     .regex(/^\d{6}$/, 'Код должен состоять из 6 цифр'),
 });
 
+export const forgotPasswordSchema = z.object({
+  email: z.string().email('Введите корректный email'),
+});
+
+export const resetPasswordSchema = z.object({
+  email: z.string().email('Введите корректный email'),
+  code: z
+    .string()
+    .trim()
+    .regex(/^\d{6}$/, 'Код должен состоять из 6 цифр'),
+  newPassword: z.string().min(8, 'Пароль не короче 8 символов').max(128, 'Пароль слишком длинный'),
+});
+
 export const listingCopilotRequestSchema = z.object({
   imageUrl: z.string().url(),
   hint: z.string().trim().max(500).optional(),

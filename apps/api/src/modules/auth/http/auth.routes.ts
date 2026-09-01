@@ -5,6 +5,8 @@ import {
   updateProfileSchema,
   changePasswordSchema,
   verifyEmailSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
 } from '@markethub/shared';
 import { z } from 'zod';
 
@@ -231,5 +233,42 @@ export const authRoutes: FastifyPluginAsyncZod = async (app) => {
       },
     },
     async (request) => app.services.auth.resendVerification(request.user!.id),
+  );
+
+  app.post(
+    '/forgot-password',
+    {
+      schema: {
+        tags: ['auth'],
+        body: forgotPasswordSchema,
+        response: {
+          200: z.object({
+            ok: z.literal(true),
+            devResetCode: z.string().optional(),
+          }),
+        },
+      },
+      config: {
+        rateLimit: { max: 5, timeWindow: '1 minute' },
+      },
+    },
+    async (request) => app.services.auth.requestPasswordReset(request.body),
+  );
+
+  app.post(
+    '/reset-password',
+    {
+      schema: {
+        tags: ['auth'],
+        body: resetPasswordSchema,
+        response: {
+          200: z.object({ ok: z.literal(true) }),
+        },
+      },
+      config: {
+        rateLimit: { max: 10, timeWindow: '1 minute' },
+      },
+    },
+    async (request) => app.services.auth.resetPassword(request.body),
   );
 };

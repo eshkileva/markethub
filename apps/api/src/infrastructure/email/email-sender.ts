@@ -4,6 +4,7 @@ import type { AppConfig } from '../../config/env.js';
 
 export type EmailSender = {
   sendVerificationCode(input: { to: string; code: string }): Promise<void>;
+  sendPasswordResetCode(input: { to: string; code: string }): Promise<void>;
 };
 
 export class ConsoleEmailSender implements EmailSender {
@@ -11,6 +12,10 @@ export class ConsoleEmailSender implements EmailSender {
 
   async sendVerificationCode(input: { to: string; code: string }) {
     this.log({ to: input.to, code: input.code }, 'email verification code sent');
+  }
+
+  async sendPasswordResetCode(input: { to: string; code: string }) {
+    this.log({ to: input.to, code: input.code }, 'password reset code sent');
   }
 }
 
@@ -27,6 +32,16 @@ export class SmtpEmailSender implements EmailSender {
       subject: 'Код подтверждения — Купилко',
       text: `Ваш код подтверждения: ${input.code}\n\nКод действует 15 минут. Если вы не регистрировались на Купилко, просто проигнорируйте это письмо.`,
       html: `<p>Ваш код подтверждения:</p><p style="font-size:24px;font-weight:700;letter-spacing:0.2em">${input.code}</p><p>Код действует 15 минут. Если вы не регистрировались на Купилко, просто проигнорируйте это письмо.</p>`,
+    });
+  }
+
+  async sendPasswordResetCode(input: { to: string; code: string }) {
+    await this.transporter.sendMail({
+      from: this.from,
+      to: input.to,
+      subject: 'Сброс пароля — Купилко',
+      text: `Код для сброса пароля: ${input.code}\n\nКод действует 15 минут. Если вы не запрашивали сброс, просто проигнорируйте это письмо.`,
+      html: `<p>Код для сброса пароля:</p><p style="font-size:24px;font-weight:700;letter-spacing:0.2em">${input.code}</p><p>Код действует 15 минут. Если вы не запрашивали сброс, просто проигнорируйте это письмо.</p>`,
     });
   }
 }

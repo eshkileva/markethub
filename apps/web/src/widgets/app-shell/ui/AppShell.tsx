@@ -11,7 +11,8 @@ import { cn } from '@/shared/lib/cn';
 export function AppShell() {
   const [sessionReady, setSessionReady] = useState(false);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const isAuthFlow = pathname === '/auth' || pathname === '/verify-email';
+  const isAuthFlow =
+    pathname === '/auth' || pathname === '/verify-email' || pathname === '/forgot-password';
   const isChat = pathname === '/messages';
   const theme = useUiStore((s) => s.theme);
 

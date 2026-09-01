@@ -22,6 +22,7 @@ import { ListingGallery } from '@/pages/listing-detail/ui/ListingGallery';
 import { ListingBuyerBrief } from '@/features/buyer/ui/ListingBuyerBrief';
 import { ListingSimilarSection } from '@/pages/listing-detail/ui/ListingSimilarSection';
 import { AiPagePitch } from '@/features/ai/ui/AiPagePitch';
+import { AuthRequiredHint } from '@/features/auth/ui/AuthGuestBanner';
 
 export function ListingDetailPage({ listingId }: { listingId: string }) {
   const token = useAuthStore((s) => s.accessToken);
@@ -161,7 +162,7 @@ export function ListingDetailPage({ listingId }: { listingId: string }) {
                       startChat.mutate();
                     }}
                   >
-                    Написать продавцу
+                    {token ? 'Написать продавцу' : 'Войти, чтобы написать'}
                   </Button>
                 )}
                 <Button
@@ -178,6 +179,9 @@ export function ListingDetailPage({ listingId }: { listingId: string }) {
                   />
                 </Button>
               </div>
+              {!isOwner ? (
+                <AuthRequiredHint action="написать продавцу и добавить в избранное" />
+              ) : null}
               {isOwner ? (
                 <div className="flex flex-wrap gap-2">
                   <ListingDealActions
@@ -241,7 +245,7 @@ export function ListingDetailPage({ listingId }: { listingId: string }) {
               startChat.mutate();
             }}
           >
-            Написать продавцу
+            {token ? 'Написать продавцу' : 'Войти, чтобы написать'}
           </Button>
         </div>
       ) : null}
