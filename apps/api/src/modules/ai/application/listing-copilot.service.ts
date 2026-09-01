@@ -93,7 +93,9 @@ export class ListingCopilotService {
                 `Country: ${input.country}`,
                 input.city ? `City: ${input.city}` : null,
                 input.hint ? `Seller hint: ${input.hint}` : null,
-                input.price ? `Seller draft price: ${input.price} ${input.currency ?? 'RUB'}` : null,
+                input.price
+                  ? `Seller draft price: ${input.price} ${input.currency ?? 'RUB'}`
+                  : null,
               ]
                 .filter(Boolean)
                 .join('\n'),

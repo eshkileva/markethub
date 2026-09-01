@@ -20,7 +20,9 @@ describe('GeoService owned cities', () => {
       exists: vi.fn(),
     };
     const geo = new GeoService(cities as never);
-    await expect(geo.listCities('RU', '  омск ')).resolves.toEqual([{ nameRu: 'Омск', country: 'RU' }]);
+    await expect(geo.listCities('RU', '  омск ')).resolves.toEqual([
+      { nameRu: 'Омск', country: 'RU' },
+    ]);
     expect(cities.list).toHaveBeenCalledWith('RU', 'омск', MAX_GEO_CITIES);
   });
 

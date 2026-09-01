@@ -179,10 +179,12 @@ export function ModerationPage() {
       </div>
 
       <div className="border-border flex gap-2 border-b pb-1">
-        {([
-          ['queue', 'Очередь объявлений'],
-          ['reports', 'Жалобы'],
-        ] as const).map(([id, label]) => (
+        {(
+          [
+            ['queue', 'Очередь объявлений'],
+            ['reports', 'Жалобы'],
+          ] as const
+        ).map(([id, label]) => (
           <button
             key={id}
             type="button"

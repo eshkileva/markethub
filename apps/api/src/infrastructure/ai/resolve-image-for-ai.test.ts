@@ -8,10 +8,7 @@ describe('objectKeyFromPublicUrl', () => {
 
   it('extracts object key from a public media URL', () => {
     expect(
-      objectKeyFromPublicUrl(
-        config,
-        'http://localhost:9000/markethub/uploads/user/photo.jpg',
-      ),
+      objectKeyFromPublicUrl(config, 'http://localhost:9000/markethub/uploads/user/photo.jpg'),
     ).toBe('uploads/user/photo.jpg');
   });
 

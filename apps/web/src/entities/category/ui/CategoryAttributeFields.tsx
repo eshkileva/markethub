@@ -54,7 +54,7 @@ export function CategoryAttributeFields({
         const fieldAnchorId = `field-attributes.${attr.id}`;
         const error = errorOf?.(attr);
         return (
-          <div key={attr.id} id={fieldAnchorId} className="space-y-1.5 scroll-mt-24">
+          <div key={attr.id} id={fieldAnchorId} className="scroll-mt-24 space-y-1.5">
             <Label htmlFor={fieldId}>
               {attr.labelRu}
               {showRequired && attr.required ? ' *' : ''}

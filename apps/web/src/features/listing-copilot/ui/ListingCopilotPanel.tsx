@@ -44,8 +44,8 @@ export function ListingCopilotPanel({
       </CardHeader>
       <CardContent className="space-y-4 text-sm">
         <p className="text-muted">
-          Текст объявления будет от вашего лица. Ниже — служебная оценка для модерации и покупателей,
-          её можно не включать в описание.
+          Текст объявления будет от вашего лица. Ниже — служебная оценка для модерации и
+          покупателей, её можно не включать в описание.
         </p>
         <div className="grid gap-3 sm:grid-cols-3">
           <div className="rounded-xl bg-white/70 p-3 dark:bg-white/5">

@@ -61,11 +61,19 @@ export function ListingPhotosField({
         </button>
       ) : (
         <div className="space-y-3">
-          <div className={cn('grid gap-3', compact ? 'grid-cols-3' : 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4')}>
+          <div
+            className={cn(
+              'grid gap-3',
+              compact ? 'grid-cols-3' : 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4',
+            )}
+          >
             {images.map((image, index) => (
               <div
                 key={image.id ?? image.url}
-                className={cn('relative overflow-hidden rounded-xl', index === 0 && 'sm:col-span-2 sm:row-span-2')}
+                className={cn(
+                  'relative overflow-hidden rounded-xl',
+                  index === 0 && 'sm:col-span-2 sm:row-span-2',
+                )}
               >
                 <img
                   src={image.url}

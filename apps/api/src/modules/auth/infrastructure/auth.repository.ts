@@ -151,14 +151,12 @@ export class AuthRepository {
     await this.db
       .update(emailVerificationCodes)
       .set({ consumedAt: new Date() })
-      .where(and(eq(emailVerificationCodes.userId, userId), isNull(emailVerificationCodes.consumedAt)));
+      .where(
+        and(eq(emailVerificationCodes.userId, userId), isNull(emailVerificationCodes.consumedAt)),
+      );
   }
 
-  createVerificationCode(input: {
-    userId: string;
-    codeHash: string;
-    expiresAt: Date;
-  }) {
+  createVerificationCode(input: { userId: string; codeHash: string; expiresAt: Date }) {
     return this.db
       .insert(emailVerificationCodes)
       .values(input)
@@ -197,11 +195,7 @@ export class AuthRepository {
       .where(and(eq(passwordResetCodes.userId, userId), isNull(passwordResetCodes.consumedAt)));
   }
 
-  createPasswordResetCode(input: {
-    userId: string;
-    codeHash: string;
-    expiresAt: Date;
-  }) {
+  createPasswordResetCode(input: { userId: string; codeHash: string; expiresAt: Date }) {
     return this.db
       .insert(passwordResetCodes)
       .values(input)

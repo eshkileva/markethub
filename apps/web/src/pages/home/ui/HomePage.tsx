@@ -94,9 +94,13 @@ export function HomePage() {
                 void navigate({ to: '/catalog' });
                 return;
               }
-              void resolveSmartSearch(trimmed, {
-                country: countryFilter === 'ALL' ? undefined : countryFilter,
-              }, token).then((search) => navigate({ to: '/catalog', search }));
+              void resolveSmartSearch(
+                trimmed,
+                {
+                  country: countryFilter === 'ALL' ? undefined : countryFilter,
+                },
+                token,
+              ).then((search) => navigate({ to: '/catalog', search }));
             }}
           >
             <div className="relative min-w-0 flex-1">
@@ -126,7 +130,7 @@ export function HomePage() {
           </Link>
         </div>
         <div className="no-scrollbar -mx-4 flex gap-3 overflow-x-auto px-4 pb-1 lg:mx-0 lg:px-0">
-          {(categoryRoots(categoriesQuery.data?.items ?? [])).map((category) => {
+          {categoryRoots(categoriesQuery.data?.items ?? []).map((category) => {
             const Icon = categoryIcons[category.slug];
             return (
               <Link
@@ -152,7 +156,9 @@ export function HomePage() {
         <div className="flex items-end justify-between gap-3">
           <div>
             <h2 className="font-display text-lg font-semibold">Свежие объявления</h2>
-            <p className="text-muted text-sm">Trust Score и вердикт цены — на карточках с AI-оценкой</p>
+            <p className="text-muted text-sm">
+              Trust Score и вердикт цены — на карточках с AI-оценкой
+            </p>
           </div>
           <Link to="/catalog" className="text-primary text-sm">
             Каталог

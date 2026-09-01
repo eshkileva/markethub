@@ -58,7 +58,11 @@ export function TopBar() {
           }}
         />
 
-        <AiPlatformBadge live={aiStatus.data?.enabled} size="sm" className="hidden md:inline-flex" />
+        <AiPlatformBadge
+          live={aiStatus.data?.enabled}
+          size="sm"
+          className="hidden md:inline-flex"
+        />
 
         <div className="border-border bg-background flex shrink-0 items-center gap-1 overflow-visible rounded-2xl border px-2 py-1.5 sm:gap-2 sm:px-3 sm:py-2">
           <MapPin className="text-primary h-4 w-4 shrink-0" />

@@ -31,13 +31,12 @@ export function scrollToFirstFieldError(errors: Record<string, string>) {
   const attributeKeys = Object.keys(errors)
     .filter((key) => key.startsWith('attributes.'))
     .sort();
-  const ordered = [
-    ...LISTING_FORM_FIELD_ORDER.filter((key) => errors[key]),
-    ...attributeKeys,
-  ];
+  const ordered = [...LISTING_FORM_FIELD_ORDER.filter((key) => errors[key]), ...attributeKeys];
   const first = ordered[0];
   if (!first) return;
-  document.getElementById(`field-${first}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  document
+    .getElementById(`field-${first}`)
+    ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
 export function listingSectionHasError(

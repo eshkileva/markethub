@@ -196,7 +196,7 @@ export function MyListingsPage() {
                       : ''}
                   </div>
                   {item.status === 'pending_moderation' ? (
-                    <p className="text-amber-700 text-xs dark:text-amber-300">
+                    <p className="text-xs text-amber-700 dark:text-amber-300">
                       Объявление на проверке — появится в каталоге после одобрения модератором.
                     </p>
                   ) : null}

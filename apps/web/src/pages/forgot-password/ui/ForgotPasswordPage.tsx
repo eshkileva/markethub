@@ -30,11 +30,14 @@ export function ForgotPasswordPage() {
     }
     setBusy(true);
     try {
-      const data = await apiRequest<{ ok: true; devResetCode?: string }>('/v1/auth/forgot-password', {
-        method: 'POST',
-        body: parsed.data,
-        skipAuth: true,
-      });
+      const data = await apiRequest<{ ok: true; devResetCode?: string }>(
+        '/v1/auth/forgot-password',
+        {
+          method: 'POST',
+          body: parsed.data,
+          skipAuth: true,
+        },
+      );
       setDevResetCode(data.devResetCode ?? null);
       setStep('reset');
     } catch (err) {
@@ -71,9 +74,7 @@ export function ForgotPasswordPage() {
       <Card className="relative w-full">
         <CardHeader>
           <BrandMark tone="onLight" className="mb-3" />
-          <CardTitle>
-            {step === 'done' ? 'Пароль обновлён' : 'Восстановление пароля'}
-          </CardTitle>
+          <CardTitle>{step === 'done' ? 'Пароль обновлён' : 'Восстановление пароля'}</CardTitle>
           <p className="text-muted text-sm">
             {step === 'request'
               ? 'Отправим одноразовый код на email — как при подтверждении регистрации.'

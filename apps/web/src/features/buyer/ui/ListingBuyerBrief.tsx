@@ -47,7 +47,9 @@ export function ListingBuyerBrief({
           <p className="text-muted">
             Похожие объявления: {price.min?.toLocaleString('ru-RU')}–
             {price.max?.toLocaleString('ru-RU')} {price.currency}
-            {price.median ? ` · медиана ${price.median.toLocaleString('ru-RU')} ${price.currency}` : ''}
+            {price.median
+              ? ` · медиана ${price.median.toLocaleString('ru-RU')} ${price.currency}`
+              : ''}
           </p>
         ) : null}
 

@@ -1,11 +1,7 @@
 import { and, desc, eq, ilike, inArray, ne, sql } from 'drizzle-orm';
 import type { AiRiskLevel } from '@markethub/shared';
 import type { Database } from '../../../infrastructure/database/client.js';
-import {
-  listingImages,
-  listings,
-  users,
-} from '../../../infrastructure/database/schema/index.js';
+import { listingImages, listings, users } from '../../../infrastructure/database/schema/index.js';
 
 const riskOrder = sql`case ${listings.aiRiskLevel}
   when 'high' then 0

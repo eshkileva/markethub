@@ -1,7 +1,12 @@
 import { useState } from 'react';
 import { Link } from '@tanstack/react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { formatMoney, MODERATION_RISK_LABELS, type AiRiskLevel, type CurrencyCode } from '@markethub/shared';
+import {
+  formatMoney,
+  MODERATION_RISK_LABELS,
+  type AiRiskLevel,
+  type CurrencyCode,
+} from '@markethub/shared';
 import { apiRequest } from '@/shared/api/client';
 import { ListingImage } from '@/entities/listing/ui/ListingImage';
 import { ListingTrustBadge } from '@/entities/listing/ui/ListingTrustBadge';
@@ -231,7 +236,9 @@ export function ListingModerationQueue({ token }: { token: string }) {
                       <Button
                         type="button"
                         variant="secondary"
-                        disabled={approve.isPending || reject.isPending || rejectNote.trim().length < 3}
+                        disabled={
+                          approve.isPending || reject.isPending || rejectNote.trim().length < 3
+                        }
                         onClick={() => reject.mutate({ id: item.id, note: rejectNote.trim() })}
                       >
                         Отклонить

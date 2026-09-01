@@ -72,8 +72,6 @@ export function parseModelJson<T = unknown>(raw: string, debug = false): T {
 
   const preview = trimmed.slice(0, 240).replace(/\s+/g, ' ');
   throw new ValidationError(
-    debug
-      ? `AI provider returned invalid JSON: ${preview}`
-      : 'AI provider returned invalid JSON',
+    debug ? `AI provider returned invalid JSON: ${preview}` : 'AI provider returned invalid JSON',
   );
 }

@@ -6,7 +6,11 @@ vi.mock('../../../infrastructure/ai/resolve-image-for-ai.js', () => ({
 }));
 
 function config() {
-  return { aiEnabled: true, OPENROUTER_MODEL: 'test/model', OPENROUTER_VISION_MODEL: 'test/vision' } as never;
+  return {
+    aiEnabled: true,
+    OPENROUTER_MODEL: 'test/model',
+    OPENROUTER_VISION_MODEL: 'test/vision',
+  } as never;
 }
 
 function deps() {

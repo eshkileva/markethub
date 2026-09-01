@@ -5,9 +5,7 @@ export type PublishRouteInput = {
   hasAssessment: boolean;
 };
 
-export function resolvePublishStatus(
-  input: PublishRouteInput,
-): 'published' | 'pending_moderation' {
+export function resolvePublishStatus(input: PublishRouteInput): 'published' | 'pending_moderation' {
   if (input.hasAssessment && input.aiRiskLevel === 'low') {
     return 'published';
   }

@@ -13,7 +13,7 @@ export function AuthGuestBanner({ className }: { className?: string }) {
         className,
       )}
     >
-      <span className="font-medium text-foreground">Смотрите объявления без регистрации.</span>{' '}
+      <span className="text-foreground font-medium">Смотрите объявления без регистрации.</span>{' '}
       <Link to="/auth" className="text-primary font-semibold hover:underline">
         Войдите
       </Link>{' '}
@@ -26,13 +26,7 @@ export function AuthGuestBanner({ className }: { className?: string }) {
   );
 }
 
-export function AuthRequiredHint({
-  action,
-  className,
-}: {
-  action: string;
-  className?: string;
-}) {
+export function AuthRequiredHint({ action, className }: { action: string; className?: string }) {
   const token = useAuthStore((s) => s.accessToken);
   if (token) return null;
 

@@ -41,10 +41,7 @@ export function ListingPriceHint({
 
   const numericPrice = Number(price);
   const range = formatRange(insight);
-  const verdict =
-    numericPrice > 0
-      ? priceVerdict(numericPrice, insight)
-      : ('unknown' as const);
+  const verdict = numericPrice > 0 ? priceVerdict(numericPrice, insight) : ('unknown' as const);
   const verdictLabel = verdictLabels[verdict];
 
   return (
@@ -72,7 +69,9 @@ export function ListingPriceHint({
           )}
         >
           Ваша цена {numericPrice.toLocaleString('ru-RU')} {insight.currency} — {verdictLabel}
-          {verdict === 'low' ? '. Слишком низкая цена может отпугнуть покупателей или вызвать вопросы.' : ''}
+          {verdict === 'low'
+            ? '. Слишком низкая цена может отпугнуть покупателей или вызвать вопросы.'
+            : ''}
         </p>
       ) : insight.median != null ? (
         <p className="text-muted">

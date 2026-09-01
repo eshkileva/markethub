@@ -53,16 +53,14 @@ export class ListingCopilotRepository {
     });
   }
 
-  async priceStats(input: {
-    categoryId: string;
-    country: string;
-    currency: CurrencyCode;
-  }) {
+  async priceStats(input: { categoryId: string; country: string; currency: CurrencyCode }) {
     const [row] = await this.db
       .select({
         min: sql<number | null>`min(${listings.price}::numeric)`,
         max: sql<number | null>`max(${listings.price}::numeric)`,
-        median: sql<number | null>`percentile_cont(0.5) within group (order by ${listings.price}::numeric)`,
+        median: sql<
+          number | null
+        >`percentile_cont(0.5) within group (order by ${listings.price}::numeric)`,
         sampleSize: sql<number>`count(*)::int`,
       })
       .from(listings)

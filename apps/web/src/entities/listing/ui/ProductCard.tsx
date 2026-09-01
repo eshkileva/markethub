@@ -110,7 +110,9 @@ export function ProductCard({
               className="h-full w-full object-cover"
             />
           ) : (
-            <div className="text-muted flex h-full items-center justify-center text-sm">Нет фото</div>
+            <div className="text-muted flex h-full items-center justify-center text-sm">
+              Нет фото
+            </div>
           )}
           <Button
             type="button"

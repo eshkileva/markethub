@@ -18,15 +18,12 @@ export type ChatJsonOptions = {
 
 function messageContent(content: ChatMessage['content']): string {
   if (typeof content === 'string') return content;
-  return content
-    .map((part) => (part.type === 'text' ? part.text : '[image]'))
-    .join('\n');
+  return content.map((part) => (part.type === 'text' ? part.text : '[image]')).join('\n');
 }
 
 function messageHasImage(messages: ChatMessage[]) {
   return messages.some(
-    (item) =>
-      Array.isArray(item.content) && item.content.some((part) => part.type === 'image_url'),
+    (item) => Array.isArray(item.content) && item.content.some((part) => part.type === 'image_url'),
   );
 }
 

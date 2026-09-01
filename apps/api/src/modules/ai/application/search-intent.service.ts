@@ -85,8 +85,10 @@ export class SearchIntentService {
           ? draft.country
           : input.country,
       city: typeof draft.city === 'string' && draft.city.trim() ? draft.city.trim() : undefined,
-      minPrice: typeof draft.minPrice === 'number' && draft.minPrice >= 0 ? draft.minPrice : undefined,
-      maxPrice: typeof draft.maxPrice === 'number' && draft.maxPrice > 0 ? draft.maxPrice : undefined,
+      minPrice:
+        typeof draft.minPrice === 'number' && draft.minPrice >= 0 ? draft.minPrice : undefined,
+      maxPrice:
+        typeof draft.maxPrice === 'number' && draft.maxPrice > 0 ? draft.maxPrice : undefined,
       currency:
         draft.currency === 'BYN' || draft.currency === 'RUB' || draft.currency === 'KZT'
           ? draft.currency

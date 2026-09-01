@@ -242,11 +242,7 @@ export const createListingSchema = z.object({
     .refine((value) => Number.isFinite(value) && value > 0, 'Цена должна быть больше 0'),
   currency: currencyCodeSchema,
   country: countryCodeSchema,
-  city: z
-    .string()
-    .trim()
-    .min(1, 'Укажите город')
-    .max(80, 'Название города слишком длинное'),
+  city: z.string().trim().min(1, 'Укажите город').max(80, 'Название города слишком длинное'),
   condition: listingConditionSchema,
   deliveryModes: z.array(deliveryModeSchema).min(1, 'Выберите хотя бы один способ передачи'),
   attributes: z.array(

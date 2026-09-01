@@ -1,17 +1,8 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import {
-  changePasswordSchema,
-  updateProfileSchema,
-  type CountryCode,
-} from '@markethub/shared';
-import {
-  Lock,
-  Monitor,
-  Palette,
-  User,
-} from 'lucide-react';
+import { changePasswordSchema, updateProfileSchema, type CountryCode } from '@markethub/shared';
+import { Lock, Monitor, Palette, User } from 'lucide-react';
 import { apiRequest, apiUpload } from '@/shared/api/client';
 import { logoutSession } from '@/shared/api/session';
 import { useAuthStore, type AuthUser, useUiStore, type ThemeMode } from '@/shared/model/stores';
@@ -454,7 +445,10 @@ function AppearanceSection() {
   ];
 
   return (
-    <SettingsSectionCard title="Оформление" description="Тема интерфейса сохраняется на этом устройстве.">
+    <SettingsSectionCard
+      title="Оформление"
+      description="Тема интерфейса сохраняется на этом устройстве."
+    >
       <div className="space-y-2">
         {options.map((option) => (
           <button
@@ -546,7 +540,9 @@ function DevicesSection({
             setBusy(true);
             void onLogoutAll().catch((err) => {
               setError(
-                err instanceof Error ? mapSettingsError(err.message) : 'Не удалось завершить сессии',
+                err instanceof Error
+                  ? mapSettingsError(err.message)
+                  : 'Не удалось завершить сессии',
               );
               setBusy(false);
             });

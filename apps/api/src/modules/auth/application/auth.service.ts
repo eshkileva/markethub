@@ -268,10 +268,7 @@ export class AuthService {
     }
 
     const active = await this.repo.findLatestActiveVerificationCode(userId);
-    if (
-      active &&
-      Date.now() - active.createdAt.getTime() < VERIFICATION_RESEND_COOLDOWN_MS
-    ) {
+    if (active && Date.now() - active.createdAt.getTime() < VERIFICATION_RESEND_COOLDOWN_MS) {
       throw new ValidationError('Подождите минуту перед повторной отправкой');
     }
 

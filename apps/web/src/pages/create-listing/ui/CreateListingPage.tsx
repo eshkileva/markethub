@@ -363,8 +363,11 @@ export function CreateListingPage({ listingId }: { listingId?: string }) {
         uploaded.push({ id: null, url: result.url });
       }
       setImages((prev) => [...prev, ...uploaded]);
-      clearFieldError('photos');    } catch (err) {
-      setFormError(err instanceof Error ? mapListingError(err.message) : 'Не удалось загрузить фото');
+      clearFieldError('photos');
+    } catch (err) {
+      setFormError(
+        err instanceof Error ? mapListingError(err.message) : 'Не удалось загрузить фото',
+      );
     } finally {
       setBusy(false);
     }
@@ -418,19 +421,22 @@ export function CreateListingPage({ listingId }: { listingId?: string }) {
     if (!accessToken || !aiAssessment || !categoryId) return aiAssessment;
     const numericPrice = Number(price);
     try {
-      const result = await apiRequest<{ assessment: ListingAiAssessment }>('/v1/ai/listing-reassess', {
-        method: 'POST',
-        token: accessToken,
-        body: {
-          categoryId,
-          country,
-          currency,
-          price: numericPrice > 0 ? numericPrice : undefined,
-          baseRiskScore: aiAssessment.baseRiskScore,
-          sellerTrustScore: aiAssessment.sellerTrustScore,
-          reasons: aiAssessment.reasons,
+      const result = await apiRequest<{ assessment: ListingAiAssessment }>(
+        '/v1/ai/listing-reassess',
+        {
+          method: 'POST',
+          token: accessToken,
+          body: {
+            categoryId,
+            country,
+            currency,
+            price: numericPrice > 0 ? numericPrice : undefined,
+            baseRiskScore: aiAssessment.baseRiskScore,
+            sellerTrustScore: aiAssessment.sellerTrustScore,
+            reasons: aiAssessment.reasons,
+          },
         },
-      });
+      );
       setAiAssessment(result.assessment);
       if (copilotResult) {
         setCopilotResult({ ...copilotResult, assessment: result.assessment });
@@ -613,10 +619,10 @@ export function CreateListingPage({ listingId }: { listingId?: string }) {
         >
           <div id="field-photos" className="scroll-mt-24 space-y-2">
             <ListingPhotosField
-            images={images}
-            disabled={busy || isSold}
-            onUpload={(files) => void onUpload(files)}
-            onRemove={(image) => void onRemoveImage(image)}
+              images={images}
+              disabled={busy || isSold}
+              onUpload={(files) => void onUpload(files)}
+              onRemove={(image) => void onRemoveImage(image)}
             />
             <FieldError message={fieldErrors.photos} />
           </div>
@@ -642,7 +648,7 @@ export function CreateListingPage({ listingId }: { listingId?: string }) {
                 </Button>
               </div>
               {assessmentStale && aiAssessment ? (
-                <p className="text-amber-700 text-xs dark:text-amber-300">
+                <p className="text-xs text-amber-700 dark:text-amber-300">
                   Вы изменили текст объявления — Trust Score обновится при публикации.
                 </p>
               ) : null}

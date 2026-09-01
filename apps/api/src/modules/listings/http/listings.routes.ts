@@ -93,10 +93,7 @@ export const listingsRoutes: FastifyPluginAsyncZod = async (app) => {
       preHandler: [app.authenticate, app.requireVerifiedEmail],
     },
     async (request) => {
-      const listing = await app.services.listings.publish(
-        request.user!.id,
-        request.params.id,
-      );
+      const listing = await app.services.listings.publish(request.user!.id, request.params.id);
       return serializeListing(listing);
     },
   );
@@ -209,8 +206,7 @@ export const listingsRoutes: FastifyPluginAsyncZod = async (app) => {
 
       const viewerId = request.user?.id ?? null;
       const isOwner = viewerId === listing.sellerId;
-      const isModerator =
-        request.user?.role === 'moderator' || request.user?.role === 'admin';
+      const isModerator = request.user?.role === 'moderator' || request.user?.role === 'admin';
       const isPeer =
         Boolean(viewerId) &&
         (await app.services.messaging.isParticipantOnListing(request.params.id, viewerId!));
@@ -218,12 +214,7 @@ export const listingsRoutes: FastifyPluginAsyncZod = async (app) => {
         throw new NotFoundError('Listing not found');
       }
 
-      return getListingDetail(
-        app.db,
-        listing,
-        viewerId,
-        await app.services.rates.getRates(),
-      );
+      return getListingDetail(app.db, listing, viewerId, await app.services.rates.getRates());
     },
   );
 };

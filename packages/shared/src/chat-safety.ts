@@ -17,7 +17,8 @@ const SCAM_RULES: Array<{ id: string; pattern: RegExp; message: string }> = [
   {
     id: 'external_link',
     pattern: /https?:\/\/[^\s]+/iu,
-    message: 'Осторожно: ссылка в сообщении. Не переходите по незнакомым ссылкам и не вводите данные карты.',
+    message:
+      'Осторожно: ссылка в сообщении. Не переходите по незнакомым ссылкам и не вводите данные карты.',
   },
   {
     id: 'off_platform',

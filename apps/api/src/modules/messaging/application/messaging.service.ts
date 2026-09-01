@@ -1,9 +1,5 @@
 import type { EventBus } from '../../../shared/events/event-bus.js';
-import {
-  SAFE_DEAL_TIPS,
-  buyerQuestionsForCategory,
-  scanMessageForScam,
-} from '@markethub/shared';
+import { SAFE_DEAL_TIPS, buyerQuestionsForCategory, scanMessageForScam } from '@markethub/shared';
 import {
   ForbiddenError,
   NotFoundError,
@@ -246,7 +242,10 @@ export class MessagingService {
       role,
       categorySlug: listing.categorySlug,
       listingTitle: listing.title,
-      questions: role === 'buyer' ? buyerQuestionsForCategory(listing.categorySlug, listing.parentCategorySlug) : [],
+      questions:
+        role === 'buyer'
+          ? buyerQuestionsForCategory(listing.categorySlug, listing.parentCategorySlug)
+          : [],
       safeDealTips: SAFE_DEAL_TIPS,
     };
   }

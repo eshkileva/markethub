@@ -34,7 +34,8 @@ export const AI_FEATURE_PITCHES: AiFeaturePitch[] = [
   },
   {
     title: 'Честная цена',
-    description: 'Бейдж «Выгодно» / «Рыночная» / «Выше рынка» — по похожим объявлениям в категории.',
+    description:
+      'Бейдж «Выгодно» / «Рыночная» / «Выше рынка» — по похожим объявлениям в категории.',
     forRole: 'buyer',
   },
   {
@@ -59,29 +60,30 @@ export type AiPageId =
   | 'favorites'
   | 'auth';
 
-export const AI_PAGE_PITCHES: Record<
-  AiPageId,
-  { headline: string; subline: string }
-> = {
+export const AI_PAGE_PITCHES: Record<AiPageId, { headline: string; subline: string }> = {
   home: {
     headline: AI_HERO_HEADLINE,
     subline: AI_HERO_SUBLINE,
   },
   catalog: {
     headline: 'Ищите с AI — как в обычном разговоре',
-    subline: 'Enter в поиске запускает умный разбор запроса. На карточках — Trust Score и вердикт по цене.',
+    subline:
+      'Enter в поиске запускает умный разбор запроса. На карточках — Trust Score и вердикт по цене.',
   },
   'create-listing': {
     headline: 'Продавайте быстрее с AI Copilot',
-    subline: 'Фото → черновик объявления. При публикации сервер сам пересчитает Trust Score — без подделки.',
+    subline:
+      'Фото → черновик объявления. При публикации сервер сам пересчитает Trust Score — без подделки.',
   },
   'listing-detail': {
     headline: 'Покупайте осознанно — AI уже проверил',
-    subline: 'Trust Score, рыночная цена и чеклист «что проверить» — до первого сообщения продавцу.',
+    subline:
+      'Trust Score, рыночная цена и чеклист «что проверить» — до первого сообщения продавцу.',
   },
   'my-listings': {
     headline: 'Ваши объявления под защитой AI',
-    subline: 'Trust Score влияет на модерацию и доверие покупателей. Copilot поможет оформить новое.',
+    subline:
+      'Trust Score влияет на модерацию и доверие покупателей. Copilot поможет оформить новое.',
   },
   messages: {
     headline: 'Чат с AI-подсказками',
