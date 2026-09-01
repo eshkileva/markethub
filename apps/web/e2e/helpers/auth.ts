@@ -69,34 +69,6 @@ export async function expectAuthRedirect(page: Page, path: string) {
   await expect(page.getByRole('heading', { name: 'Вход в Купилко' })).toBeVisible();
 }
 
-type RegisterInput = {
-  email: string;
-  password: string;
-  username: string;
-  country: 'BY' | 'RU' | 'KZ';
-  displayName?: string;
-};
-
-type RegisterResponse = {
-  accessToken: string;
-  expiresIn?: number;
-  user: {
-    id: string;
-    email: string;
-    username: string;
-    displayName: string | null;
-    avatarUrl: string | null;
-    bio: string | null;
-    country: string;
-    city: string | null;
-    trustScore: number;
-    isVerified: boolean;
-    role: string;
-    emailVerified: boolean;
-  };
-  devVerificationCode?: string;
-};
-
 export async function registerVerifiedUser(
   request: APIRequestContext,
   apiBase: string,
