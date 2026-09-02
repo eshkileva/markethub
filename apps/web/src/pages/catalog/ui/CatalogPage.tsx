@@ -340,17 +340,17 @@ export function CatalogPage() {
     : 'Объявления на Купилко';
   const faceted = Boolean(
     search.q ||
-      (search.sort && search.sort !== 'newest') ||
-      search.view ||
-      search.minPrice !== undefined ||
-      search.maxPrice !== undefined ||
-      search.currency ||
-      search.condition ||
-      search.delivery ||
-      (search.attr && search.attr.length > 0) ||
-      search.country ||
-      search.city ||
-      (search.page && search.page > 1),
+    (search.sort && search.sort !== 'newest') ||
+    search.view ||
+    search.minPrice !== undefined ||
+    search.maxPrice !== undefined ||
+    search.currency ||
+    search.condition ||
+    search.delivery ||
+    (search.attr && search.attr.length > 0) ||
+    search.country ||
+    search.city ||
+    (search.page && search.page > 1),
   );
   const catalogCanonical = selectedCategory
     ? `${siteOrigin()}/catalog?category=${encodeURIComponent(selectedCategory.slug)}`

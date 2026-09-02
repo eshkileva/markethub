@@ -53,13 +53,13 @@ export function AuthPage() {
   });
 
   const registerForm = useForm({
-            defaultValues: {
-              email: '',
-              password: '',
-              username: '',
-              country: 'RU' as CountryCode,
-              acceptedTerms: false,
-            },
+    defaultValues: {
+      email: '',
+      password: '',
+      username: '',
+      country: 'RU' as CountryCode,
+      acceptedTerms: false,
+    },
     onSubmit: async ({ value }) => {
       setError(null);
       const parsed = registerSchema.safeParse(value);

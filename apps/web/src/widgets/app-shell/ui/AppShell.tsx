@@ -61,10 +61,7 @@ export function AppShell() {
   return (
     <div className="bg-background flex h-dvh max-w-full overflow-hidden">
       <VercelAnalytics />
-      <SeoHead
-        noindex={isRobotsDisallowPath(pathname) || isListingForm}
-        title={SITE_NAME}
-      />
+      <SeoHead noindex={isRobotsDisallowPath(pathname) || isListingForm} title={SITE_NAME} />
       <AppSidebar />
       <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden">
         <TopBar />

@@ -34,7 +34,9 @@ export function SiteFooter({ className }: { className?: string }) {
           </Link>
         </nav>
       </div>
-      <p className="mt-4 text-xs">© {year} {SITE_NAME}</p>
+      <p className="mt-4 text-xs">
+        © {year} {SITE_NAME}
+      </p>
     </footer>
   );
 }

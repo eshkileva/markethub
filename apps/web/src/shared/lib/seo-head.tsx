@@ -71,17 +71,7 @@ export function SeoHead({
     } else if (existing) {
       existing.remove();
     }
-  }, [
-    title,
-    description,
-    canonical,
-    noindex,
-    ogTitle,
-    ogDescription,
-    ogImage,
-    ogType,
-    jsonLd,
-  ]);
+  }, [title, description, canonical, noindex, ogTitle, ogDescription, ogImage, ogType, jsonLd]);
 
   return null;
 }
