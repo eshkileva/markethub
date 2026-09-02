@@ -45,6 +45,9 @@ export const registerSchema = z.object({
     .max(80, 'Имя слишком длинное')
     .optional(),
   country: countryCodeSchema,
+  acceptedTerms: z.boolean().refine((value) => value === true, {
+    message: 'Чтобы создать аккаунт, примите условия сервиса',
+  }),
 });
 
 export const loginSchema = z.object({

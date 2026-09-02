@@ -23,6 +23,8 @@ import { ListingBuyerBrief } from '@/features/buyer/ui/ListingBuyerBrief';
 import { ListingSimilarSection } from '@/pages/listing-detail/ui/ListingSimilarSection';
 import { AiPagePitch } from '@/features/ai/ui/AiPagePitch';
 import { AuthRequiredHint } from '@/features/auth/ui/AuthGuestBanner';
+import { formatMoney, SITE_NAME, type CurrencyCode } from '@markethub/shared';
+import { SeoHead, siteOrigin } from '@/shared/lib/seo-head';
 
 export function ListingDetailPage({ listingId }: { listingId: string }) {
   const token = useAuthStore((s) => s.accessToken);
@@ -55,6 +57,11 @@ export function ListingDetailPage({ listingId }: { listingId: string }) {
   if (listingQuery.isError || !listingQuery.data) {
     return (
       <Card>
+        <SeoHead
+          title={`Объявление не найдено — ${SITE_NAME}`}
+          description="Такого объявления нет или оно снято с публикации."
+          noindex
+        />
         <CardHeader>
           <CardTitle>Объявление не найдено</CardTitle>
         </CardHeader>
@@ -69,9 +76,37 @@ export function ListingDetailPage({ listingId }: { listingId: string }) {
 
   const listing = listingQuery.data;
   const isOwner = listing.seller?.id === user?.id;
+  const listingCanonical = `${siteOrigin()}/listings/${listing.id}`;
+  const listingImage = listing.images[0]?.url ?? null;
+  const listingIndexable = listing.status === 'published';
 
   return (
     <div className={cn('grid gap-6 lg:grid-cols-[1.6fr_1fr]', !isOwner && 'pb-20 lg:pb-0')}>
+      <SeoHead
+        title={`${listing.title} — ${listing.city} | ${SITE_NAME}`}
+        description={`${listing.title} — ${formatMoney(listing.price, listing.currency as CurrencyCode)}, ${listing.city}. Объявление на Купилко.`}
+        canonical={listingCanonical}
+        noindex={!listingIndexable}
+        ogType="product"
+        ogImage={listingImage}
+        jsonLd={{
+          '@context': 'https://schema.org',
+          '@type': 'Product',
+          name: listing.title,
+          description: listing.description,
+          image: listing.images.map((item) => item.url),
+          offers: {
+            '@type': 'Offer',
+            url: listingCanonical,
+            price: String(listing.price),
+            priceCurrency: listing.currency,
+            availability:
+              listing.status === 'published'
+                ? 'https://schema.org/InStock'
+                : 'https://schema.org/SoldOut',
+          },
+        }}
+      />
       {!isOwner ? (
         <div className="lg:col-span-2">
           <AiPagePitch page="listing-detail" compact />

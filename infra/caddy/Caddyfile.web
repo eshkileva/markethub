@@ -1,5 +1,6 @@
 :80 {
 	encode gzip
+	root * /usr/share/caddy
 
 	handle /v1* {
 		reverse_proxy api:3000
@@ -13,9 +14,37 @@
 		reverse_proxy api:3000
 	}
 
+	handle /sitemap.xml {
+		reverse_proxy api:3000
+	}
+
 	handle {
-		root * /usr/share/caddy
-		try_files {path} /index.html
+		@spa {
+			path /
+			path /catalog
+			path /privacy
+			path /terms
+			path /auth
+			path /verify-email
+			path /forgot-password
+			path /messages
+			path /favorites
+			path /my-listings
+			path /purchases
+			path /sales
+			path /notifications
+			path /moderation
+			path /settings
+			path /listings/create
+		}
+		rewrite @spa /index.html
+		rewrite /listings/* /index.html
+		rewrite /profile/* /index.html
+		file_server
+	}
+
+	handle_errors {
+		rewrite * /404.html
 		file_server
 	}
 }

@@ -131,6 +131,7 @@ describe('AuthService register', () => {
         password: 'password12',
         username: 'user1',
         country: 'RU',
+        acceptedTerms: true,
       },
       {},
     );

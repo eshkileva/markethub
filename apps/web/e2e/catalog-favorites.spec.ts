@@ -117,7 +117,7 @@ test('catalog loads and favorite toggles for signed-in user', async ({ page }) =
   // Now open catalog with an authenticated browser session
   await seedBrowserSession(page, registerJson);
   await page.goto('/catalog?country=RU');
-  await expect(page.getByRole('heading', { name: 'Каталог' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /Объявления на Купилко/ })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Фильтры' })).toBeVisible();
   // Product cards: filter out the top-bar "Разместить" link (`/listings/create`).
   const firstProductLink = page.locator('a[href*="listings/"]:not([href*="create"])').first();

@@ -89,6 +89,9 @@ describe('isPublicPath', () => {
     expect(isPublicPath('/listings/123')).toBe(true);
     expect(isPublicPath('/profile/seller')).toBe(true);
     expect(isPublicPath('/settings')).toBe(true);
+    expect(isPublicPath('/privacy')).toBe(true);
+    expect(isPublicPath('/terms')).toBe(true);
+    expect(isPublicPath('/this-page-does-not-exist')).toBe(true);
     expect(isPublicPath('/messages')).toBe(false);
     expect(isPublicPath('/listings/create')).toBe(false);
   });

@@ -1,0 +1,19 @@
+User-agent: *
+Allow: /
+Disallow: /auth
+Disallow: /forgot-password
+Disallow: /verify-email
+Disallow: /messages
+Disallow: /settings
+Disallow: /moderation
+Disallow: /listings/create
+Disallow: /favorites
+Disallow: /my-listings
+Disallow: /purchases
+Disallow: /sales
+Disallow: /notifications
+Disallow: /*/edit
+
+Clean-param: sort&view&q&page&minPrice&maxPrice&currency&condition&delivery&attr&country&city
+
+Sitemap: https://kupilko.store/sitemap.xml

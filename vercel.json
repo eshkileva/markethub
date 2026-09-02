@@ -2,5 +2,26 @@
   "buildCommand": "pnpm --filter @markethub/web build",
   "outputDirectory": "apps/web/dist",
   "installCommand": "pnpm install --frozen-lockfile",
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+  "rewrites": [
+    { "source": "/sitemap.xml", "destination": "https://api.kupilko.store/sitemap.xml" },
+    { "source": "/", "destination": "/index.html" },
+    { "source": "/catalog", "destination": "/index.html" },
+    { "source": "/privacy", "destination": "/index.html" },
+    { "source": "/terms", "destination": "/index.html" },
+    { "source": "/auth", "destination": "/index.html" },
+    { "source": "/verify-email", "destination": "/index.html" },
+    { "source": "/forgot-password", "destination": "/index.html" },
+    { "source": "/messages", "destination": "/index.html" },
+    { "source": "/favorites", "destination": "/index.html" },
+    { "source": "/my-listings", "destination": "/index.html" },
+    { "source": "/purchases", "destination": "/index.html" },
+    { "source": "/sales", "destination": "/index.html" },
+    { "source": "/notifications", "destination": "/index.html" },
+    { "source": "/moderation", "destination": "/index.html" },
+    { "source": "/settings", "destination": "/index.html" },
+    { "source": "/listings/create", "destination": "/index.html" },
+    { "source": "/listings/:id/edit", "destination": "/index.html" },
+    { "source": "/listings/:id", "destination": "/index.html" },
+    { "source": "/profile/:username", "destination": "/index.html" }
+  ]
 }

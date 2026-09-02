@@ -12,3 +12,4 @@ export * from './limits.js';
 export * from './demo-listing-image.js';
 export * from './search/normalize.js';
 export * from './categories/condition.js';
+export * from './seo.js';

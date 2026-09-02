@@ -8,6 +8,9 @@ import { ToastViewport } from '@/shared/ui/toast-viewport';
 import { restoreSession } from '@/shared/api/session';
 import { applyTheme, useUiStore } from '@/shared/model/stores';
 import { cn } from '@/shared/lib/cn';
+import { isRobotsDisallowPath, SITE_NAME } from '@markethub/shared';
+import { SeoHead } from '@/shared/lib/seo-head';
+import { SiteFooter } from '@/widgets/site-footer/ui/SiteFooter';
 
 export function AppShell() {
   const [sessionReady, setSessionReady] = useState(false);
@@ -39,13 +42,21 @@ export function AppShell() {
   if (isAuthFlow) {
     return (
       <div className="bg-background h-dvh overflow-y-auto">
+        <SeoHead noindex title={`Вход — ${SITE_NAME}`} />
         <Outlet />
+        <div className="mx-auto max-w-md px-4 pb-8">
+          <SiteFooter />
+        </div>
       </div>
     );
   }
 
   return (
     <div className="bg-background flex h-dvh max-w-full overflow-hidden">
+      <SeoHead
+        noindex={isRobotsDisallowPath(pathname) || isListingForm}
+        title={SITE_NAME}
+      />
       <AppSidebar />
       <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden">
         <TopBar />
@@ -62,6 +73,7 @@ export function AppShell() {
         >
           <div className={cn(isChat ? 'h-full min-w-0' : 'mx-auto w-full min-w-0 max-w-7xl')}>
             <Outlet />
+            {!isChat ? <SiteFooter /> : null}
           </div>
         </main>
       </div>
