@@ -152,7 +152,7 @@ export function Combobox({
         <ul
           id={listId}
           role="listbox"
-          className="border-border bg-card absolute z-50 mt-1 max-h-64 w-max min-w-full overflow-auto rounded-xl border py-1 shadow-md"
+          className="border-border bg-card absolute z-50 mt-1 max-h-64 w-full overflow-auto rounded-xl border py-1 shadow-md"
         >
           {allowEmpty ? (
             <li>

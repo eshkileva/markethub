@@ -88,7 +88,9 @@ select {
   }
 
   html {
-    @apply h-full antialiased;
+    @apply h-full overflow-x-clip antialiased;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
   }
 
   body,

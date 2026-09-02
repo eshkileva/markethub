@@ -347,7 +347,7 @@ export function CatalogPage() {
               aria-label="Закрыть фильтры"
               onClick={() => setFiltersOpen(false)}
             />
-            <div className="fixed inset-x-0 bottom-16 z-50 max-h-[70dvh] overflow-y-auto p-3 pb-4">
+            <div className="fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-50 max-h-[70dvh] overflow-y-auto p-3 pb-4">
               {filters}
             </div>
           </div>
@@ -355,23 +355,23 @@ export function CatalogPage() {
 
         <div className="space-y-4">
           <AiPagePitch page="catalog" compact />
-          <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h1 className="font-display text-2xl font-semibold tracking-tight">Каталог</h1>
               <p className="text-muted text-sm">{total} объявлений</p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex min-w-0 items-center gap-2">
               <Button
                 type="button"
                 variant="secondary"
-                className="lg:hidden"
+                className="h-10 shrink-0 lg:hidden"
                 onClick={() => setFiltersOpen(true)}
               >
                 <SlidersHorizontal className="h-4 w-4" />
                 Фильтры
               </Button>
               <Combobox
-                className="w-44"
+                className="min-w-0 flex-1 sm:w-44 sm:flex-none"
                 value={search.sort ?? 'newest'}
                 onChange={(value) =>
                   patchSearch({
@@ -385,24 +385,26 @@ export function CatalogPage() {
                   { value: 'price_desc', label: 'Дороже' },
                 ]}
               />
-              <Button
-                type="button"
-                size="icon"
-                variant={view === 'grid' ? 'default' : 'secondary'}
-                onClick={() => patchSearch({ view: 'grid' })}
-                aria-label="Сетка"
-              >
-                <LayoutGrid className="h-4 w-4" />
-              </Button>
-              <Button
-                type="button"
-                size="icon"
-                variant={view === 'list' ? 'default' : 'secondary'}
-                onClick={() => patchSearch({ view: 'list' })}
-                aria-label="Список"
-              >
-                <List className="h-4 w-4" />
-              </Button>
+              <div className="flex shrink-0 gap-1">
+                <Button
+                  type="button"
+                  size="icon"
+                  variant={view === 'grid' ? 'default' : 'secondary'}
+                  onClick={() => patchSearch({ view: 'grid' })}
+                  aria-label="Сетка"
+                >
+                  <LayoutGrid className="h-4 w-4" />
+                </Button>
+                <Button
+                  type="button"
+                  size="icon"
+                  variant={view === 'list' ? 'default' : 'secondary'}
+                  onClick={() => patchSearch({ view: 'list' })}
+                  aria-label="Список"
+                >
+                  <List className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           </div>
 

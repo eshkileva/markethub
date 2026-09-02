@@ -11,7 +11,7 @@ export function BottomNav() {
 
   const itemClass = (active: boolean) =>
     cn(
-      'relative flex flex-col items-center gap-0.5 py-2 text-[11px] font-medium',
+      'relative flex min-h-12 flex-col items-center justify-center gap-0.5 text-[11px] font-medium',
       active ? 'text-primary' : 'text-muted',
     );
 
@@ -20,7 +20,7 @@ export function BottomNav() {
       className="border-border bg-card/95 fixed inset-x-0 bottom-0 z-30 border-t backdrop-blur lg:hidden"
       aria-label="Нижняя навигация"
     >
-      <div className="grid grid-cols-5 px-1 pb-[env(safe-area-inset-bottom)] pt-2">
+      <div className="grid h-14 grid-cols-5 px-1 pb-[env(safe-area-inset-bottom)] pt-1">
         <Link to="/" className={itemClass(pathname === '/')}>
           <Home className="h-5 w-5" />
           Главная
@@ -31,10 +31,10 @@ export function BottomNav() {
         </Link>
         <Link
           to="/listings/create"
-          className="flex flex-col items-center justify-center py-1"
+          className="flex flex-col items-center justify-center"
           aria-label="Разместить объявление"
         >
-          <span className="bg-accent text-accent-foreground -mt-5 flex h-12 w-12 items-center justify-center rounded-full shadow-md">
+          <span className="bg-accent text-accent-foreground -mt-4 flex h-12 w-12 items-center justify-center rounded-full shadow-md">
             <Plus className="h-5 w-5" />
           </span>
         </Link>
@@ -42,7 +42,7 @@ export function BottomNav() {
           <MessageSquare className="h-5 w-5" />
           Чаты
           {unread > 0 ? (
-            <span className="bg-primary absolute right-4 top-1.5 h-1.5 w-1.5 rounded-full" />
+            <span className="bg-primary absolute right-3 top-2 h-1.5 w-1.5 rounded-full" />
           ) : null}
         </Link>
         {user ? (

@@ -45,7 +45,7 @@ export function AppShell() {
   }
 
   return (
-    <div className="bg-background flex h-dvh overflow-hidden">
+    <div className="bg-background flex h-dvh overflow-hidden overflow-x-clip">
       <AppSidebar />
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
         <TopBar />
@@ -54,10 +54,10 @@ export function AppShell() {
           className={cn(
             'min-h-0 flex-1',
             isChat
-              ? 'overflow-hidden p-0 pb-16 lg:pb-0'
+              ? 'overflow-hidden p-0 pb-[calc(4rem+env(safe-area-inset-bottom))] lg:pb-0'
               : isListingForm
-                ? 'overflow-y-auto px-4 py-6 pb-6 lg:px-6'
-                : 'overflow-y-auto px-4 py-6 pb-24 lg:px-6 lg:pb-6',
+                ? 'overflow-y-auto px-3 py-4 pb-6 sm:px-4 lg:px-6 lg:py-6'
+                : 'overflow-y-auto px-3 py-4 pb-[calc(5rem+env(safe-area-inset-bottom))] sm:px-4 lg:px-6 lg:py-6 lg:pb-6',
           )}
         >
           <div className={cn(isChat ? 'h-full' : 'mx-auto w-full max-w-7xl')}>

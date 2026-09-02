@@ -53,13 +53,13 @@ export function HomePage() {
             <Badge className="bg-primary/10 text-primary">BY · RU · KZ</Badge>
             <AiPlatformBadge live={aiStatus.data?.enabled} />
           </div>
-          <h1 className="font-display text-2xl font-semibold leading-tight tracking-tight sm:text-3xl md:text-4xl">
+          <h1 className="font-display text-pretty text-2xl font-semibold leading-tight tracking-tight sm:text-3xl md:text-4xl">
             {AI_HERO_HEADLINE}
-            <span className="text-primary block text-xl sm:text-2xl md:text-3xl">
+            <span className="text-primary mt-1 block text-lg sm:text-2xl md:text-3xl">
               {AI_PLATFORM_TAGLINE}
             </span>
           </h1>
-          <p className="text-muted max-w-2xl text-sm sm:text-base">
+          <p className="text-muted max-w-2xl text-pretty text-sm leading-relaxed sm:text-base">
             Умный поиск, copilot для продавцов, Trust Score на карточках и AI-подсказки в чате — всё
             уже работает на платформе, а не «где-то сбоку».
           </p>
