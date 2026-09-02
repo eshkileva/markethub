@@ -41,7 +41,7 @@ export function TopBar() {
   }
 
   const geoControls = (
-    <div className="border-border bg-background flex h-10 shrink-0 items-center rounded-xl border px-1.5 lg:h-auto lg:rounded-2xl lg:px-3 lg:py-2">
+    <div className="border-border bg-background flex h-10 min-w-0 shrink-0 items-center overflow-hidden rounded-xl border px-1.5 lg:h-auto lg:rounded-2xl lg:px-3 lg:py-2">
       <MapPin className="text-primary hidden h-4 w-4 shrink-0 lg:mr-1 lg:block" />
       <Combobox
         className="w-[3.5rem] lg:w-[4.5rem]"
@@ -75,9 +75,9 @@ export function TopBar() {
   );
 
   return (
-    <header className="border-border bg-card/90 z-20 shrink-0 border-b backdrop-blur">
-      <div className="flex flex-col gap-2 px-3 py-2 lg:px-6 lg:py-3">
-        <div className="flex h-10 items-center gap-2 lg:h-auto">
+    <header className="border-border bg-card/90 z-20 min-w-0 shrink-0 overflow-x-hidden border-b backdrop-blur">
+      <div className="flex min-w-0 flex-col gap-2 px-3 py-2 lg:px-6 lg:py-3">
+        <div className="flex h-10 min-w-0 items-center gap-2 lg:h-auto">
           <Button
             type="button"
             variant="ghost"

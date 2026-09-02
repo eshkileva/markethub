@@ -107,7 +107,7 @@ export function HomePage() {
             Все объявления
           </Link>
         </div>
-        <div className="no-scrollbar -mx-4 flex gap-3 overflow-x-auto px-4 pb-1 lg:mx-0 lg:px-0">
+        <div className="no-scrollbar -mx-3 flex gap-3 overflow-x-auto px-3 pb-1 sm:-mx-4 sm:px-4 lg:mx-0 lg:px-0">
           {categoryRoots(categoriesQuery.data?.items ?? []).map((category) => {
             const Icon = categoryIcons[category.slug];
             return (
@@ -144,9 +144,9 @@ export function HomePage() {
         </div>
 
         {listingsQuery.isLoading ? (
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {Array.from({ length: 4 }).map((_, i) => (
-              <Card key={i} className="bg-surface-secondary h-72 animate-pulse" />
+              <Card key={i} className="bg-surface-secondary h-72 w-full animate-pulse" />
             ))}
           </div>
         ) : null}
@@ -165,7 +165,7 @@ export function HomePage() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {listingsQuery.data?.items.map((item) => (
               <ProductCard key={item.id} item={item} />
             ))}

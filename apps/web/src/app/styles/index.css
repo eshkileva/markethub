@@ -88,14 +88,14 @@ select {
   }
 
   html {
-    @apply h-full overflow-x-clip antialiased;
+    @apply h-full overflow-x-hidden antialiased;
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
   }
 
   body,
   #root {
-    @apply h-full min-h-0;
+    @apply h-full min-h-0 max-w-full overflow-x-hidden;
   }
 
   body {

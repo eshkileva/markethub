@@ -335,9 +335,9 @@ export function CatalogPage() {
   );
 
   return (
-    <div className="space-y-4">
+    <div className="min-w-0 max-w-full space-y-4 overflow-x-hidden">
       <AuthGuestBanner />
-      <div className="grid gap-6 lg:grid-cols-[260px_1fr]">
+      <div className="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,260px)_minmax(0,1fr)]">
         <div className="hidden lg:block">{filters}</div>
         {filtersOpen ? (
           <div className="lg:hidden">
@@ -353,14 +353,14 @@ export function CatalogPage() {
           </div>
         ) : null}
 
-        <div className="space-y-4">
+        <div className="min-w-0 space-y-4">
           <AiPagePitch page="catalog" compact />
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div>
+          <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
               <h1 className="font-display text-2xl font-semibold tracking-tight">Каталог</h1>
               <p className="text-muted text-sm">{total} объявлений</p>
             </div>
-            <div className="flex min-w-0 items-center gap-2">
+            <div className="flex min-w-0 flex-wrap items-center gap-2">
               <Button
                 type="button"
                 variant="secondary"
@@ -409,9 +409,9 @@ export function CatalogPage() {
           </div>
 
           {listingsQuery.isLoading ? (
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
               {Array.from({ length: 6 }).map((_, i) => (
-                <Card key={i} className="bg-surface-secondary h-72 animate-pulse" />
+                <Card key={i} className="bg-surface-secondary h-72 w-full animate-pulse" />
               ))}
             </div>
           ) : null}
@@ -433,7 +433,7 @@ export function CatalogPage() {
               ))}
             </div>
           ) : (
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
               {listingsQuery.data?.items.map((item) => (
                 <ProductCard key={item.id} item={item} />
               ))}

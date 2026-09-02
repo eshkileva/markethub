@@ -90,8 +90,8 @@ export function Combobox({
   }
 
   return (
-    <div ref={rootRef} className={cn('relative', className)}>
-      <div className="relative">
+    <div ref={rootRef} className={cn('relative min-w-0', className)}>
+      <div className="relative min-w-0">
         <input
           id={id}
           role="combobox"
@@ -99,10 +99,11 @@ export function Combobox({
           aria-controls={listId}
           aria-label={ariaLabel}
           autoComplete="off"
+          size={1}
           disabled={disabled}
           className={cn(
             selectClassName,
-            'bg-none pr-10',
+            'min-w-0 bg-none pr-10',
             size === 'sm' && 'h-8 rounded-lg px-2 pr-7 text-sm',
             variant === 'ghost' &&
               'border-0 bg-transparent shadow-none focus-visible:ring-0 focus-visible:ring-offset-0',

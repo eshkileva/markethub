@@ -95,9 +95,9 @@ export function AppSidebar() {
 
       <aside
         className={cn(
-          'bg-sidebar text-sidebar-foreground fixed inset-y-0 left-0 z-50 flex w-64 shrink-0 flex-col',
+          'bg-sidebar text-sidebar-foreground fixed inset-y-0 left-0 z-50 flex w-64 flex-col',
           'h-dvh transition-transform duration-200 ease-out',
-          'lg:static lg:z-auto lg:h-full lg:translate-x-0',
+          'lg:static lg:z-auto lg:h-full lg:w-64 lg:shrink-0 lg:translate-x-0',
           sidebarOpen ? 'translate-x-0' : '-translate-x-full',
         )}
       >
