@@ -14,13 +14,20 @@ function waitForAuthHydration(): Promise<void> {
 
 const AUTH_FLOW_PATHS = new Set(['/auth', '/forgot-password']);
 
+const AUTH_REQUIRED_PATHS = new Set([
+  '/messages',
+  '/favorites',
+  '/my-listings',
+  '/purchases',
+  '/sales',
+  '/notifications',
+  '/moderation',
+]);
+
 export function isPublicPath(pathname: string): boolean {
-  if (pathname === '/' || pathname === '/settings') return true;
-  if (pathname.startsWith('/catalog')) return true;
   if (pathname === '/listings/create' || /\/edit$/.test(pathname)) return false;
-  if (/^\/listings\/[^/]+$/.test(pathname)) return true;
-  if (/^\/profile\/[^/]+$/.test(pathname)) return true;
-  return false;
+  if (AUTH_REQUIRED_PATHS.has(pathname)) return false;
+  return true;
 }
 
 export async function guardRoute(pathname: string) {

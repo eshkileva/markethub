@@ -58,6 +58,7 @@ export function AuthPage() {
       password: '',
       username: '',
       country: 'RU' as CountryCode,
+      acceptedTerms: false,
     },
     onSubmit: async ({ value }) => {
       setError(null);
@@ -207,6 +208,29 @@ export function AuthPage() {
                       onChange={(value) => field.handleChange(value as CountryCode)}
                     />
                   </div>
+                )}
+              </registerForm.Field>
+              <registerForm.Field name="acceptedTerms">
+                {(field) => (
+                  <label className="flex items-start gap-2.5 text-sm leading-snug">
+                    <input
+                      id="accepted-terms"
+                      type="checkbox"
+                      className="border-border text-primary mt-0.5 h-4 w-4 shrink-0 rounded"
+                      checked={field.state.value}
+                      onChange={(e) => field.handleChange(e.target.checked)}
+                    />
+                    <span>
+                      Я принимаю{' '}
+                      <Link to="/terms" className="text-primary font-medium hover:underline">
+                        пользовательское соглашение
+                      </Link>{' '}
+                      и{' '}
+                      <Link to="/privacy" className="text-primary font-medium hover:underline">
+                        политику конфиденциальности
+                      </Link>
+                    </span>
+                  </label>
                 )}
               </registerForm.Field>
               {error ? <p className="text-danger text-sm">{error}</p> : null}

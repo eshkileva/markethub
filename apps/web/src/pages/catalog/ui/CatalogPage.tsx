@@ -33,6 +33,7 @@ import { resolveSmartSearch } from '@/features/search/model/resolve-smart-search
 import { AiPagePitch } from '@/features/ai/ui/AiPagePitch';
 import { AuthGuestBanner } from '@/features/auth/ui/AuthGuestBanner';
 import { normalizeSearchQuery } from '@markethub/shared';
+import { SeoHead, siteOrigin } from '@/shared/lib/seo-head';
 
 type ListingsResponse = Paginated<ProductCardData> &
   Required<Pick<Paginated<ListingCard>, 'page' | 'pageSize' | 'total'>>;
@@ -334,8 +335,39 @@ export function CatalogPage() {
     </Card>
   );
 
+  const catalogTitle = selectedCategory
+    ? `${selectedCategory.nameRu} — объявления на Купилко`
+    : 'Объявления на Купилко';
+  const faceted = Boolean(
+    search.q ||
+    (search.sort && search.sort !== 'newest') ||
+    search.view ||
+    search.minPrice !== undefined ||
+    search.maxPrice !== undefined ||
+    search.currency ||
+    search.condition ||
+    search.delivery ||
+    (search.attr && search.attr.length > 0) ||
+    search.country ||
+    search.city ||
+    (search.page && search.page > 1),
+  );
+  const catalogCanonical = selectedCategory
+    ? `${siteOrigin()}/catalog?category=${encodeURIComponent(selectedCategory.slug)}`
+    : `${siteOrigin()}/catalog`;
+
   return (
     <div className="min-w-0 max-w-full space-y-4 overflow-x-hidden">
+      <SeoHead
+        title={catalogTitle}
+        description={
+          selectedCategory
+            ? `${selectedCategory.nameRu} — объявления на Купилко. Беларусь, Россия и Казахстан.`
+            : 'Каталог объявлений Купилко: техника, одежда, авто и другое в СНГ.'
+        }
+        canonical={catalogCanonical}
+        noindex={faceted}
+      />
       <AuthGuestBanner />
       <div className="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,260px)_minmax(0,1fr)]">
         <div className="hidden lg:block">{filters}</div>
@@ -357,7 +389,7 @@ export function CatalogPage() {
           <AiPagePitch page="catalog" compact />
           <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="min-w-0">
-              <h1 className="font-display text-2xl font-semibold tracking-tight">Каталог</h1>
+              <h1 className="font-display text-2xl font-semibold tracking-tight">{catalogTitle}</h1>
               <p className="text-muted text-sm">{total} объявлений</p>
             </div>
             <div className="flex min-w-0 flex-wrap items-center gap-2">
@@ -419,7 +451,9 @@ export function CatalogPage() {
           {listingsQuery.data?.items.length === 0 ? (
             <Card>
               <CardContent className="text-muted p-6 text-sm">
-                Ничего не нашлось. Снимите часть фильтров или{' '}
+                {search.category
+                  ? `Пока нет объявлений в категории «${selectedCategory?.nameRu ?? search.category}». `
+                  : 'Пока нет объявлений. Снимите часть фильтров или '}
                 <Link to="/listings/create" className="text-primary">
                   разместите объявление
                 </Link>

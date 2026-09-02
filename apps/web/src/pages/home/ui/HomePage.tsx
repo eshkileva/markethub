@@ -19,6 +19,8 @@ import { AiPlatformBadge } from '@/features/ai/ui/AiPlatformBadge';
 import { useAiStatus } from '@/features/ai/model/use-ai-status';
 import { AI_HERO_HEADLINE, AI_PLATFORM_TAGLINE } from '@/features/ai/model/ai-messaging';
 import { AuthGuestBanner } from '@/features/auth/ui/AuthGuestBanner';
+import { CONTACT_EMAIL, DEFAULT_DESCRIPTION, SITE_NAME } from '@markethub/shared';
+import { SeoHead, siteOrigin } from '@/shared/lib/seo-head';
 
 type ListingsResponse = Paginated<ListingCard>;
 
@@ -45,6 +47,18 @@ export function HomePage() {
 
   return (
     <div className="space-y-8">
+      <SeoHead
+        title={`${SITE_NAME} — объявления в СНГ`}
+        description={DEFAULT_DESCRIPTION}
+        canonical={`${siteOrigin()}/`}
+        jsonLd={{
+          '@context': 'https://schema.org',
+          '@type': 'Organization',
+          name: SITE_NAME,
+          url: siteOrigin(),
+          email: CONTACT_EMAIL,
+        }}
+      />
       <AuthGuestBanner />
       <section className="border-border bg-card relative overflow-hidden rounded-[1.25rem] border shadow-sm">
         <div className="from-primary/15 pointer-events-none absolute inset-0 bg-gradient-to-br via-transparent to-transparent" />
@@ -54,14 +68,14 @@ export function HomePage() {
             <AiPlatformBadge live={aiStatus.data?.enabled} />
           </div>
           <h1 className="font-display text-pretty text-2xl font-semibold leading-tight tracking-tight sm:text-3xl md:text-4xl">
-            {AI_HERO_HEADLINE}
-            <span className="text-primary mt-1 block text-lg sm:text-2xl md:text-3xl">
-              {AI_PLATFORM_TAGLINE}
-            </span>
+            Объявления в Беларуси, России и Казахстане
           </h1>
+          <p className="text-primary font-display text-lg font-semibold sm:text-2xl md:text-3xl">
+            {AI_HERO_HEADLINE}
+          </p>
           <p className="text-muted max-w-2xl text-pretty text-sm leading-relaxed sm:text-base">
-            Умный поиск, copilot для продавцов, Trust Score на карточках и AI-подсказки в чате — всё
-            уже работает на платформе, а не «где-то сбоку».
+            {AI_PLATFORM_TAGLINE}. Умный поиск, copilot для продавцов, Trust Score на карточках и
+            AI-подсказки в чате — всё уже работает на платформе, а не «где-то сбоку».
           </p>
           <form
             className="flex max-w-xl flex-col gap-2 sm:flex-row"

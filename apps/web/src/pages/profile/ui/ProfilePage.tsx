@@ -1,7 +1,8 @@
 import { Link } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
 import { MapPin, ShieldCheck } from 'lucide-react';
-import { COUNTRIES, type CountryCode } from '@markethub/shared';
+import { COUNTRIES, SITE_NAME, type CountryCode } from '@markethub/shared';
+import { SeoHead } from '@/shared/lib/seo-head';
 import { apiRequest } from '@/shared/api/client';
 import { useAuthStore } from '@/shared/model/stores';
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/avatar';
@@ -101,6 +102,11 @@ export function ProfilePage({ username }: { username: string }) {
 
   return (
     <div className="space-y-6">
+      <SeoHead
+        title={`${name} — продавец на ${SITE_NAME}`}
+        description={`Профиль ${name} на Купилко.`}
+        noindex
+      />
       <Card>
         <CardContent className="flex flex-col gap-5 p-6 sm:flex-row sm:items-start">
           <Avatar className="h-20 w-20">

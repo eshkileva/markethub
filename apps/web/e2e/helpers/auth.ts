@@ -50,12 +50,12 @@ export async function expectAuthRedirect(page: Page, path: string) {
 
 export async function registerVerifiedUser(
   request: APIRequestContext,
-  input: RegisterInput,
+  input: Omit<RegisterInput, 'acceptedTerms'> & { acceptedTerms?: boolean },
   apiBase = E2E_API_BASE,
 ) {
   const registerRes = await request.post(`${apiBase}/v1/auth/register`, {
     headers: { 'content-type': 'application/json' },
-    data: input,
+    data: { acceptedTerms: true, ...input },
   });
   if (!registerRes.ok()) {
     throw new Error(`register failed: ${registerRes.status()} ${await registerRes.text()}`);

@@ -39,6 +39,7 @@ import { catalogsRoutes } from './modules/catalogs/http/catalogs.routes.js';
 import { searchHistoryRoutes } from './modules/search/http/search-history.routes.js';
 import { listingCopilotRoutes } from './modules/ai/http/listing-copilot.routes.js';
 import { moderationRoutes } from './modules/moderation/http/moderation.routes.js';
+import { seoRoutes } from './modules/seo/http/seo.routes.js';
 
 function isLocalDevOrigin(origin: string): boolean {
   try {
@@ -152,6 +153,7 @@ export async function buildApp(deps: {
   });
 
   app.get('/health', async () => ({ status: 'ok', service: 'markethub-api' }));
+  await app.register(seoRoutes);
 
   app.get('/ready', async (_request, reply) => {
     try {
