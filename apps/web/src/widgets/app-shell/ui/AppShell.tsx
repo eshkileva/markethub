@@ -4,6 +4,7 @@ import { AppSidebar } from '@/widgets/app-sidebar/ui/AppSidebar';
 import { TopBar } from '@/widgets/top-bar/ui/TopBar';
 import { AiGlobalStrip } from '@/features/ai/ui/AiGlobalStrip';
 import { BottomNav } from '@/widgets/bottom-nav/ui/BottomNav';
+import { ToastViewport } from '@/shared/ui/toast-viewport';
 import { restoreSession } from '@/shared/api/session';
 import { applyTheme, useUiStore } from '@/shared/model/stores';
 import { cn } from '@/shared/lib/cn';
@@ -14,6 +15,8 @@ export function AppShell() {
   const isAuthFlow =
     pathname === '/auth' || pathname === '/verify-email' || pathname === '/forgot-password';
   const isChat = pathname === '/messages';
+  const isListingForm =
+    pathname === '/listings/create' || /^\/listings\/[^/]+\/edit$/.test(pathname);
   const theme = useUiStore((s) => s.theme);
 
   useEffect(() => {
@@ -52,7 +55,9 @@ export function AppShell() {
             'min-h-0 flex-1',
             isChat
               ? 'overflow-hidden p-0 pb-16 lg:pb-0'
-              : 'overflow-y-auto px-4 py-6 pb-24 lg:px-6 lg:pb-6',
+              : isListingForm
+                ? 'overflow-y-auto px-4 py-6 pb-6 lg:px-6'
+                : 'overflow-y-auto px-4 py-6 pb-24 lg:px-6 lg:pb-6',
           )}
         >
           <div className={cn(isChat ? 'h-full' : 'mx-auto w-full max-w-7xl')}>
@@ -60,7 +65,8 @@ export function AppShell() {
           </div>
         </main>
       </div>
-      <BottomNav />
+      {!isListingForm ? <BottomNav /> : null}
+      <ToastViewport />
     </div>
   );
 }

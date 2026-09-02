@@ -30,7 +30,6 @@ import { Label } from '@/shared/ui/label';
 import { mapListingError } from '../model/map-listing-error';
 import {
   attributeFieldKey,
-  listingFormErrorCount,
   listingSectionHasError,
   scrollToFirstFieldError,
   zodIssuesToFieldErrors,
@@ -47,6 +46,7 @@ import { ListingPriceHint } from '@/features/listing-copilot/ui/ListingPriceHint
 import { AiPagePitch } from '@/features/ai/ui/AiPagePitch';
 import { useAiStatus } from '@/features/ai/model/use-ai-status';
 import type { ListingAiAssessment } from '@markethub/shared';
+import { toast } from '@/shared/model/toast-store';
 
 type PriceInsightResponse = {
   min: number | null;
@@ -62,6 +62,12 @@ type ListingResponse = {
   id: string;
   status: string;
 };
+
+function formIssueLabel(count: number) {
+  if (count === 1) return '1 ошибку';
+  if (count < 5) return `${count} ошибки`;
+  return `${count} ошибок`;
+}
 
 export function CreateListingPage({ listingId }: { listingId?: string }) {
   const navigate = useNavigate();
@@ -81,7 +87,6 @@ export function CreateListingPage({ listingId }: { listingId?: string }) {
   const [attributeValues, setAttributeValues] = useState<Record<string, string>>({});
   const [images, setImages] = useState<EditorImage[]>([]);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
-  const [formError, setFormError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [copilotBusy, setCopilotBusy] = useState(false);
   const [copilotResult, setCopilotResult] = useState<ListingCopilotResult | null>(null);
@@ -222,7 +227,6 @@ export function CreateListingPage({ listingId }: { listingId?: string }) {
 
   const attributeDefs = attributesQuery.data?.items ?? [];
   const withAttributes = attributeDefs.length > 0;
-  const formIssueCount = listingFormErrorCount(fieldErrors);
 
   function clearFieldError(key: string) {
     setFieldErrors((prev) => {
@@ -325,15 +329,14 @@ export function CreateListingPage({ listingId }: { listingId?: string }) {
 
   async function onUpload(files: FileList | null) {
     if (!files?.length || !accessToken) return;
-    setFormError(null);
     const room = MAX_LISTING_IMAGES - images.length;
     if (room <= 0) {
-      setFormError(`Можно загрузить не больше ${MAX_LISTING_IMAGES} фото`);
+      toast(`Можно загрузить не больше ${MAX_LISTING_IMAGES} фото`);
       return;
     }
     const selected = Array.from(files).slice(0, room);
     if (selected.some((file) => file.size > MAX_UPLOAD_BYTES)) {
-      setFormError('Файл больше 5 МБ');
+      toast('Файл больше 5 МБ');
       return;
     }
     setBusy(true);
@@ -346,9 +349,7 @@ export function CreateListingPage({ listingId }: { listingId?: string }) {
       setImages((prev) => [...prev, ...uploaded]);
       clearFieldError('photos');
     } catch (err) {
-      setFormError(
-        err instanceof Error ? mapListingError(err.message) : 'Не удалось загрузить фото',
-      );
+      toast(err instanceof Error ? mapListingError(err.message) : 'Не удалось загрузить фото');
     } finally {
       setBusy(false);
     }
@@ -356,7 +357,6 @@ export function CreateListingPage({ listingId }: { listingId?: string }) {
 
   async function onRemoveImage(target: EditorImage) {
     if (!accessToken) return;
-    setFormError(null);
     if (!target.id) {
       setImages((prev) => prev.filter((item) => item.url !== target.url));
       return;
@@ -369,7 +369,7 @@ export function CreateListingPage({ listingId }: { listingId?: string }) {
       });
       setImages((prev) => prev.filter((item) => item.id !== target.id));
     } catch (err) {
-      setFormError(err instanceof Error ? mapListingError(err.message) : 'Не удалось удалить фото');
+      toast(err instanceof Error ? mapListingError(err.message) : 'Не удалось удалить фото');
     } finally {
       setBusy(false);
     }
@@ -434,7 +434,6 @@ export function CreateListingPage({ listingId }: { listingId?: string }) {
   ): Promise<ListingAiAssessment | null> {
     if (!accessToken) return aiAssessment;
     setCopilotBusy(true);
-    setFormError(null);
     try {
       const result = await apiRequest<ListingCopilotResult>('/v1/ai/listing-copilot', {
         method: 'POST',
@@ -462,7 +461,7 @@ export function CreateListingPage({ listingId }: { listingId?: string }) {
       return result.assessment;
     } catch (err) {
       if (!options?.reassessOnly) {
-        setFormError(err instanceof Error ? mapListingError(err.message) : 'AI copilot недоступен');
+        toast(err instanceof Error ? mapListingError(err.message) : 'AI copilot недоступен');
       }
       return aiAssessment;
     } finally {
@@ -498,11 +497,11 @@ export function CreateListingPage({ listingId }: { listingId?: string }) {
   }
 
   async function onSubmit(publish: boolean) {
-    setFormError(null);
     const { parsed, errors } = validateForm(publish);
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
       scrollToFirstFieldError(errors);
+      toast(`Исправьте ${formIssueLabel(Object.keys(errors).length)} в форме`);
       return;
     }
     if (!parsed.success) return;
@@ -550,7 +549,7 @@ export function CreateListingPage({ listingId }: { listingId?: string }) {
         isEdit ? { to: '/listings/$id', params: { id: listing.id } } : { to: '/my-listings' },
       );
     } catch (err) {
-      setFormError(
+      toast(
         err instanceof Error ? mapListingError(err.message) : 'Не удалось сохранить объявление',
       );
     } finally {
@@ -559,7 +558,7 @@ export function CreateListingPage({ listingId }: { listingId?: string }) {
   }
 
   return (
-    <div className="mx-auto max-w-2xl pb-28">
+    <div className="mx-auto max-w-2xl pb-[calc(8.5rem+env(safe-area-inset-bottom))] md:pb-8">
       {!isEdit ? <AiPagePitch page="create-listing" compact className="mb-6" /> : null}
       <header className="mb-6 space-y-1">
         <h1 className="text-2xl font-bold tracking-tight">
@@ -581,17 +580,6 @@ export function CreateListingPage({ listingId }: { listingId?: string }) {
       ) : null}
 
       <fieldset disabled={busy || isSold} className="space-y-4">
-        {formIssueCount > 0 ? (
-          <div
-            className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-100"
-            role="alert"
-          >
-            Исправьте {formIssueCount}{' '}
-            {formIssueCount === 1 ? 'ошибку' : formIssueCount < 5 ? 'ошибки' : 'ошибок'} в форме —
-            они отмечены у соответствующих полей.
-          </div>
-        ) : null}
-
         <ListingFormSection
           step={1}
           title="Фото"
@@ -881,32 +869,29 @@ export function CreateListingPage({ listingId }: { listingId?: string }) {
         </ListingFormSection>
       </fieldset>
 
-      {formError ? (
-        <p
-          className="text-danger mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm"
-          role="alert"
-        >
-          {formError}
-        </p>
-      ) : null}
-
-      <div className="border-border bg-card/95 supports-[backdrop-filter]:bg-card/80 fixed inset-x-0 bottom-0 z-20 border-t p-4 backdrop-blur md:static md:mt-6 md:border-0 md:bg-transparent md:p-0 md:backdrop-blur-none">
-        <div className="mx-auto flex max-w-2xl flex-wrap gap-3">
+      <div className="border-border bg-card/95 supports-[backdrop-filter]:bg-card/80 fixed inset-x-0 bottom-0 z-40 border-t p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] backdrop-blur md:static md:z-auto md:mt-6 md:border-0 md:bg-transparent md:p-0 md:pb-0">
+        <div className="mx-auto flex max-w-2xl flex-col-reverse gap-2 sm:flex-row sm:flex-wrap sm:gap-3">
           <Button
             type="button"
             variant="secondary"
             disabled={busy || isSold}
+            className="w-full sm:w-auto"
             onClick={() => void onSubmit(false)}
           >
             {isEdit ? 'Сохранить' : 'Сохранить черновик'}
           </Button>
           {canPublish ? (
-            <Button type="button" disabled={busy || isSold} onClick={() => void onSubmit(true)}>
+            <Button
+              type="button"
+              disabled={busy || isSold}
+              className="w-full sm:w-auto"
+              onClick={() => void onSubmit(true)}
+            >
               Опубликовать
             </Button>
           ) : null}
           {isEdit ? (
-            <Button asChild variant="ghost">
+            <Button asChild variant="ghost" className="w-full sm:w-auto">
               <Link to="/listings/$id" params={{ id: listingId! }}>
                 Отмена
               </Link>
