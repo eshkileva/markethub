@@ -11,6 +11,7 @@ import { cn } from '@/shared/lib/cn';
 import { isRobotsDisallowPath, SITE_NAME } from '@markethub/shared';
 import { SeoHead } from '@/shared/lib/seo-head';
 import { SiteFooter } from '@/widgets/site-footer/ui/SiteFooter';
+import { VercelAnalytics } from '@/widgets/vercel-analytics/ui/VercelAnalytics';
 
 export function AppShell() {
   const [sessionReady, setSessionReady] = useState(false);
@@ -36,12 +37,18 @@ export function AppShell() {
   }, [theme]);
 
   if (!sessionReady) {
-    return <div className="bg-background h-dvh" />;
+    return (
+      <>
+        <VercelAnalytics />
+        <div className="bg-background h-dvh" />
+      </>
+    );
   }
 
   if (isAuthFlow) {
     return (
       <div className="bg-background h-dvh overflow-y-auto">
+        <VercelAnalytics />
         <SeoHead noindex title={`Вход — ${SITE_NAME}`} />
         <Outlet />
         <div className="mx-auto max-w-md px-4 pb-8">
@@ -53,6 +60,7 @@ export function AppShell() {
 
   return (
     <div className="bg-background flex h-dvh max-w-full overflow-hidden">
+      <VercelAnalytics />
       <SeoHead
         noindex={isRobotsDisallowPath(pathname) || isListingForm}
         title={SITE_NAME}
