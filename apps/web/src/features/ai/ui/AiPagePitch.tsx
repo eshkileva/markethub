@@ -28,23 +28,31 @@ export function AiPagePitch({
         className,
       )}
     >
-      <div className="relative flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-        <div className="space-y-2">
+      <div className="relative min-w-0">
+        <div className="space-y-2 pr-0 sm:pr-12">
           <AiPlatformBadge live={aiStatus.data?.enabled} size={compact ? 'sm' : 'default'} />
           <h2
             className={cn(
-              'font-display font-semibold tracking-tight',
+              'font-display text-pretty font-semibold tracking-tight',
               compact ? 'text-base' : 'text-lg md:text-xl',
             )}
           >
             {pitch.headline}
           </h2>
-          <p className={cn('text-muted max-w-2xl', compact ? 'text-xs' : 'text-sm')}>
+          <p
+            className={cn(
+              'text-muted max-w-2xl text-pretty leading-relaxed',
+              compact ? 'text-xs' : 'text-sm',
+            )}
+          >
             {pitch.subline}
           </p>
         </div>
         <Sparkles
-          className={cn('text-primary/30 shrink-0', compact ? 'h-8 w-8' : 'h-10 w-10')}
+          className={cn(
+            'text-primary/30 absolute right-0 top-0 hidden sm:block',
+            compact ? 'h-8 w-8' : 'h-10 w-10',
+          )}
           aria-hidden
         />
       </div>

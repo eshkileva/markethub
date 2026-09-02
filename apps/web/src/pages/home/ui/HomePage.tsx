@@ -53,13 +53,13 @@ export function HomePage() {
             <Badge className="bg-primary/10 text-primary">BY · RU · KZ</Badge>
             <AiPlatformBadge live={aiStatus.data?.enabled} />
           </div>
-          <h1 className="font-display text-2xl font-semibold leading-tight tracking-tight sm:text-3xl md:text-4xl">
+          <h1 className="font-display text-pretty text-2xl font-semibold leading-tight tracking-tight sm:text-3xl md:text-4xl">
             {AI_HERO_HEADLINE}
-            <span className="text-primary block text-xl sm:text-2xl md:text-3xl">
+            <span className="text-primary mt-1 block text-lg sm:text-2xl md:text-3xl">
               {AI_PLATFORM_TAGLINE}
             </span>
           </h1>
-          <p className="text-muted max-w-2xl text-sm sm:text-base">
+          <p className="text-muted max-w-2xl text-pretty text-sm leading-relaxed sm:text-base">
             Умный поиск, copilot для продавцов, Trust Score на карточках и AI-подсказки в чате — всё
             уже работает на платформе, а не «где-то сбоку».
           </p>
@@ -107,7 +107,7 @@ export function HomePage() {
             Все объявления
           </Link>
         </div>
-        <div className="no-scrollbar -mx-4 flex gap-3 overflow-x-auto px-4 pb-1 lg:mx-0 lg:px-0">
+        <div className="no-scrollbar -mx-3 flex gap-3 overflow-x-auto px-3 pb-1 sm:-mx-4 sm:px-4 lg:mx-0 lg:px-0">
           {categoryRoots(categoriesQuery.data?.items ?? []).map((category) => {
             const Icon = categoryIcons[category.slug];
             return (
@@ -144,9 +144,9 @@ export function HomePage() {
         </div>
 
         {listingsQuery.isLoading ? (
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {Array.from({ length: 4 }).map((_, i) => (
-              <Card key={i} className="bg-surface-secondary h-72 animate-pulse" />
+              <Card key={i} className="bg-surface-secondary h-72 w-full animate-pulse" />
             ))}
           </div>
         ) : null}
@@ -165,7 +165,7 @@ export function HomePage() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {listingsQuery.data?.items.map((item) => (
               <ProductCard key={item.id} item={item} />
             ))}

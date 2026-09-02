@@ -44,8 +44,8 @@ export function ProductCard({
 
   if (layout === 'list') {
     return (
-      <Link to="/listings/$id" params={{ id: item.id }} className="block">
-        <Card className="flex overflow-hidden hover:shadow-md">
+      <Link to="/listings/$id" params={{ id: item.id }} className="block min-w-0 max-w-full">
+        <Card className="flex min-w-0 overflow-hidden hover:shadow-md">
           <div className="bg-surface-secondary relative h-28 w-32 shrink-0 sm:w-40">
             {item.imageUrl ? (
               <ListingImage
@@ -86,8 +86,8 @@ export function ProductCard({
   }
 
   return (
-    <Link to="/listings/$id" params={{ id: item.id }} className="block">
-      <Card className="overflow-hidden hover:shadow-md">
+    <Link to="/listings/$id" params={{ id: item.id }} className="block min-w-0 max-w-full">
+      <Card className="min-w-0 overflow-hidden hover:shadow-md">
         <div className="bg-surface-secondary relative aspect-[4/3]">
           {item.imageUrl ? (
             <ListingImage

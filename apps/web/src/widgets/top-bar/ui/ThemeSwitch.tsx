@@ -8,13 +8,16 @@ const OPTIONS: Array<{ id: ThemeMode; label: string; Icon: typeof Sun }> = [
   { id: 'dark', label: 'Тёмная', Icon: Moon },
 ];
 
-export function ThemeSwitch() {
+export function ThemeSwitch({ className }: { className?: string }) {
   const theme = useUiStore((s) => s.theme);
   const setTheme = useUiStore((s) => s.setTheme);
 
   return (
     <div
-      className="border-border bg-background flex shrink-0 items-center rounded-2xl border p-0.5"
+      className={cn(
+        'border-border bg-background flex shrink-0 items-center rounded-2xl border p-0.5',
+        className,
+      )}
       role="group"
       aria-label="Тема оформления"
     >

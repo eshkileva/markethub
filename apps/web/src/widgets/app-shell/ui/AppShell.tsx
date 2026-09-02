@@ -45,22 +45,22 @@ export function AppShell() {
   }
 
   return (
-    <div className="bg-background flex h-dvh overflow-hidden">
+    <div className="bg-background flex h-dvh max-w-full overflow-hidden">
       <AppSidebar />
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden">
         <TopBar />
         {!isChat ? <AiGlobalStrip /> : null}
         <main
           className={cn(
-            'min-h-0 flex-1',
+            'min-h-0 min-w-0 flex-1 overflow-x-hidden',
             isChat
-              ? 'overflow-hidden p-0 pb-16 lg:pb-0'
+              ? 'overflow-hidden p-0 pb-[calc(4rem+env(safe-area-inset-bottom))] lg:pb-0'
               : isListingForm
-                ? 'overflow-y-auto px-4 py-6 pb-6 lg:px-6'
-                : 'overflow-y-auto px-4 py-6 pb-24 lg:px-6 lg:pb-6',
+                ? 'overflow-y-auto px-3 py-4 pb-6 sm:px-4 lg:px-6 lg:py-6'
+                : 'overflow-y-auto px-3 py-4 pb-[calc(5rem+env(safe-area-inset-bottom))] sm:px-4 lg:px-6 lg:py-6 lg:pb-6',
           )}
         >
-          <div className={cn(isChat ? 'h-full' : 'mx-auto w-full max-w-7xl')}>
+          <div className={cn(isChat ? 'h-full min-w-0' : 'mx-auto w-full min-w-0 max-w-7xl')}>
             <Outlet />
           </div>
         </main>
