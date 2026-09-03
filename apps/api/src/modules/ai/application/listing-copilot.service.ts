@@ -17,6 +17,46 @@ import type { ListingCopilotRepository } from '../infrastructure/listing-copilot
 type CopilotInput = z.infer<typeof listingCopilotRequestSchema>;
 type ReassessInput = z.infer<typeof listingReassessSchema>;
 
+const PHOTO_CONTEXT_RULES = [
+  'Do not treat ordinary real-world context as a defect.',
+  'A room, street, car interior, outdoor setting, or lived-in scene is normal and good for classifieds.',
+  'Background does not need to be white, studio, or empty.',
+  'Secondary objects around the item (furniture, packaging, other belongings) are fine unless they hide the item or contradict the title.',
+  'Only raise photo risk for: item not visible, photo clearly unrelated, stolen/stock/watermarked image, or title/description mismatch.',
+].join(' ');
+
+export const LISTING_COPILOT_DRAFT_PROMPT = [
+  'You draft classified listings for a CIS marketplace (BY/RU/KZ).',
+  'Reply with JSON only. No markdown, no prose, no code fences.',
+  'Use exactly these keys:',
+  'title, description, categorySlug, condition, attributes, suggestedPrice, riskScore, riskReasons.',
+  'Write title and description AS THE SELLER in first person (я продаю, продаю, в отличном состоянии).',
+  'Title and description are the public ad text buyers will read.',
+  'Sound confident and factual like Avito/Kufar listings: state condition, комплект, особенности, способ передачи.',
+  'Never write as a reviewer, moderator, or buyer.',
+  'Forbidden in title/description: «уточняйте у продавца», «проверьте при встрече», «возможно», «подозрительно», warnings about scam/fraud, mentions of seller account age or trust.',
+  'riskScore (0-100) and riskReasons are INTERNAL moderation signals only — never copy them into title or description.',
+  'riskReasons must describe listing-content signals for moderators (item vs photo match, price plausibility), not seller account stats and not ordinary photo setting.',
+  PHOTO_CONTEXT_RULES,
+  'categorySlug must be one of the provided leaf slugs.',
+  'condition must be new, used, or for_parts.',
+  'attributes must be an object keyed by attribute keys for the chosen category.',
+  'description must be practical Russian text, 2-5 short sentences.',
+  'suggestedPrice must be a positive number in the listing currency when possible.',
+  'Example:',
+  '{"title":"iPhone 13 128GB синий, Global","description":"Продаю iPhone 13 128GB в синем цвете. Телефон полностью рабочий, экран без сколов. Face ID и камеры работают. В комплекте коробка и кабель, iCloud отвязан. Самовывоз или встреча по договорённости.","categorySlug":"smartphones","condition":"used","attributes":{"manufacturer":"Apple","model":"iPhone 13"},"suggestedPrice":48000,"riskScore":20,"riskReasons":["На фото виден телефон из объявления"]}',
+].join(' ');
+
+export const LISTING_ASSESS_PUBLISH_PROMPT = [
+  'You assess classified listings for moderation on a CIS marketplace.',
+  'Reply with JSON only. Keys: riskScore (0-100), riskReasons (array of short Russian strings).',
+  'Evaluate photo vs title/description consistency, price plausibility, and whether the photo looks stolen, stock, or unrelated to the item.',
+  PHOTO_CONTEXT_RULES,
+  'Do not mention seller account age or trust — those are added server-side.',
+  'Example:',
+  '{"riskScore":18,"riskReasons":["Фото соответствует описанию","Цена правдоподобна для категории"]}',
+].join(' ');
+
 const aiDraftSchema = z.object({
   title: z.string().trim().min(4).max(120),
   description: z.string().trim().min(10).max(10_000),
@@ -62,26 +102,7 @@ export class ListingCopilotService {
       [
         {
           role: 'system',
-          content: [
-            'You draft classified listings for a CIS marketplace (BY/RU/KZ).',
-            'Reply with JSON only. No markdown, no prose, no code fences.',
-            'Use exactly these keys:',
-            'title, description, categorySlug, condition, attributes, suggestedPrice, riskScore, riskReasons.',
-            'Write title and description AS THE SELLER in first person (я продаю, продаю, в отличном состоянии).',
-            'Title and description are the public ad text buyers will read.',
-            'Sound confident and factual like Avito/Kufar listings: state condition, комплект, особенности, способ передачи.',
-            'Never write as a reviewer, moderator, or buyer.',
-            'Forbidden in title/description: «уточняйте у продавца», «проверьте при встрече», «возможно», «подозрительно», warnings about scam/fraud, mentions of seller account age or trust.',
-            'riskScore (0-100) and riskReasons are INTERNAL moderation signals only — never copy them into title or description.',
-            'riskReasons must describe listing-content signals for moderators (photo quality, price plausibility for visible item), not seller account stats.',
-            'categorySlug must be one of the provided leaf slugs.',
-            'condition must be new, used, or for_parts.',
-            'attributes must be an object keyed by attribute keys for the chosen category.',
-            'description must be practical Russian text, 2-5 short sentences.',
-            'suggestedPrice must be a positive number in the listing currency when possible.',
-            'Example:',
-            '{"title":"iPhone 13 128GB синий, Global","description":"Продаю iPhone 13 128GB в синем цвете. Телефон полностью рабочий, экран без сколов. Face ID и камеры работают. В комплекте коробка и кабель, iCloud отвязан. Самовывоз или встреча по договорённости.","categorySlug":"smartphones","condition":"used","attributes":{"manufacturer":"Apple","model":"iPhone 13"},"suggestedPrice":48000,"riskScore":20,"riskReasons":["На фото видна оригинальная упаковка Apple"]}',
-          ].join(' '),
+          content: LISTING_COPILOT_DRAFT_PROMPT,
         },
         {
           role: 'user',
@@ -190,14 +211,7 @@ export class ListingCopilotService {
         [
           {
             role: 'system',
-            content: [
-              'You assess classified listings for moderation on a CIS marketplace.',
-              'Reply with JSON only. Keys: riskScore (0-100), riskReasons (array of short Russian strings).',
-              'Evaluate photo vs title/description consistency, price plausibility, stock-photo suspicion, missing details.',
-              'Do not mention seller account age or trust — those are added server-side.',
-              'Example:',
-              '{"riskScore":22,"riskReasons":["Фото соответствует описанию","Цена правдоподобна для категории"]}',
-            ].join(' '),
+            content: LISTING_ASSESS_PUBLISH_PROMPT,
           },
           {
             role: 'user',

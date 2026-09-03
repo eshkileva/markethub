@@ -1,4 +1,8 @@
 import { MAX_LISTING_IMAGES } from '@markethub/shared';
+import { ApiError } from '@/shared/api/client';
+
+export const COPILOT_RATE_LIMIT_RETRY =
+  'Слишком много запросов к AI. Нажмите «Сгенерировать черновик» ещё раз.';
 
 export function mapListingError(message: string) {
   if (message === 'Sold listings cannot be edited') return 'Проданное объявление нельзя изменить';
@@ -26,5 +30,20 @@ export function mapListingError(message: string) {
   if (message.includes('Достигнут дневной лимит AI')) {
     return message;
   }
+  if (
+    message.includes('AI provider error: 429') ||
+    message.includes('Слишком много запросов к AI')
+  ) {
+    return COPILOT_RATE_LIMIT_RETRY;
+  }
   return message;
+}
+
+export function mapCopilotError(err: unknown) {
+  if (err instanceof ApiError && (err.status === 429 || err.code === 'RATE_LIMIT')) {
+    if (err.message.includes('дневной лимит')) return err.message;
+    return COPILOT_RATE_LIMIT_RETRY;
+  }
+  if (err instanceof Error) return mapListingError(err.message);
+  return 'AI copilot недоступен';
 }

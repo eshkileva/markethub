@@ -4,10 +4,28 @@ import type { RedisClient } from '../../../infrastructure/redis/client.js';
 
 const LIVE_KEY = 'fx:rates';
 const LAST_KEY = 'fx:rates:last';
+const OPEN_ER_API_URL = 'https://open.er-api.com/v6/latest/RUB';
 
 type CurrencyApiResponse = {
   data?: Record<string, { code: string; value: number }>;
 };
+
+type OpenErApiResponse = {
+  result?: string;
+  rates?: Record<string, number>;
+};
+
+/** Quotes are "units of BYN/KZT per 1 RUB". Stored table is RUB per 1 unit. */
+export function ratesFromPerRubQuotes(bynPerRub: number, kztPerRub: number): RatesToRub {
+  if (!(bynPerRub > 0) || !(kztPerRub > 0)) {
+    throw new Error('Incomplete FX quotes');
+  }
+  return {
+    RUB: 1,
+    BYN: 1 / bynPerRub,
+    KZT: 1 / kztPerRub,
+  };
+}
 
 export class RatesService {
   private refresh: Promise<RatesToRub> | null = null;
@@ -42,9 +60,6 @@ export class RatesService {
   }
 
   private async refreshRates(): Promise<RatesToRub> {
-    if (!this.config.CURRENCYAPI_KEY) {
-      return this.fallback();
-    }
     try {
       const rates = await this.fetchLatest();
       const payload = JSON.stringify(rates);
@@ -52,7 +67,7 @@ export class RatesService {
       await this.redis.set(LAST_KEY, payload);
       return rates;
     } catch (error) {
-      console.warn('CurrencyAPI request failed', error);
+      console.warn('Live FX request failed', error);
       return this.fallback();
     }
   }
@@ -74,6 +89,28 @@ export class RatesService {
   }
 
   private async fetchLatest(): Promise<RatesToRub> {
+    try {
+      return await this.fetchOpenErApi();
+    } catch (error) {
+      if (!this.config.CURRENCYAPI_KEY) throw error;
+      console.warn('open.er-api.com failed, trying CurrencyAPI', error);
+      return this.fetchCurrencyApi();
+    }
+  }
+
+  private async fetchOpenErApi(): Promise<RatesToRub> {
+    const response = await fetch(OPEN_ER_API_URL, { headers: { Accept: 'application/json' } });
+    if (!response.ok) {
+      throw new Error(`open.er-api.com HTTP ${response.status}`);
+    }
+    const payload = (await response.json()) as OpenErApiResponse;
+    if (payload.result && payload.result !== 'success') {
+      throw new Error(`open.er-api.com result ${payload.result}`);
+    }
+    return ratesFromPerRubQuotes(payload.rates?.BYN ?? 0, payload.rates?.KZT ?? 0);
+  }
+
+  private async fetchCurrencyApi(): Promise<RatesToRub> {
     const url = new URL('https://api.currencyapi.com/v3/latest');
     url.searchParams.set('base_currency', 'RUB');
     url.searchParams.set('currencies', 'BYN,KZT,RUB');
@@ -87,17 +124,7 @@ export class RatesService {
       throw new Error(`CurrencyAPI HTTP ${response.status}`);
     }
     const payload = (await response.json()) as CurrencyApiResponse;
-    const bynPerRub = payload.data?.BYN?.value;
-    const kztPerRub = payload.data?.KZT?.value;
-    if (!bynPerRub || !kztPerRub) {
-      throw new Error('CurrencyAPI returned incomplete rates');
-    }
-    const rates: RatesToRub = {
-      RUB: 1,
-      BYN: 1 / bynPerRub,
-      KZT: 1 / kztPerRub,
-    };
-    return rates;
+    return ratesFromPerRubQuotes(payload.data?.BYN?.value ?? 0, payload.data?.KZT?.value ?? 0);
   }
 }
 

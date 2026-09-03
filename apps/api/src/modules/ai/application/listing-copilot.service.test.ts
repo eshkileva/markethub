@@ -87,6 +87,10 @@ describe('ListingCopilotService', () => {
     expect(result.assessment.baseRiskScore).toBeGreaterThan(0);
     expect(result.assessment.price.sampleSize).toBe(8);
     expect(usageLimiter.assertCopilotQuota).toHaveBeenCalledWith('seller-1');
+    const draftPrompt = (openRouter.chatJson as ReturnType<typeof vi.fn>).mock.calls[0][0][0]
+      .content as string;
+    expect(draftPrompt).toContain('Background does not need to be white');
+    expect(draftPrompt).not.toContain('photo quality');
   });
 
   it('assesses listing on publish server-side', async () => {
@@ -139,5 +143,10 @@ describe('ListingCopilotService', () => {
     const assessment = await service.assessForPublish('seller-1', 'listing-1');
     expect(assessment?.listingTrustScore).toBeGreaterThan(0);
     expect(assessment?.riskLevel).toBeDefined();
+    const systemPrompt = (openRouter.chatJson as ReturnType<typeof vi.fn>).mock.calls[0][0][0]
+      .content as string;
+    expect(systemPrompt).toContain('Background does not need to be white');
+    expect(systemPrompt).toContain('Secondary objects around the item');
+    expect(systemPrompt).toContain('lived-in scene is normal');
   });
 });

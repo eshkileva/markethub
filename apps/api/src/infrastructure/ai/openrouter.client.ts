@@ -1,5 +1,5 @@
 import type { AppConfig } from '../../config/env.js';
-import { ValidationError } from '../../shared/errors/app-error.js';
+import { RateLimitError, ValidationError } from '../../shared/errors/app-error.js';
 import { parseModelJson } from './parse-model-json.js';
 import type { AiCallLogger, AiCallMeta } from './ai-call-logger.js';
 
@@ -85,6 +85,11 @@ export class OpenRouterClient {
       });
 
       if (!response.ok) {
+        if (response.status === 429) {
+          throw new RateLimitError(
+            'Слишком много запросов к AI. Нажмите кнопку ещё раз через несколько секунд.',
+          );
+        }
         const text = await response.text().catch(() => '');
         throw new ValidationError(`AI provider error: ${response.status} ${text}`.slice(0, 240));
       }
