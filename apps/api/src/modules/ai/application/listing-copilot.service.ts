@@ -297,16 +297,12 @@ export class ListingCopilotService {
     const sellerRiskReasons: string[] = [];
     let baseRiskScore = modelRiskScore;
     if (!seller.emailVerified) {
-      baseRiskScore += 15;
+      baseRiskScore += 8;
       sellerRiskReasons.push('Email продавца не подтверждён');
     }
     if (seller.accountAgeDays < 3) {
-      baseRiskScore += 10;
-      sellerRiskReasons.push('Новый аккаунт продавца');
-    }
-    if (seller.listingCount === 0) {
       baseRiskScore += 5;
-      sellerRiskReasons.push('Первое объявление продавца');
+      sellerRiskReasons.push('Новый аккаунт продавца');
     }
     baseRiskScore = Math.min(100, baseRiskScore);
 

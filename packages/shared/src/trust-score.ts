@@ -77,16 +77,37 @@ export function aiRiskLevelFromScore(score: number): AiRiskLevel {
 }
 
 export function listingTrustScore(sellerTrustScore: number, riskScore: number): number {
-  const sellerPart = Math.min(100, Math.max(0, sellerTrustScore)) * 0.6;
-  const listingPart = (100 - Math.min(100, Math.max(0, riskScore))) * 0.4;
+  // No reviews stored as 0 — that is "unknown", not "untrusted".
+  const seller = sellerTrustScore > 0 ? Math.min(100, sellerTrustScore) : 50;
+  const clampedRisk = Math.min(100, Math.max(0, riskScore));
+  const sellerPart = seller * 0.3;
+  const listingPart = (100 - clampedRisk) * 0.7;
   return Math.round(sellerPart + listingPart);
+}
+
+export function listingTrustScoreFromAssessment(
+  assessment: { riskScore?: unknown; sellerTrustScore?: unknown } | null | undefined,
+  stored?: number | null,
+): number | null {
+  if (
+    !assessment ||
+    typeof assessment.riskScore !== 'number' ||
+    Number.isNaN(assessment.riskScore)
+  ) {
+    return stored ?? null;
+  }
+  const seller =
+    typeof assessment.sellerTrustScore === 'number' && !Number.isNaN(assessment.sellerTrustScore)
+      ? assessment.sellerTrustScore
+      : 0;
+  return listingTrustScore(seller, assessment.riskScore);
 }
 
 export function priceVerdict(
   price: number,
   stats: { min: number | null; max: number | null; median: number | null; sampleSize: number },
 ): PriceVerdict {
-  if (stats.sampleSize <= 0 || stats.median == null) {
+  if (stats.sampleSize < 3 || stats.median == null) {
     return 'unknown';
   }
   if (price < stats.median * 0.7) return 'low';
