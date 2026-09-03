@@ -134,7 +134,7 @@ export function Combobox({
         id={listId}
         role="listbox"
         style={{ top: menuBox.top, left: menuBox.left, width: menuBox.width }}
-        className="border-border bg-card fixed z-80 max-h-64 overflow-auto rounded-xl border py-1 shadow-md"
+        className="border-border bg-card z-80 fixed max-h-64 overflow-auto rounded-xl border py-1 shadow-md"
       >
         {allowEmpty ? (
           <li>
