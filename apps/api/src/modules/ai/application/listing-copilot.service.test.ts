@@ -20,6 +20,12 @@ function deps() {
   };
 }
 
+function firstSystemPrompt(chatJson: ReturnType<typeof vi.fn>): string {
+  const messages = chatJson.mock.calls[0]?.[0] as Array<{ content?: unknown }> | undefined;
+  const content = messages?.[0]?.content;
+  return typeof content === 'string' ? content : '';
+}
+
 describe('ListingCopilotService', () => {
   it('maps AI draft into listing suggestions and trust assessment', async () => {
     const repo = {
@@ -87,6 +93,9 @@ describe('ListingCopilotService', () => {
     expect(result.assessment.baseRiskScore).toBeGreaterThan(0);
     expect(result.assessment.price.sampleSize).toBe(8);
     expect(usageLimiter.assertCopilotQuota).toHaveBeenCalledWith('seller-1');
+    const draftPrompt = firstSystemPrompt(openRouter.chatJson as ReturnType<typeof vi.fn>);
+    expect(draftPrompt).toContain('Background does not need to be white');
+    expect(draftPrompt).not.toContain('photo quality');
   });
 
   it('assesses listing on publish server-side', async () => {
@@ -139,5 +148,9 @@ describe('ListingCopilotService', () => {
     const assessment = await service.assessForPublish('seller-1', 'listing-1');
     expect(assessment?.listingTrustScore).toBeGreaterThan(0);
     expect(assessment?.riskLevel).toBeDefined();
+    const systemPrompt = firstSystemPrompt(openRouter.chatJson as ReturnType<typeof vi.fn>);
+    expect(systemPrompt).toContain('Background does not need to be white');
+    expect(systemPrompt).toContain('Secondary objects around the item');
+    expect(systemPrompt).toContain('lived-in scene is normal');
   });
 });

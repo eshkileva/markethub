@@ -1,6 +1,7 @@
 import { and, desc, eq, gte, ilike, inArray, lte, sql } from 'drizzle-orm';
 import {
   convertedAmounts,
+  listingTrustScoreFromAssessment,
   type CurrencyCode,
   type ListingStatus,
   type PriceVerdict,
@@ -159,7 +160,10 @@ export async function listCatalog(
         condition: listing.condition,
         publishedAt: listing.publishedAt?.toISOString() ?? null,
         imageUrl: imagesByListing.get(listing.id)?.[0]?.url ?? null,
-        listingTrustScore: listing.listingTrustScore ?? null,
+        listingTrustScore: listingTrustScoreFromAssessment(
+          listing.aiAssessment,
+          listing.listingTrustScore,
+        ),
         aiRiskLevel: listing.aiRiskLevel ?? null,
         priceVerdict: priceVerdictFromAssessment(listing.aiAssessment),
         isFavorite: favoriteIds.has(listing.id),

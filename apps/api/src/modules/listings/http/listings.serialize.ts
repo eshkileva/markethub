@@ -1,3 +1,5 @@
+import { listingTrustScoreFromAssessment } from '@markethub/shared';
+
 export function serializeListing(listing: {
   id: string;
   title: string;
@@ -34,7 +36,10 @@ export function serializeListing(listing: {
     publishedAt: listing.publishedAt?.toISOString() ?? null,
     createdAt: listing.createdAt.toISOString(),
     updatedAt: listing.updatedAt.toISOString(),
-    listingTrustScore: listing.listingTrustScore ?? null,
+    listingTrustScore: listingTrustScoreFromAssessment(
+      listing.aiAssessment,
+      listing.listingTrustScore,
+    ),
     aiRiskLevel: listing.aiRiskLevel ?? null,
     aiAssessment: listing.aiAssessment ?? null,
     aiAssessedAt: listing.aiAssessedAt?.toISOString() ?? null,

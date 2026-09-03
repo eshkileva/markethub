@@ -1,10 +1,23 @@
-import { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { ChevronsUpDown } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
 import { selectClassName } from '@/shared/ui/native-select';
 import { filterComboboxOptions, type ComboboxOption } from '@/shared/ui/combobox-filter';
 
 export type { ComboboxOption };
+
+type MenuBox = { top: number; left: number; width: number };
+
+function menuPosition(trigger: HTMLElement): MenuBox {
+  const rect = trigger.getBoundingClientRect();
+  const width = Math.max(rect.width, 10.5 * 16);
+  let left = rect.left;
+  if (left + width > window.innerWidth - 8) {
+    left = Math.max(8, window.innerWidth - width - 8);
+  }
+  return { top: rect.bottom + 4, left, width };
+}
 
 export function Combobox({
   id,
@@ -45,9 +58,11 @@ export function Combobox({
 }) {
   const listId = useId();
   const rootRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLUListElement>(null);
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [active, setActive] = useState(0);
+  const [menuBox, setMenuBox] = useState<MenuBox | null>(null);
   const selected = useMemo(() => options.find((item) => item.value === value), [options, value]);
   const filtered = useMemo(() => filterComboboxOptions(options, query), [options, query]);
   const visible = useMemo(() => {
@@ -64,9 +79,32 @@ export function Combobox({
     onQueryChange?.(next);
   }
 
+  useLayoutEffect(() => {
+    if (!open || !rootRef.current) {
+      setMenuBox(null);
+      return;
+    }
+    setMenuBox(menuPosition(rootRef.current));
+  }, [open, visible.length, query]);
+
+  useEffect(() => {
+    if (!open) return;
+    function onReposition() {
+      if (rootRef.current) setMenuBox(menuPosition(rootRef.current));
+    }
+    window.addEventListener('resize', onReposition);
+    window.addEventListener('scroll', onReposition, true);
+    return () => {
+      window.removeEventListener('resize', onReposition);
+      window.removeEventListener('scroll', onReposition, true);
+    };
+  }, [open]);
+
   useEffect(() => {
     function onPointer(event: PointerEvent) {
-      if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
+      const target = event.target as Node;
+      if (rootRef.current?.contains(target) || listRef.current?.contains(target)) return;
+      setOpen(false);
     }
     document.addEventListener('pointerdown', onPointer);
     return () => document.removeEventListener('pointerdown', onPointer);
@@ -89,6 +127,61 @@ export function Combobox({
     setActive((current) => (current + delta + total) % total);
   }
 
+  const list =
+    open && !disabled && menuBox ? (
+      <ul
+        ref={listRef}
+        id={listId}
+        role="listbox"
+        style={{ top: menuBox.top, left: menuBox.left, width: menuBox.width }}
+        className="border-border bg-card z-80 fixed max-h-64 overflow-auto rounded-xl border py-1 shadow-md"
+      >
+        {allowEmpty ? (
+          <li>
+            <button
+              type="button"
+              className={cn(
+                'hover:bg-surface-secondary w-full px-3 py-2 text-left text-sm',
+                active === 0 && 'bg-surface-secondary',
+              )}
+              onMouseDown={(event) => event.preventDefault()}
+              onClick={() => commit('')}
+            >
+              {clearLabel}
+            </button>
+          </li>
+        ) : null}
+        {visible.length === 0 ? (
+          <li className="text-muted px-3 py-2 text-sm">{emptyLabel}</li>
+        ) : (
+          visible.map((item, index) => {
+            const optionIndex = allowEmpty ? index + 1 : index;
+            return (
+              <li key={item.value}>
+                <button
+                  type="button"
+                  role="option"
+                  aria-selected={item.value === value}
+                  className={cn(
+                    'hover:bg-surface-secondary w-full px-3 py-2 text-left text-sm',
+                    item.value === value && 'text-primary font-medium',
+                    active === optionIndex && 'bg-surface-secondary',
+                  )}
+                  onMouseDown={(event) => event.preventDefault()}
+                  onClick={() => commit(item.value)}
+                >
+                  {item.label}
+                </button>
+              </li>
+            );
+          })
+        )}
+        {truncated ? (
+          <li className="text-muted border-border border-t px-3 py-2 text-xs">{truncatedHint}</li>
+        ) : null}
+      </ul>
+    ) : null;
+
   return (
     <div ref={rootRef} className={cn('relative min-w-0', className)}>
       <div className="relative min-w-0">
@@ -108,7 +201,7 @@ export function Combobox({
             variant === 'ghost' &&
               'border-0 bg-transparent shadow-none focus-visible:ring-0 focus-visible:ring-offset-0',
           )}
-          placeholder={placeholder}
+          placeholder={selected?.label ?? placeholder}
           value={open ? query : (selected?.label ?? value)}
           onFocus={() => {
             if (disabled) return;
@@ -149,57 +242,7 @@ export function Combobox({
           )}
         />
       </div>
-      {open && !disabled ? (
-        <ul
-          id={listId}
-          role="listbox"
-          className="border-border bg-card absolute z-50 mt-1 max-h-64 w-full overflow-auto rounded-xl border py-1 shadow-md"
-        >
-          {allowEmpty ? (
-            <li>
-              <button
-                type="button"
-                className={cn(
-                  'hover:bg-surface-secondary w-full px-3 py-2 text-left text-sm',
-                  active === 0 && 'bg-surface-secondary',
-                )}
-                onMouseDown={(event) => event.preventDefault()}
-                onClick={() => commit('')}
-              >
-                {clearLabel}
-              </button>
-            </li>
-          ) : null}
-          {visible.length === 0 ? (
-            <li className="text-muted px-3 py-2 text-sm">{emptyLabel}</li>
-          ) : (
-            visible.map((item, index) => {
-              const optionIndex = allowEmpty ? index + 1 : index;
-              return (
-                <li key={item.value}>
-                  <button
-                    type="button"
-                    role="option"
-                    aria-selected={item.value === value}
-                    className={cn(
-                      'hover:bg-surface-secondary w-full px-3 py-2 text-left text-sm',
-                      item.value === value && 'text-primary font-medium',
-                      active === optionIndex && 'bg-surface-secondary',
-                    )}
-                    onMouseDown={(event) => event.preventDefault()}
-                    onClick={() => commit(item.value)}
-                  >
-                    {item.label}
-                  </button>
-                </li>
-              );
-            })
-          )}
-          {truncated ? (
-            <li className="text-muted border-border border-t px-3 py-2 text-xs">{truncatedHint}</li>
-          ) : null}
-        </ul>
-      ) : null}
+      {list && typeof document !== 'undefined' ? createPortal(list, document.body) : null}
     </div>
   );
 }

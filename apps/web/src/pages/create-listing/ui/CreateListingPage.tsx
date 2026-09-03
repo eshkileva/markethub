@@ -27,7 +27,7 @@ import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Input } from '@/shared/ui/input';
 import { Label } from '@/shared/ui/label';
-import { mapListingError } from '../model/map-listing-error';
+import { mapCopilotError, mapListingError } from '../model/map-listing-error';
 import {
   attributeFieldKey,
   listingSectionHasError,
@@ -461,7 +461,7 @@ export function CreateListingPage({ listingId }: { listingId?: string }) {
       return result.assessment;
     } catch (err) {
       if (!options?.reassessOnly) {
-        toast(err instanceof Error ? mapListingError(err.message) : 'AI copilot недоступен');
+        toast(mapCopilotError(err));
       }
       return aiAssessment;
     } finally {

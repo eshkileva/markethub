@@ -3,6 +3,7 @@ import {
   aiRiskLevelFromScore,
   buildListingAssessment,
   listingTrustScore,
+  listingTrustScoreFromAssessment,
   mergeRiskScore,
   priceVerdict,
   trustScoreFromReviews,
@@ -22,9 +23,15 @@ describe('trustScoreFromReviews', () => {
 });
 
 describe('listingTrustScore', () => {
-  it('combines seller trust and listing risk', () => {
+  it('weights listing quality over seller reviews', () => {
     expect(listingTrustScore(80, 20)).toBe(80);
-    expect(listingTrustScore(0, 100)).toBe(0);
+    expect(listingTrustScore(0, 20)).toBe(71);
+    expect(listingTrustScore(0, 20)).toBeGreaterThan(listingTrustScore(20, 20));
+  });
+
+  it('treats a seller with no reviews as neutral, not zero', () => {
+    expect(listingTrustScore(0, 100)).toBe(15);
+    expect(listingTrustScoreFromAssessment({ riskScore: 20, sellerTrustScore: 0 }, 12)).toBe(71);
   });
 });
 
@@ -32,6 +39,12 @@ describe('priceVerdict', () => {
   it('flags suspiciously low prices', () => {
     expect(priceVerdict(30_000, { min: 40_000, max: 60_000, median: 50_000, sampleSize: 5 })).toBe(
       'low',
+    );
+  });
+
+  it('does not judge the market from one or two comps', () => {
+    expect(priceVerdict(10_000, { min: 40_000, max: 60_000, median: 50_000, sampleSize: 2 })).toBe(
+      'unknown',
     );
   });
 });
